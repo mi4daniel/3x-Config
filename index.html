@@ -470,22 +470,12 @@
     </div>
     <script src="layout-designer.js"></script>
     <script src="products.js"></script>
+    <script src="state-manager.js"></script>
     <script>
         // --- DATA ---
-        window.configuration = { 
-            projectName: '',
-            racks: [],
-            cloudServers: [],
-            cloudCameras: [],
-            allInOneCameras: [],
-            accessControl: [],
-            mounts: [],
-            accessories: [],
-            customParts: [],
-            cameraLayout: null,
-            layoutPlacements: []
-        };
-        
+        window.configuration = window.AppState.createInitialConfiguration(window.configuration);
+        const configuration = window.configuration;
+
         let autoAddLicenses = true;
 
         const smbkBundles = {
@@ -2033,8 +2023,8 @@
 
         function resetConfiguration() {
             if(confirm('Are you sure you want to reset the entire configuration?')) {
-                configuration = { racks: [], cloudServers: [], cloudCameras: [], allInOneCameras: [], accessControl: [], mounts: [], accessories: [], customParts: [], cameraLayout: null, layoutPlacements: [] };
-                localStorage.removeItem('3xlogicConfig');
+                window.AppState.resetConfiguration(configuration);
+                localStorage.removeItem(window.AppState.STORAGE_KEY);
                 renderAll();
             }
         }
@@ -2048,84 +2038,16 @@
 
         // --- SAVE, LOAD, & LOCAL STORAGE ---
         function saveToLocalStorage() {
-            try {
-                const configString = JSON.stringify(configuration);
-                localStorage.setItem('3xlogicConfig', configString);
-            } catch (e) {
-                console.error("Failed to save to localStorage", e);
-            }
+            window.AppState.persistConfiguration(configuration);
         }
 
         function loadFromLocalStorage() {
-  // Small helpers to make sure we always work with arrays/objects
-  const toArray = (v) => {
-    if (Array.isArray(v)) return v;
-    if (v && typeof v === 'object') return Object.values(v); // migrate object maps -> arrays
-    return [];
-  };
-  const toObject = (v) => (v && typeof v === 'object' && !Array.isArray(v) ? v : {});
-
-  try {
-    const configString = localStorage.getItem('3xlogicConfig');
-    if (!configString) return false;
-
-    const loadedConfig = toObject(JSON.parse(configString));
-
-    // IMPORTANT: mutate the existing configuration object instead of replacing it,
-    // so other modules holding a reference don't break.
-    Object.assign(configuration, { layoutPlacements: [] }, loadedConfig);
-
-    // Normalize top-level collections
-    configuration.racks            = toArray(configuration.racks);
-    configuration.cloudServers     = toArray(configuration.cloudServers);
-    configuration.cloudCameras     = toArray(configuration.cloudCameras);
-    configuration.allInOneCameras  = toArray(configuration.allInOneCameras);
-    configuration.cameraLayout     = configuration.cameraLayout || null;
-
-    // Normalize nested racks/devices/cameras and NVR fields
-    configuration.racks.forEach((r) => {
-      r.standaloneSwitches = toArray(r.standaloneSwitches);
-      r.devices            = toArray(r.devices);
-
-      r.devices.forEach((d) => {
-        d.assignedUps = toArray(d.assignedUps);
-        d.cameras     = toArray(d.cameras);
-
-        if (d.product && d.product.deviceType === 'nvr') {
-          d.licenses = toArray(d.licenses);
-          if (typeof syncNvrLicenses === 'function') {
-            syncNvrLicenses(d);
-          }
+            return window.AppState.restoreConfiguration(configuration, {
+                syncNvrLicenses,
+                onSuccess: () => showToast('Project restored from last session.'),
+                onError: (error) => console.error('Failed to load from localStorage', error)
+            });
         }
-      });
-    });
-
-    // Fix/seed camera fields across ALL camera arrays (cloud / AIO / on-recorders)
-    const rackCameras = configuration.racks.flatMap((r) =>
-      r.devices.flatMap((d) => toArray(d.cameras))
-    );
-
-    const allCameraArrays = [configuration.cloudCameras, configuration.allInOneCameras, rackCameras];
-
-    allCameraArrays.forEach((camArray) => {
-      // Each member here is GUARANTEED an array now
-      camArray.forEach((c) => {
-        if (typeof c.location === 'undefined') c.location = '';
-        if (typeof c.quantity === 'undefined') c.quantity = 1;
-        if (c.isCloud && typeof c.selectedMounts === 'undefined') c.selectedMounts = [null];
-      });
-    });
-
-    if (typeof showToast === 'function') {
-      showToast('Project restored from last session.');
-    }
-    return true;
-  } catch (e) {
-    console.error('Failed to load from localStorage', e);
-    localStorage.removeItem('3xlogicConfig');
-    return false;
-  }
-}
 
         function saveProjectToFile() {
             const configString = JSON.stringify(configuration, null, 2);
@@ -2150,10 +2072,9 @@
                 try {
                     const configString = e.target.result;
                     const loadedConfig = JSON.parse(configString);
-                    configuration = {
-                        layoutPlacements: [],
-                        ...loadedConfig
-                    };
+                    window.AppState.applyDefaults(configuration);
+                    Object.assign(configuration, { layoutPlacements: [] }, loadedConfig);
+                    window.AppState.normalizeConfiguration(configuration, { syncNvrLicenses });
                     renderAll();
                     showToast("Project Loaded Successfully!");
                 } catch (err) {
