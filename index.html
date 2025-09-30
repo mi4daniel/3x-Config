@@ -381,22 +381,6 @@
             transform: scale(1.02);
             box-shadow: 0 5px 15px rgba(0,0,0,0.08);
         }
-        #chatbot-window {
-            background: white;
-            border-radius: 0.5rem;
-            width: 90vw;
-            max-width: 500px;
-            height: 70vh;
-            max-height: 600px;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-        }
-        #chatbot-messages { flex-grow: 1; padding: 1rem; overflow-y: auto; background-color: #f9fafb; }
-        #chatbot-input-container { display: flex; padding: 0.5rem; border-top: 1px solid #e5e7eb; }
-        #chatbot-input { flex-grow: 1; border: 1px solid #d1d5db; border-radius: 0.375rem; padding: 0.5rem 0.75rem; outline: none; }
-        #chatbot-send { background: var(--brand-blue); color: white; border-radius: 0.375rem; padding: 0 0.75rem; margin-left: 0.5rem; }
 
     </style>
 </head>
@@ -457,11 +441,6 @@
                     </div>
                 </div>
                 
-                <button id="chatbotHeaderButton" class="icon-button bg-gray-700 text-white hover:bg-purple-700">
-                    <img src="/icons/chatbot_.png" alt="Chatbot">
-                    <span>Chatbot</span>
-                </button>
-
                 <button id="resetButton" class="icon-button bg-transparent border border-red-500 text-red-500 hover:bg-red-500 hover:text-white">
                     <img src="/icons/reset-left-line_.png" alt="Reset">
                     <span>Reset</span>
@@ -491,7 +470,6 @@
     </div>
     <script src="layout-designer.js"></script>
     <script src="products.js"></script>
-    <script src="chatbot.js"></script>
     <script>
         // --- DATA ---
         window.configuration = { 
@@ -546,10 +524,6 @@
         const addNvrButton = document.getElementById('addNvrButton');
         const addServerButton = document.getElementById('addServerButton');
         const addPoeSwitchButton = document.getElementById('addPoeSwitchButton');
-        const chatbotHeaderButton = document.getElementById('chatbotHeaderButton');
-        const chatbotMessages = document.getElementById('chatbot-messages');
-        const chatbotInput = document.getElementById('chatbot-input');
-        const chatbotSend = document.getElementById('chatbot-send');
 
         // --- HELPER & UI FUNCTIONS ---
         function getNvrChannelUsage(device) {
@@ -2450,57 +2424,6 @@
             showToast("Camera License Added.");
         }
 
-        function openChatbotModal() {
-            const modalHtml = `
-                <div id="chatbot-window">
-                    <div class="bg-gray-800 text-white p-3 font-bold text-lg flex justify-between items-center">
-                        <span>3xLOGIC Assistant</span>
-                        <button id="closeChatbot" class="text-2xl leading-none">&times;</button>
-                    </div>
-                    <div id="chatbot-messages" class="flex flex-col"></div>
-                    <div id="chatbot-input-container">
-                        <input type="text" id="chatbot-input" placeholder="Ask me something...">
-                        <button id="chatbot-send">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
-                        </button>
-                    </div>
-                </div>
-            `;
-
-            const overlay = document.createElement('div');
-            overlay.className = 'modal-overlay';
-            overlay.innerHTML = modalHtml;
-            modalContainer.appendChild(overlay);
-            setTimeout(() => overlay.classList.add('show'), 10);
-
-            const close = () => {
-                overlay.classList.remove('show');
-                overlay.addEventListener('transitionend', () => overlay.remove(), { once: true });
-            };
-
-            overlay.querySelector('#closeChatbot').addEventListener('click', close);
-            overlay.querySelector('#chatbot-send').addEventListener('click', processChatInput);
-            const chatbotInput = overlay.querySelector('#chatbot-input');
-            chatbotInput.addEventListener('keyup', (e) => {
-                if (e.key === 'Enter') processChatInput();
-            });
-
-            setTimeout(() => {
-                addChatMessage("Hello! How can I help you configure your system today?", 'bot');
-                chatbotInput.focus();
-            }, 300);
-        }
-
-        function addChatMessage(message, sender) {
-            const chatbotMessages = document.getElementById('chatbot-messages');
-            if (!chatbotMessages) return;
-            const messageEl = document.createElement('div');
-            messageEl.className = `chat-message p-2 rounded-lg mb-2 max-w-[80%] ${sender === 'user' ? 'bg-blue-500 text-white self-end' : 'bg-gray-200 text-gray-800 self-start'}`;
-            messageEl.innerHTML = message; // Use innerHTML to render links/buttons
-            chatbotMessages.appendChild(messageEl);
-            chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
-        }
-
         // --- STORAGE CALCULATOR ---
         function openStorageCalculator() {
             const allCameras = [
@@ -2693,21 +2616,6 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             setupDropdowns();
-            // Ensure products & page helpers exist, then initialize the chatbot.
-            if (!window.products) {
-              console.warn('[chatbot] products not loaded yet.');
-            }
-            initChatbot({
-              products: window.products,
-              createProductSelectionModal,   // uses your existing modal picker
-              addProduct: (productId) => addProduct(productId), // chatbot calls with product ID
-              addNvr: () => document.getElementById('addNvrButton')?.click(),
-              addServer: () => document.getElementById('addServerButton')?.click(),
-              addPoeSwitch: () => document.getElementById('addPoeSwitchButton')?.click(),
-              getConfiguration: () => window.configuration,
-              checkSystemStatus: (detailed) => window.checkSystemStatus?.(detailed) || { warnings: [] },
-              openStorageCalculator: () => window.openStorageCalculator?.()
-            });
             
             setupProductData();
             if (!loadFromLocalStorage()) {
