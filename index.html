@@ -7,42 +7,146 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Add these styles for the new header dropdowns */
-        .dropdown {
-            position: relative;
-            display: inline-block;
+        /* Top navigation layout */
+        .navigation-panel {
+            flex: 1 1 100%;
         }
 
-        .dropdown-content {
-            display: none;
-            position: absolute;
-            right: 0;
-            background-color: #f1f1f1;
-            min-width: 200px;
-            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-            z-index: 1001; /* Ensure it's above other content */
-            border-radius: 0.375rem; /* rounded-md */
-            overflow: hidden;
-        }
-
-        .dropdown-content button {
-            color: black;
-            padding: 12px 16px;
-            text-decoration: none;
-            display: block;
+        .navigation-grid {
+            display: grid;
+            gap: 1rem;
             width: 100%;
+        }
+
+        @media (min-width: 768px) {
+            .navigation-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (min-width: 1280px) {
+            .navigation-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+
+        .navigation-card {
+            background: rgba(30, 41, 59, 0.85);
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            border-radius: 1.25rem;
+            padding: 1.5rem;
+            box-shadow: 0 18px 35px -22px rgba(15, 23, 42, 0.85);
+        }
+
+        .navigation-card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .navigation-step {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: #e0f2fe;
+            background: linear-gradient(145deg, rgba(14, 165, 233, 0.45), rgba(99, 102, 241, 0.55));
+            box-shadow: 0 8px 18px -10px rgba(59, 130, 246, 0.8);
+        }
+
+        .navigation-card h2 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #f8fafc;
+        }
+
+        .navigation-card p {
+            font-size: 0.85rem;
+            color: #cbd5f5;
+            margin-top: 0.25rem;
+        }
+
+        .navigation-actions {
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        @media (min-width: 640px) {
+            .navigation-actions {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            }
+        }
+
+        .menu-action-button {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.25rem;
+            width: 100%;
+            padding: 0.85rem 1rem;
+            border-radius: 0.9rem;
+            background: rgba(148, 163, 184, 0.12);
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            color: #e2e8f0;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
             text-align: left;
-            transition: background-color 0.2s;
         }
 
-        .dropdown-content button:hover {
-            background-color: #ddd;
-            transform: none; /* Override general button hover transform */
-            box-shadow: none; /* Override general button hover shadow */
+        .menu-action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px -16px rgba(15, 23, 42, 0.9);
+            border-color: rgba(129, 140, 248, 0.6);
+            background: rgba(99, 102, 241, 0.22);
         }
 
-        .show-dropdown {
-            display: block;
+        .menu-action-button .action-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            letter-spacing: 0.01em;
+        }
+
+        .menu-action-button .action-subtitle {
+            font-size: 0.75rem;
+            color: rgba(226, 232, 240, 0.75);
+        }
+
+        .menu-action-button.accent {
+            background: linear-gradient(145deg, rgba(59, 130, 246, 0.35), rgba(99, 102, 241, 0.3));
+            border-color: rgba(59, 130, 246, 0.55);
+        }
+
+        .menu-action-button.accent:hover {
+            border-color: rgba(59, 130, 246, 0.75);
+            background: linear-gradient(145deg, rgba(59, 130, 246, 0.45), rgba(79, 70, 229, 0.4));
+        }
+
+        .menu-action-button.success {
+            background: rgba(16, 185, 129, 0.18);
+            border-color: rgba(16, 185, 129, 0.45);
+        }
+
+        .menu-action-button.success:hover {
+            border-color: rgba(16, 185, 129, 0.65);
+            background: rgba(16, 185, 129, 0.28);
+        }
+
+        .menu-action-button.danger {
+            background: rgba(239, 68, 68, 0.16);
+            border-color: rgba(239, 68, 68, 0.45);
+            color: #fecaca;
+        }
+
+        .menu-action-button.danger .action-subtitle {
+            color: rgba(254, 226, 226, 0.75);
+        }
+
+        .menu-action-button.danger:hover {
+            border-color: rgba(248, 113, 113, 0.7);
+            background: rgba(239, 68, 68, 0.28);
         }
         :root {
             --brand-blue: #0072c6;
@@ -348,13 +452,6 @@
             opacity: 1;
             bottom: 30px;
         }
-        header button, #customPartBtn {
-            transition: all 0.2s ease-in-out;
-        }
-        header button:hover, #customPartBtn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
         .product-item {
             transition: transform 0.2s, box-shadow 0.2s;
         }
@@ -451,32 +548,6 @@
             display: block;
         }
 
-        /* New styles for icon buttons */
-        .icon-button {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 10px 16px;
-            border-radius: 0.75rem;
-            transition: all 0.2s ease-in-out;
-            height: 64px;
-            font-size: 0.75rem;
-            line-height: 1rem;
-            border: 1px solid rgba(148, 163, 184, 0.25);
-            background: rgba(148, 163, 184, 0.12);
-            color: #e2e8f0;
-        }
-        .icon-button img {
-            width: 32px; /* Icon size */
-            height: 32px; /* Icon size */
-            margin-bottom: 4px; /* Space between icon and text */
-        }
-        .icon-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-
         /* Visual Polish */
         .accordion-header {
             border-radius: 0.375rem; /* rounded-md */
@@ -490,7 +561,7 @@
             border: 1px solid transparent;
             transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
         }
-                .product-item:hover {
+        .product-item:hover {
             transform: scale(1.02);
             box-shadow: 0 5px 15px rgba(0,0,0,0.08);
         }
@@ -501,66 +572,112 @@
     <div id="sidebar-overlay" class="sidebar-overlay"></div>
     <div id="app-container" class="flex-1 flex flex-col">
         <header class="app-header">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-wrap items-center justify-between gap-4">
-                <div class="flex items-center gap-4">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-6">
+                <div class="flex flex-wrap items-center gap-4">
                     <img src="/3xlogiclogo.png" alt="3xLOGIC Logo" class="h-12 w-auto">
                     <div>
                         <h1 class="text-lg sm:text-xl font-semibold text-slate-100">3xLOGIC Configuration Studio</h1>
                         <p class="text-xs sm:text-sm text-slate-400">Plan, assemble, and visualize your security ecosystem.</p>
                     </div>
                 </div>
-                <div class="flex flex-wrap items-center gap-2 sm:gap-3">
-                    <button id="systemStatusButton" class="icon-button border border-slate-700/60 bg-slate-800/60 hover:bg-slate-700/70">
-                        <img src="/icons/status_.png" alt="Status">
-                        <span>Status</span>
-                    </button>
-                    <div class="dropdown">
-                        <button id="toolsDropdownBtn" class="icon-button border-slate-700/60 bg-slate-800/60 hover:bg-indigo-700/70">
-                            <img src="/icons/tools_.png" alt="Tools">
-                            <span>Tools</span>
-                        </button>
-                        <div id="toolsDropdownContent" class="dropdown-content">
-                            <button id="storageCalcButton">Storage Calculator</button>
-                            <button id="uploadLayoutButton">Upload Layout</button>
-                            <input type="file" id="layoutFile" class="hidden" accept="image/*">
-                            <button id="layoutDesignerButton">Camera Layout Designer</button>
-                            <hr>
-                            <button id="customPartBtn" class="w-full">Add Custom Part</button>
-                        </div>
+                <nav class="navigation-panel">
+                    <div class="navigation-grid">
+                        <section class="navigation-card">
+                            <div class="navigation-card-header">
+                                <div class="navigation-step">1</div>
+                                <div>
+                                    <h2>Plan &amp; Contextualize</h2>
+                                    <p>Ground the project with site details and supporting documents.</p>
+                                </div>
+                            </div>
+                            <div class="navigation-actions">
+                                <button id="systemStatusButton" class="menu-action-button accent" type="button">
+                                    <span class="action-title">System Status</span>
+                                    <span class="action-subtitle">Review current readiness checkpoints</span>
+                                </button>
+                                <button id="storageCalcButton" class="menu-action-button" type="button">
+                                    <span class="action-title">Storage Calculator</span>
+                                    <span class="action-subtitle">Validate retention goals and throughput</span>
+                                </button>
+                                <button id="uploadLayoutButton" class="menu-action-button" type="button">
+                                    <span class="action-title">Upload Layout</span>
+                                    <span class="action-subtitle">Bring in floor plans or schematics</span>
+                                </button>
+                                <input type="file" id="layoutFile" class="hidden" accept="image/*">
+                            </div>
+                        </section>
+                        <section class="navigation-card">
+                            <div class="navigation-card-header">
+                                <div class="navigation-step">2</div>
+                                <div>
+                                    <h2>Design the Solution</h2>
+                                    <p>Build out the hardware mix and tailor the environment.</p>
+                                </div>
+                            </div>
+                            <div class="navigation-actions">
+                                <button id="layoutDesignerButton" class="menu-action-button accent" type="button">
+                                    <span class="action-title">Camera Layout Designer</span>
+                                    <span class="action-subtitle">Map coverage and identify blind spots</span>
+                                </button>
+                                <button id="addRackButton" class="menu-action-button success" type="button">
+                                    <span class="action-title">Add Rack</span>
+                                    <span class="action-subtitle">Start a new equipment grouping</span>
+                                </button>
+                                <button id="addNvrButton" class="menu-action-button success" type="button">
+                                    <span class="action-title">Add NVR</span>
+                                    <span class="action-subtitle">Select recording capacity</span>
+                                </button>
+                                <button id="addServerButton" class="menu-action-button success" type="button">
+                                    <span class="action-title">Add Infinias Server</span>
+                                    <span class="action-subtitle">Manage access control intelligence</span>
+                                </button>
+                                <button id="addPoeSwitchButton" class="menu-action-button success" type="button">
+                                    <span class="action-title">Add POE Switch</span>
+                                    <span class="action-subtitle">Distribute power and data effectively</span>
+                                </button>
+                                <button id="customPartBtn" class="menu-action-button" type="button">
+                                    <span class="action-title">Add Custom Part</span>
+                                    <span class="action-subtitle">Capture project-specific components</span>
+                                </button>
+                            </div>
+                        </section>
+                        <section class="navigation-card">
+                            <div class="navigation-card-header">
+                                <div class="navigation-step">3</div>
+                                <div>
+                                    <h2>Finalize &amp; Share</h2>
+                                    <p>Package your work for the customer and delivery teams.</p>
+                                </div>
+                            </div>
+                            <div class="navigation-actions">
+                                <button id="saveButton" class="menu-action-button accent" type="button">
+                                    <span class="action-title">Save Project</span>
+                                    <span class="action-subtitle">Generate a local project file</span>
+                                </button>
+                                <button id="loadButton" class="menu-action-button" type="button">
+                                    <span class="action-title">Load Project</span>
+                                    <span class="action-subtitle">Resume from an existing configuration</span>
+                                </button>
+                                <input type="file" id="loadFile" class="hidden" accept=".json">
+                                <button id="exportButton" class="menu-action-button" type="button">
+                                    <span class="action-title">Export CSV</span>
+                                    <span class="action-subtitle">Share a bill of materials snapshot</span>
+                                </button>
+                                <button id="printButton" class="menu-action-button" type="button">
+                                    <span class="action-title">Print Overview</span>
+                                    <span class="action-subtitle">Provide a meeting-ready summary</span>
+                                </button>
+                                <button id="resetButton" class="menu-action-button danger" type="button">
+                                    <span class="action-title">Reset Project</span>
+                                    <span class="action-subtitle">Clear selections and start fresh</span>
+                                </button>
+                            </div>
+                        </section>
                     </div>
-                    <div class="dropdown">
-                        <button id="addDropdownBtn" class="icon-button border-slate-700/60 bg-emerald-600/20 hover:bg-emerald-500/30">
-                            <img src="/icons/add-card-sharp_.png" alt="Add">
-                            <span>Add</span>
-                        </button>
-                        <div id="addDropdownContent" class="dropdown-content">
-                            <button id="addRackButton">Add Rack</button>
-                            <button id="addNvrButton">Add NVR</button>
-                            <button id="addServerButton">Add Infinias Server</button>
-                            <button id="addPoeSwitchButton">Add POE Switch</button>
-                        </div>
-                    </div>
-                    <div class="dropdown">
-                        <button id="projectDropdownBtn" class="icon-button border-slate-700/60 bg-blue-600/20 hover:bg-blue-500/30">
-                            <img src="/icons/options_.png" alt="Options">
-                            <span>Options</span>
-                        </button>
-                        <div id="projectDropdownContent" class="dropdown-content">
-                            <button id="saveButton">Save Project</button>
-                            <button id="loadButton">Load Project</button>
-                            <input type="file" id="loadFile" class="hidden" accept=".json">
-                            <hr>
-                            <button id="exportButton">Export CSV</button>
-                            <button id="printButton">Print</button>
-                        </div>
-                    </div>
-                    <button id="resetButton" class="icon-button border-red-500/60 text-red-300 hover:bg-red-500/30">
-                        <img src="/icons/reset-left-line_.png" alt="Reset">
-                        <span>Reset</span>
-                    </button>
-                </div>
+                </nav>
             </div>
         </header>
+
         <main class="flex-1 overflow-y-auto">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div class="grid gap-8 xl:grid-cols-[minmax(0,1.7fr)_minmax(320px,1fr)] items-start">
@@ -2785,43 +2902,7 @@
         
         
         // --- EVENT LISTENERS & INITIALIZATION ---
-        function setupDropdowns() {
-            const dropdowns = [
-                { btnId: 'toolsDropdownBtn', contentId: 'toolsDropdownContent' },
-                { btnId: 'projectDropdownBtn', contentId: 'projectDropdownContent' },
-                { btnId: 'addDropdownBtn', contentId: 'addDropdownContent' }
-            ];
-
-            dropdowns.forEach(dd => {
-                const btn = document.getElementById(dd.btnId);
-                const content = document.getElementById(dd.contentId);
-                
-                if(btn && content) {
-                    btn.addEventListener('click', (event) => {
-                        event.stopPropagation();
-                        dropdowns.forEach(other_dd => {
-                            if (other_dd.contentId !== dd.contentId) {
-                                document.getElementById(other_dd.contentId).classList.remove('show-dropdown');
-                            }
-                        });
-                        content.classList.toggle('show-dropdown');
-                    });
-                }
-            });
-
-            window.addEventListener('click', (event) => {
-                dropdowns.forEach(dd => {
-                    const content = document.getElementById(dd.contentId);
-                    if (content && !content.contains(event.target) && !document.getElementById(dd.btnId).contains(event.target)) {
-                        content.classList.remove('show-dropdown');
-                    }
-                });
-            });
-        }
-
         document.addEventListener('DOMContentLoaded', () => {
-            setupDropdowns();
-            
             setupProductData();
             if (!loadFromLocalStorage()) {
                 renderAll();
