@@ -7,42 +7,239 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Add these styles for the new header dropdowns */
-        .dropdown {
+        /* Contextual workflow ribbon */
+        .workflow-menu {
             position: relative;
-            display: inline-block;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.1rem;
+            padding: 1.25rem;
+            border-radius: 1.75rem;
+            background: linear-gradient(140deg, rgba(15, 23, 42, 0.96), rgba(30, 41, 59, 0.88));
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            box-shadow: 0 28px 60px -34px rgba(15, 23, 42, 0.9);
         }
 
-        .dropdown-content {
-            display: none;
+        .workflow-menu::before {
+            content: "";
             position: absolute;
-            right: 0;
-            background-color: #f1f1f1;
-            min-width: 200px;
-            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-            z-index: 1001; /* Ensure it's above other content */
-            border-radius: 0.375rem; /* rounded-md */
-            overflow: hidden;
+            inset: 0;
+            border-radius: inherit;
+            background: linear-gradient(120deg, rgba(59, 130, 246, 0.35), rgba(129, 140, 248, 0.25), rgba(56, 189, 248, 0.25));
+            opacity: 0.45;
+            pointer-events: none;
+            z-index: 0;
         }
 
-        .dropdown-content button {
-            color: black;
-            padding: 12px 16px;
-            text-decoration: none;
-            display: block;
+        .workflow-menu > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .workflow-group {
+            position: relative;
+            z-index: 1;
+        }
+
+        .workflow-group::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: calc(-0.55rem);
+            width: calc(100% + 1.1rem);
+            height: 2px;
+            background: linear-gradient(90deg, rgba(148, 163, 184, 0.3), rgba(148, 163, 184, 0));
+            transform: translateY(-50%);
+            z-index: -1;
+        }
+
+        .workflow-group:first-child::before {
+            display: none;
+        }
+
+        .workflow-trigger {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.85rem;
             width: 100%;
+            padding: 0.85rem 1rem;
+            border-radius: 1.35rem;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            background: rgba(15, 23, 42, 0.65);
+            color: #e2e8f0;
             text-align: left;
-            transition: background-color 0.2s;
+            font-weight: 600;
+            transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease, transform 0.2s ease;
         }
 
-        .dropdown-content button:hover {
-            background-color: #ddd;
-            transform: none; /* Override general button hover transform */
-            box-shadow: none; /* Override general button hover shadow */
+        .workflow-trigger:hover,
+        .workflow-group.open .workflow-trigger {
+            border-color: rgba(99, 102, 241, 0.6);
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.38), rgba(99, 102, 241, 0.32));
+            color: #f8fafc;
+            transform: translateY(-1px);
         }
 
-        .show-dropdown {
-            display: block;
+        .workflow-step {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2.35rem;
+            height: 2.35rem;
+            border-radius: 9999px;
+            background: radial-gradient(circle at 30% 30%, rgba(191, 219, 254, 0.95), rgba(59, 130, 246, 0.85));
+            color: #0f172a;
+            font-weight: 700;
+            font-size: 1rem;
+            box-shadow: 0 10px 18px -12px rgba(37, 99, 235, 0.9);
+        }
+
+        .workflow-label {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.2rem;
+            flex: 1;
+        }
+
+        .workflow-title {
+            font-size: 0.85rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: rgba(226, 232, 240, 0.85);
+        }
+
+        .workflow-subtitle {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: rgba(148, 163, 184, 0.85);
+        }
+
+        .workflow-trigger:hover .workflow-subtitle,
+        .workflow-group.open .workflow-subtitle {
+            color: rgba(241, 245, 249, 0.95);
+        }
+
+        .workflow-caret {
+            width: 1.1rem;
+            height: 1.1rem;
+            color: rgba(148, 163, 184, 0.75);
+            transition: transform 0.2s ease, color 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .workflow-group.open .workflow-caret {
+            transform: rotate(180deg);
+            color: #c7d2fe;
+        }
+
+        .workflow-popover {
+            position: absolute;
+            top: calc(100% + 0.75rem);
+            left: 0;
+            right: 0;
+            background: rgba(15, 23, 42, 0.97);
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            border-radius: 1.1rem;
+            padding: 0.95rem;
+            box-shadow: 0 24px 50px -30px rgba(15, 23, 42, 0.95);
+            display: none;
+            z-index: 45;
+        }
+
+        .workflow-group.open .workflow-popover {
+            display: grid;
+            gap: 0.65rem;
+        }
+
+        .workflow-action {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.25rem;
+            padding: 0.75rem 0.85rem;
+            border-radius: 0.85rem;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            background: rgba(148, 163, 184, 0.08);
+            color: #e2e8f0;
+            text-align: left;
+            transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+            width: 100%;
+        }
+
+        .workflow-action:hover {
+            transform: translateY(-1px);
+            border-color: rgba(129, 140, 248, 0.5);
+            background: rgba(99, 102, 241, 0.18);
+        }
+
+        .workflow-action .action-title {
+            font-weight: 600;
+            font-size: 0.92rem;
+        }
+
+        .workflow-action .action-subtitle {
+            font-size: 0.72rem;
+            color: rgba(226, 232, 240, 0.75);
+        }
+
+        .workflow-action.accent {
+            border-color: rgba(59, 130, 246, 0.55);
+            background: linear-gradient(150deg, rgba(59, 130, 246, 0.28), rgba(99, 102, 241, 0.24));
+        }
+
+        .workflow-action.success {
+            border-color: rgba(16, 185, 129, 0.45);
+            background: rgba(16, 185, 129, 0.18);
+        }
+
+        .workflow-action.success:hover {
+            border-color: rgba(16, 185, 129, 0.6);
+            background: rgba(16, 185, 129, 0.26);
+        }
+
+        .workflow-action.danger {
+            border-color: rgba(239, 68, 68, 0.5);
+            background: rgba(239, 68, 68, 0.18);
+            color: #fecaca;
+        }
+
+        .workflow-action.danger .action-subtitle {
+            color: rgba(254, 226, 226, 0.78);
+        }
+
+        .workflow-action.danger:hover {
+            border-color: rgba(248, 113, 113, 0.75);
+            background: rgba(239, 68, 68, 0.24);
+        }
+
+        @media (max-width: 1024px) {
+            .workflow-menu {
+                padding: 1.1rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .workflow-menu {
+                grid-template-columns: 1fr;
+            }
+
+            .workflow-group::before {
+                display: none;
+            }
+
+            .workflow-popover {
+                position: static;
+                margin-top: 0.75rem;
+                box-shadow: 0 16px 40px -24px rgba(15, 23, 42, 0.85);
+            }
+
+            .workflow-group.open .workflow-popover {
+                display: grid;
+            }
         }
         :root {
             --brand-blue: #0072c6;
@@ -348,13 +545,6 @@
             opacity: 1;
             bottom: 30px;
         }
-        header button, #customPartBtn {
-            transition: all 0.2s ease-in-out;
-        }
-        header button:hover, #customPartBtn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
         .product-item {
             transition: transform 0.2s, box-shadow 0.2s;
         }
@@ -451,32 +641,6 @@
             display: block;
         }
 
-        /* New styles for icon buttons */
-        .icon-button {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 10px 16px;
-            border-radius: 0.75rem;
-            transition: all 0.2s ease-in-out;
-            height: 64px;
-            font-size: 0.75rem;
-            line-height: 1rem;
-            border: 1px solid rgba(148, 163, 184, 0.25);
-            background: rgba(148, 163, 184, 0.12);
-            color: #e2e8f0;
-        }
-        .icon-button img {
-            width: 32px; /* Icon size */
-            height: 32px; /* Icon size */
-            margin-bottom: 4px; /* Space between icon and text */
-        }
-        .icon-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-
         /* Visual Polish */
         .accordion-header {
             border-radius: 0.375rem; /* rounded-md */
@@ -490,7 +654,7 @@
             border: 1px solid transparent;
             transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
         }
-                .product-item:hover {
+        .product-item:hover {
             transform: scale(1.02);
             box-shadow: 0 5px 15px rgba(0,0,0,0.08);
         }
@@ -501,66 +665,119 @@
     <div id="sidebar-overlay" class="sidebar-overlay"></div>
     <div id="app-container" class="flex-1 flex flex-col">
         <header class="app-header">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-wrap items-center justify-between gap-4">
-                <div class="flex items-center gap-4">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-6">
+                <div class="flex flex-wrap items-center gap-4">
                     <img src="/3xlogiclogo.png" alt="3xLOGIC Logo" class="h-12 w-auto">
                     <div>
                         <h1 class="text-lg sm:text-xl font-semibold text-slate-100">3xLOGIC Configuration Studio</h1>
                         <p class="text-xs sm:text-sm text-slate-400">Plan, assemble, and visualize your security ecosystem.</p>
                     </div>
                 </div>
-                <div class="flex flex-wrap items-center gap-2 sm:gap-3">
-                    <button id="systemStatusButton" class="icon-button border border-slate-700/60 bg-slate-800/60 hover:bg-slate-700/70">
-                        <img src="/icons/status_.png" alt="Status">
-                        <span>Status</span>
-                    </button>
-                    <div class="dropdown">
-                        <button id="toolsDropdownBtn" class="icon-button border-slate-700/60 bg-slate-800/60 hover:bg-indigo-700/70">
-                            <img src="/icons/tools_.png" alt="Tools">
-                            <span>Tools</span>
+                <nav class="workflow-menu" aria-label="Configuration workflow">
+                    <div class="workflow-group">
+                        <button class="workflow-trigger" type="button" data-target="planMenu" aria-expanded="false" aria-controls="planMenu">
+                            <span class="workflow-step">1</span>
+                            <span class="workflow-label">
+                                <span class="workflow-title">Plan</span>
+                                <span class="workflow-subtitle">Context &amp; Readiness</span>
+                            </span>
+                            <svg class="workflow-caret" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
                         </button>
-                        <div id="toolsDropdownContent" class="dropdown-content">
-                            <button id="storageCalcButton">Storage Calculator</button>
-                            <button id="uploadLayoutButton">Upload Layout</button>
+                        <div id="planMenu" class="workflow-popover" role="menu" aria-hidden="true">
+                            <button id="systemStatusButton" class="workflow-action accent" type="button" role="menuitem">
+                                <span class="action-title">System Status</span>
+                                <span class="action-subtitle">Review current readiness checkpoints</span>
+                            </button>
+                            <button id="storageCalcButton" class="workflow-action" type="button" role="menuitem">
+                                <span class="action-title">Storage Calculator</span>
+                                <span class="action-subtitle">Validate retention goals and throughput</span>
+                            </button>
+                            <button id="uploadLayoutButton" class="workflow-action" type="button" role="menuitem">
+                                <span class="action-title">Upload Layout</span>
+                                <span class="action-subtitle">Bring in floor plans or schematics</span>
+                            </button>
                             <input type="file" id="layoutFile" class="hidden" accept="image/*">
-                            <button id="layoutDesignerButton">Camera Layout Designer</button>
-                            <hr>
-                            <button id="customPartBtn" class="w-full">Add Custom Part</button>
                         </div>
                     </div>
-                    <div class="dropdown">
-                        <button id="addDropdownBtn" class="icon-button border-slate-700/60 bg-emerald-600/20 hover:bg-emerald-500/30">
-                            <img src="/icons/add-card-sharp_.png" alt="Add">
-                            <span>Add</span>
+                    <div class="workflow-group">
+                        <button class="workflow-trigger" type="button" data-target="designMenu" aria-expanded="false" aria-controls="designMenu">
+                            <span class="workflow-step">2</span>
+                            <span class="workflow-label">
+                                <span class="workflow-title">Design</span>
+                                <span class="workflow-subtitle">Solution Blueprint</span>
+                            </span>
+                            <svg class="workflow-caret" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
                         </button>
-                        <div id="addDropdownContent" class="dropdown-content">
-                            <button id="addRackButton">Add Rack</button>
-                            <button id="addNvrButton">Add NVR</button>
-                            <button id="addServerButton">Add Infinias Server</button>
-                            <button id="addPoeSwitchButton">Add POE Switch</button>
+                        <div id="designMenu" class="workflow-popover" role="menu" aria-hidden="true">
+                            <button id="layoutDesignerButton" class="workflow-action accent" type="button" role="menuitem">
+                                <span class="action-title">Camera Layout Designer</span>
+                                <span class="action-subtitle">Map coverage and identify blind spots</span>
+                            </button>
+                            <button id="addRackButton" class="workflow-action success" type="button" role="menuitem">
+                                <span class="action-title">Add Rack</span>
+                                <span class="action-subtitle">Start a new equipment grouping</span>
+                            </button>
+                            <button id="addNvrButton" class="workflow-action success" type="button" role="menuitem">
+                                <span class="action-title">Add NVR</span>
+                                <span class="action-subtitle">Select recording capacity</span>
+                            </button>
+                            <button id="addServerButton" class="workflow-action success" type="button" role="menuitem">
+                                <span class="action-title">Add Infinias Server</span>
+                                <span class="action-subtitle">Manage access control intelligence</span>
+                            </button>
+                            <button id="addPoeSwitchButton" class="workflow-action success" type="button" role="menuitem">
+                                <span class="action-title">Add POE Switch</span>
+                                <span class="action-subtitle">Distribute power and data effectively</span>
+                            </button>
+                            <button id="customPartBtn" class="workflow-action" type="button" role="menuitem">
+                                <span class="action-title">Add Custom Part</span>
+                                <span class="action-subtitle">Capture project-specific components</span>
+                            </button>
                         </div>
                     </div>
-                    <div class="dropdown">
-                        <button id="projectDropdownBtn" class="icon-button border-slate-700/60 bg-blue-600/20 hover:bg-blue-500/30">
-                            <img src="/icons/options_.png" alt="Options">
-                            <span>Options</span>
+                    <div class="workflow-group">
+                        <button class="workflow-trigger" type="button" data-target="finalizeMenu" aria-expanded="false" aria-controls="finalizeMenu">
+                            <span class="workflow-step">3</span>
+                            <span class="workflow-label">
+                                <span class="workflow-title">Finalize</span>
+                                <span class="workflow-subtitle">Review &amp; Share</span>
+                            </span>
+                            <svg class="workflow-caret" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
                         </button>
-                        <div id="projectDropdownContent" class="dropdown-content">
-                            <button id="saveButton">Save Project</button>
-                            <button id="loadButton">Load Project</button>
+                        <div id="finalizeMenu" class="workflow-popover" role="menu" aria-hidden="true">
+                            <button id="saveButton" class="workflow-action accent" type="button" role="menuitem">
+                                <span class="action-title">Save Project</span>
+                                <span class="action-subtitle">Generate a local project file</span>
+                            </button>
+                            <button id="loadButton" class="workflow-action" type="button" role="menuitem">
+                                <span class="action-title">Load Project</span>
+                                <span class="action-subtitle">Resume from an existing configuration</span>
+                            </button>
                             <input type="file" id="loadFile" class="hidden" accept=".json">
-                            <hr>
-                            <button id="exportButton">Export CSV</button>
-                            <button id="printButton">Print</button>
+                            <button id="exportButton" class="workflow-action" type="button" role="menuitem">
+                                <span class="action-title">Export CSV</span>
+                                <span class="action-subtitle">Share a bill of materials snapshot</span>
+                            </button>
+                            <button id="printButton" class="workflow-action" type="button" role="menuitem">
+                                <span class="action-title">Print Overview</span>
+                                <span class="action-subtitle">Provide a meeting-ready summary</span>
+                            </button>
+                            <button id="resetButton" class="workflow-action danger" type="button" role="menuitem">
+                                <span class="action-title">Reset Project</span>
+                                <span class="action-subtitle">Clear selections and start fresh</span>
+                            </button>
                         </div>
                     </div>
-                    <button id="resetButton" class="icon-button border-red-500/60 text-red-300 hover:bg-red-500/30">
-                        <img src="/icons/reset-left-line_.png" alt="Reset">
-                        <span>Reset</span>
-                    </button>
-                </div>
+                </nav>
             </div>
         </header>
+
         <main class="flex-1 overflow-y-auto">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div class="grid gap-8 xl:grid-cols-[minmax(0,1.7fr)_minmax(320px,1fr)] items-start">
@@ -632,6 +849,9 @@
         const addNvrButton = document.getElementById('addNvrButton');
         const addServerButton = document.getElementById('addServerButton');
         const addPoeSwitchButton = document.getElementById('addPoeSwitchButton');
+        const workflowMenu = document.querySelector('.workflow-menu');
+        const workflowTriggers = workflowMenu ? workflowMenu.querySelectorAll('.workflow-trigger') : [];
+        const workflowActions = workflowMenu ? workflowMenu.querySelectorAll('.workflow-action') : [];
 
         // --- HELPER & UI FUNCTIONS ---
         function getNvrChannelUsage(device) {
@@ -657,6 +877,23 @@
                 return device.product.channels;
             }
             return Math.min(device.product.channels, getTotalSwitchPorts(device));
+        }
+
+        function closeWorkflowMenus() {
+            workflowTriggers.forEach(trigger => {
+                trigger.setAttribute('aria-expanded', 'false');
+                const targetId = trigger.getAttribute('data-target');
+                const group = trigger.closest('.workflow-group');
+                if (group) {
+                    group.classList.remove('open');
+                }
+                if (targetId) {
+                    const panel = document.getElementById(targetId);
+                    if (panel) {
+                        panel.setAttribute('aria-hidden', 'true');
+                    }
+                }
+            });
         }
 
         function createModal(title, content, elementToFlash) {
@@ -2306,7 +2543,6 @@
         }
 
         function resetConfiguration() {
-        function resetConfiguration() {
             if(confirm('Are you sure you want to reset the entire configuration?')) {
                 window.AppState.resetConfiguration(configuration);
                 localStorage.removeItem(window.AppState.STORAGE_KEY);
@@ -2786,43 +3022,7 @@
         
         
         // --- EVENT LISTENERS & INITIALIZATION ---
-        function setupDropdowns() {
-            const dropdowns = [
-                { btnId: 'toolsDropdownBtn', contentId: 'toolsDropdownContent' },
-                { btnId: 'projectDropdownBtn', contentId: 'projectDropdownContent' },
-                { btnId: 'addDropdownBtn', contentId: 'addDropdownContent' }
-            ];
-
-            dropdowns.forEach(dd => {
-                const btn = document.getElementById(dd.btnId);
-                const content = document.getElementById(dd.contentId);
-                
-                if(btn && content) {
-                    btn.addEventListener('click', (event) => {
-                        event.stopPropagation();
-                        dropdowns.forEach(other_dd => {
-                            if (other_dd.contentId !== dd.contentId) {
-                                document.getElementById(other_dd.contentId).classList.remove('show-dropdown');
-                            }
-                        });
-                        content.classList.toggle('show-dropdown');
-                    });
-                }
-            });
-
-            window.addEventListener('click', (event) => {
-                dropdowns.forEach(dd => {
-                    const content = document.getElementById(dd.contentId);
-                    if (content && !content.contains(event.target) && !document.getElementById(dd.btnId).contains(event.target)) {
-                        content.classList.remove('show-dropdown');
-                    }
-                });
-            });
-        }
-
         document.addEventListener('DOMContentLoaded', () => {
-            setupDropdowns();
-            
             setupProductData();
             if (!loadFromLocalStorage()) {
                 renderAll();
@@ -2841,6 +3041,58 @@
         uploadLayoutButton.addEventListener('click', () => layoutFileEl.click());
         layoutFileEl.addEventListener('change', handleLayoutUpload);
         layoutDesignerButton.addEventListener('click', openLayoutDesigner);
+
+        if (workflowMenu && workflowTriggers.length) {
+            workflowTriggers.forEach(trigger => {
+                const targetId = trigger.getAttribute('data-target');
+                const panel = targetId ? document.getElementById(targetId) : null;
+                if (panel) {
+                    panel.setAttribute('aria-hidden', 'true');
+                    panel.addEventListener('click', event => event.stopPropagation());
+                }
+
+                trigger.addEventListener('click', event => {
+                    event.stopPropagation();
+                    const isOpen = trigger.getAttribute('aria-expanded') === 'true';
+                    if (isOpen) {
+                        closeWorkflowMenus();
+                        return;
+                    }
+
+                    closeWorkflowMenus();
+                    trigger.setAttribute('aria-expanded', 'true');
+                    const group = trigger.closest('.workflow-group');
+                    if (group) {
+                        group.classList.add('open');
+                    }
+                    if (panel) {
+                        panel.setAttribute('aria-hidden', 'false');
+                    }
+                });
+            });
+
+            document.addEventListener('click', event => {
+                if (workflowMenu && !workflowMenu.contains(event.target)) {
+                    closeWorkflowMenus();
+                }
+            });
+
+            document.addEventListener('keydown', event => {
+                if (event.key === 'Escape') {
+                    const expandedTrigger = Array.from(workflowTriggers).find(btn => btn.getAttribute('aria-expanded') === 'true');
+                    closeWorkflowMenus();
+                    if (expandedTrigger) {
+                        expandedTrigger.focus();
+                    }
+                }
+            });
+
+            workflowActions.forEach(action => {
+                action.addEventListener('click', () => {
+                    closeWorkflowMenus();
+                });
+            });
+        }
 
         addNvrButton.addEventListener('click', () => {
             const recorders = products["CCTV Products"]["Recorders (NVRs & HVRs)"];
