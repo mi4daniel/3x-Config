@@ -144,6 +144,40 @@
             border-color: rgba(248, 113, 113, 0.7);
             background: rgba(239, 68, 68, 0.24);
         }
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.75rem;
+            height: 1.75rem;
+            border-radius: 9999px;
+            border: 1px solid transparent;
+            background: rgba(148, 163, 184, 0.18);
+            color: #0f172a;
+            transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+        }
+        .status-indicator svg {
+            width: 1rem;
+            height: 1rem;
+        }
+        .status-indicator:hover {
+            transform: translateY(-1px);
+        }
+        .status-indicator.status-ok {
+            background: rgba(16, 185, 129, 0.18);
+            border-color: rgba(16, 185, 129, 0.45);
+            color: #047857;
+        }
+        .status-indicator.status-warning {
+            background: rgba(245, 158, 11, 0.2);
+            border-color: rgba(245, 158, 11, 0.45);
+            color: #b45309;
+        }
+        .status-indicator.status-error {
+            background: rgba(248, 113, 113, 0.2);
+            border-color: rgba(248, 113, 113, 0.5);
+            color: #b91c1c;
+        }
         :root {
             --brand-blue: #0072c6;
             --brand-indigo: #6366f1;
@@ -580,34 +614,9 @@
                     <div class="workflow-group">
                         <button class="workflow-trigger" type="button" data-target="planMenu" aria-expanded="false" aria-controls="planMenu">
                             <span class="workflow-step">1</span>
-                            <span>Plan &amp; Contextualize</span>
+                            <span>Configure Your System</span>
                         </button>
                         <div id="planMenu" class="workflow-popover" role="menu" aria-hidden="true">
-                            <button id="systemStatusButton" class="workflow-action accent" type="button" role="menuitem">
-                                <span class="action-title">System Status</span>
-                                <span class="action-subtitle">Review current readiness checkpoints</span>
-                            </button>
-                            <button id="storageCalcButton" class="workflow-action" type="button" role="menuitem">
-                                <span class="action-title">Storage Calculator</span>
-                                <span class="action-subtitle">Validate retention goals and throughput</span>
-                            </button>
-                            <button id="uploadLayoutButton" class="workflow-action" type="button" role="menuitem">
-                                <span class="action-title">Upload Layout</span>
-                                <span class="action-subtitle">Bring in floor plans or schematics</span>
-                            </button>
-                            <input type="file" id="layoutFile" class="hidden" accept="image/*">
-                        </div>
-                    </div>
-                    <div class="workflow-group">
-                        <button class="workflow-trigger" type="button" data-target="designMenu" aria-expanded="false" aria-controls="designMenu">
-                            <span class="workflow-step">2</span>
-                            <span>Design the Solution</span>
-                        </button>
-                        <div id="designMenu" class="workflow-popover" role="menu" aria-hidden="true">
-                            <button id="layoutDesignerButton" class="workflow-action accent" type="button" role="menuitem">
-                                <span class="action-title">Camera Layout Designer</span>
-                                <span class="action-subtitle">Map coverage and identify blind spots</span>
-                            </button>
                             <button id="addRackButton" class="workflow-action success" type="button" role="menuitem">
                                 <span class="action-title">Add Rack</span>
                                 <span class="action-subtitle">Start a new equipment grouping</span>
@@ -616,17 +625,38 @@
                                 <span class="action-title">Add NVR</span>
                                 <span class="action-subtitle">Select recording capacity</span>
                             </button>
-                            <button id="addServerButton" class="workflow-action success" type="button" role="menuitem">
-                                <span class="action-title">Add Infinias Server</span>
-                                <span class="action-subtitle">Manage access control intelligence</span>
+                            <button id="addCameraButton" class="workflow-action success" type="button" role="menuitem">
+                                <span class="action-title">Add Camera</span>
+                                <span class="action-subtitle">Place cameras into your design</span>
                             </button>
                             <button id="addPoeSwitchButton" class="workflow-action success" type="button" role="menuitem">
                                 <span class="action-title">Add POE Switch</span>
                                 <span class="action-subtitle">Distribute power and data effectively</span>
                             </button>
+                            <button id="addServerButton" class="workflow-action success" type="button" role="menuitem">
+                                <span class="action-title">Add Infinias Server</span>
+                                <span class="action-subtitle">Manage access control intelligence</span>
+                            </button>
                             <button id="customPartBtn" class="workflow-action" type="button" role="menuitem">
                                 <span class="action-title">Add Custom Part</span>
                                 <span class="action-subtitle">Capture project-specific components</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="workflow-group">
+                        <button class="workflow-trigger" type="button" data-target="designMenu" aria-expanded="false" aria-controls="designMenu">
+                            <span class="workflow-step">2</span>
+                            <span>Design Your Solution</span>
+                        </button>
+                        <div id="designMenu" class="workflow-popover" role="menu" aria-hidden="true">
+                            <button id="uploadLayoutButton" class="workflow-action" type="button" role="menuitem">
+                                <span class="action-title">Upload Floor Plan</span>
+                                <span class="action-subtitle">Bring in floor plans or schematics</span>
+                            </button>
+                            <input type="file" id="layoutFile" class="hidden" accept="image/*">
+                            <button id="layoutDesignerButton" class="workflow-action accent" type="button" role="menuitem">
+                                <span class="action-title">Camera Layout Designer</span>
+                                <span class="action-subtitle">Map coverage and identify blind spots</span>
                             </button>
                         </div>
                     </div>
@@ -636,7 +666,11 @@
                             <span>Finalize &amp; Share</span>
                         </button>
                         <div id="finalizeMenu" class="workflow-popover" role="menu" aria-hidden="true">
-                            <button id="saveButton" class="workflow-action accent" type="button" role="menuitem">
+                            <button id="storageCalcButton" class="workflow-action accent" type="button" role="menuitem">
+                                <span class="action-title">Storage Calculator</span>
+                                <span class="action-subtitle">Validate retention goals and throughput</span>
+                            </button>
+                            <button id="saveButton" class="workflow-action" type="button" role="menuitem">
                                 <span class="action-title">Save Project</span>
                                 <span class="action-subtitle">Generate a local project file</span>
                             </button>
@@ -837,8 +871,8 @@
         const storageCalcButton = document.getElementById('storageCalcButton');
         const uploadLayoutButton = document.getElementById('uploadLayoutButton');
         const layoutFileEl = document.getElementById('layoutFile');
-        const systemStatusButton = document.getElementById('systemStatusButton');
         const layoutDesignerButton = document.getElementById('layoutDesignerButton');
+        const addCameraButton = document.getElementById('addCameraButton');
         const addNvrButton = document.getElementById('addNvrButton');
         const addServerButton = document.getElementById('addServerButton');
         const addPoeSwitchButton = document.getElementById('addPoeSwitchButton');
@@ -1035,15 +1069,28 @@
             setTimeout(() => overlay.classList.add('show'), 10);
 
             const close = () => {
-                overlay.classList.remove('show');
-                overlay.addEventListener('transitionend', () => overlay.remove(), { once: true });
+                const handleRemove = () => {
+                    overlay.removeEventListener('transitionend', handleRemove);
+                    if (overlay.parentNode) {
+                        overlay.parentNode.removeChild(overlay);
+                    }
+                };
+
+                const classes = overlay.className.split(/\s+/).filter(cls => cls && cls !== 'show');
+                overlay.className = classes.length ? classes.join(' ') : 'modal-overlay';
+                overlay.style.opacity = '0';
+                overlay.style.pointerEvents = 'none';
+                overlay.addEventListener('transitionend', handleRemove, { once: true });
+                setTimeout(handleRemove, 250);
             };
             
             overlay.addEventListener('click', (e) => {
                 if (e.target.id === 'closeModalX') close();
                 if (e.target.classList.contains('add-btn')) {
-                    callback(e.target.dataset.productId);
+                    const productId = e.target.dataset.productId;
                     close();
+                    callback(productId);
+                    return;
                 }
                 const header = e.target.closest('.accordion-header');
                 if (header) {
@@ -1148,6 +1195,7 @@
                     if (product.isAnalog && !targetDevice.product.id.startsWith('HVR')) return createModal('Compatibility Error', '<p>HD Analog cameras can only be added to Hybrid (HVR) recorders.</p>');
                     
                     targetDevice.cameras.push({ ...product, quantity: 1, instanceId: Date.now(), selectedMounts: [null], assignedInjectorId: null, location: '' });
+                    targetDevice.isCamerasExpanded = true;
                     
                     syncNvrLicenses(targetDevice);
                     
@@ -1907,14 +1955,17 @@
             const totalServers = configuration.racks.reduce((acc, rack) =>
                 acc + rack.devices.filter(device => device.product.deviceType === 'server').length
             , 0) + configuration.cloudServers.length;
+            const totalRackCameras = configuration.racks.reduce((acc, rack) => {
+                return acc + rack.devices.reduce((deviceAcc, device) => {
+                    if (device.product.deviceType !== 'nvr') return deviceAcc;
+                    return deviceAcc + device.cameras.reduce((camAcc, cam) => camAcc + Number(cam.quantity || 0), 0);
+                }, 0);
+            }, 0);
+
             const totalCameras =
-                configuration.racks.reduce((acc, rack) =>
-                    acc + rack.devices.reduce((deviceAcc, device) =>
-                        deviceAcc + device.cameras.reduce((camAcc, cam) => camAcc + (cam.quantity || 0), 0)
-                    , 0)
-                , 0)
-                + configuration.cloudCameras.reduce((acc, cam) => acc + (cam.quantity || 0), 0)
-                + configuration.allInOneCameras.reduce((acc, cam) => acc + (cam.quantity || 0), 0);
+                totalRackCameras
+                + configuration.cloudCameras.reduce((acc, cam) => acc + Number(cam.quantity || 0), 0)
+                + configuration.allInOneCameras.reduce((acc, cam) => acc + Number(cam.quantity || 0), 0);
 
             const totalPoeLoad = configuration.racks.reduce((acc, rack) =>
                 acc + rack.devices.reduce((deviceAcc, device) =>
@@ -1996,10 +2047,15 @@
                             <input type="checkbox" id="autoLicenseToggle" ${autoAddLicenses ? 'checked' : ''} onchange="autoAddLicenses = this.checked; renderAll();" class="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500">
                             Auto-add Licenses
                         </label>
-                        <span class="text-xs text-slate-400 flex items-center gap-1">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                            Changes save automatically
-                        </span>
+                        <div class="flex items-center gap-2 text-xs text-slate-400">
+                            <button id="systemStatusIndicator" type="button" class="status-indicator status-ok" aria-label="System status: OK">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M5 13l4 4L19 7" /></svg>
+                            </button>
+                            <span class="flex items-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                Changes save automatically
+                            </span>
+                        </div>
                     </div>
                     <div class="metric-grid">
                         ${metricsHtml}
@@ -2526,9 +2582,9 @@
         }
 
         function renderAll() {
-            checkSystemStatus();
             renderVisualization();
             renderSummary();
+            checkSystemStatus();
             saveToLocalStorage();
         }
 
@@ -2740,46 +2796,53 @@
                         warnings.push({ type: 'error', title: 'Storage Bays Exceeded', message: `NVR "${device.product.name}" has ${storageCount} drives, exceeding its limit of ${device.product.maxStorage}.` });
                     }
                     if (!hasBuiltInStorage(device.product) && device.storage.length === 0) {
-                         warnings.push({ type: 'warning', title: 'Storage Recommended', message: `NVR "${device.product.name}" does not include storage. Consider adding a hard drive.` });
+                        warnings.push({ type: 'warning', title: 'Storage Recommended', message: `NVR "${device.product.name}" does not include storage. Consider adding a hard drive.` });
                     }
                 }
             });
 
             allCameras.forEach(cam => {
                 if (cam.quantity === 1 && cam.wireDistance > 300 && !cam.assignedInjectorId) {
-                     warnings.push({ type: 'warning', title: 'PoE Injector Recommended', message: `Camera "${cam.name}" has a wire distance over 300ft and may require a PoE injector.` });
+                    warnings.push({ type: 'warning', title: 'PoE Injector Recommended', message: `Camera "${cam.name}" has a wire distance over 300ft and may require a PoE injector.` });
                 }
             });
 
             if (silent) return { warnings };
 
-            const statusImg = systemStatusButton.querySelector('img');
-            let errors = warnings.filter(w => w.type === 'error').length;
-            let warns = warnings.filter(w => w.type === 'warning').length;
+            const indicator = document.getElementById('systemStatusIndicator');
+            if (!indicator) {
+                return { warnings };
+            }
 
-            systemStatusButton.classList.remove('bg-green-500', 'bg-yellow-500', 'bg-red-500');
+            const errors = warnings.filter(w => w.type === 'error').length;
+            const warns = warnings.filter(w => w.type === 'warning').length;
+
+            indicator.classList.remove('status-ok', 'status-warning', 'status-error');
+
+            let statusClass = 'status-ok';
+            let icon = '<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M5 13l4 4L19 7" /></svg>';
+            let label = 'System status: OK';
 
             if (errors > 0) {
-                systemStatusButton.classList.add('bg-red-500');
+                statusClass = 'status-error';
+                icon = '<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M6 18L18 6M6 6l12 12" /></svg>';
+                label = 'System status: Errors detected';
             } else if (warns > 0) {
-                systemStatusButton.classList.add('bg-yellow-500');
-            } else {
-                systemStatusButton.classList.add('bg-green-500');
+                statusClass = 'status-warning';
+                icon = '<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 9v3m0 3h.01M10.29 3.86L1.82 18a1 1 0 00.87 1.5h18.62a1 1 0 00.87-1.5L13.71 3.86a1 1 0 00-1.74 0z" /></svg>';
+                label = 'System status: Warnings detected';
             }
 
-            if (statusImg) {
-                if (errors > 0 || warns > 0) {
-                    statusImg.src = '/icons/frown_.png';
-                } else {
-                    statusImg.src = '/icons/status_.png';
-                }
-            }
+            indicator.classList.add(statusClass);
+            indicator.innerHTML = icon;
+            indicator.setAttribute('aria-label', `${label}. Click to review details.`);
+            indicator.setAttribute('title', `${label}. Click to review details.`);
 
-            systemStatusButton.onclick = () => {
-                if(warnings.length === 0) {
+            indicator.onclick = () => {
+                if (warnings.length === 0) {
                     return createModal('System Status: OK', '<p>No issues found in the current configuration.</p>');
                 }
-                let content = warnings.map(w => {
+                const content = warnings.map(w => {
                     const bgColor = w.type === 'error' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800';
                     return `<div class="${bgColor} p-3 rounded-md mb-3 text-left">
                         <p class="font-bold">${w.title}</p>
@@ -2788,6 +2851,8 @@
                 }).join('');
                 createModal('System Status Report', content);
             };
+
+            return { warnings };
         }
 
         function showAddComponentModal(deviceId, context) {
@@ -3016,6 +3081,40 @@
         uploadLayoutButton.addEventListener('click', () => layoutFileEl.click());
         layoutFileEl.addEventListener('change', handleLayoutUpload);
         layoutDesignerButton.addEventListener('click', openLayoutDesigner);
+
+        if (addCameraButton) {
+            addCameraButton.addEventListener('click', () => {
+                const cameraSelectionData = {};
+                const cctvCameras = products && products["CCTV Products"] && products["CCTV Products"]["Cameras"];
+                if (cctvCameras) {
+                    cameraSelectionData["NVR-Compatible Cameras"] = cctvCameras;
+                }
+
+                const vigilCloudCameras = products &&
+                    products["Cloud & Standalone Solutions"] &&
+                    products["Cloud & Standalone Solutions"]["VIGIL Cloud"] &&
+                    products["Cloud & Standalone Solutions"]["VIGIL Cloud"]["VIGIL Cloud Cameras"];
+                if (Array.isArray(vigilCloudCameras)) {
+                    cameraSelectionData["VIGIL Cloud Cameras"] = { "VIGIL Cloud Cameras": vigilCloudCameras };
+                }
+
+                const allInOneCameras = products &&
+                    products["Cloud & Standalone Solutions"] &&
+                    products["Cloud & Standalone Solutions"]["All-in-One Cameras"] &&
+                    products["Cloud & Standalone Solutions"]["All-in-One Cameras"]["All-in-One Cameras"];
+                if (Array.isArray(allInOneCameras)) {
+                    cameraSelectionData["All-in-One Cameras"] = { "All-in-One Cameras": allInOneCameras };
+                }
+
+                if (Object.keys(cameraSelectionData).length === 0) {
+                    return createModal('No Cameras Available', '<p>No camera products are currently available.</p>');
+                }
+
+                createProductSelectionModal('Select a Camera', cameraSelectionData, (productId) => {
+                    addProduct(productId);
+                });
+            });
+        }
 
         if (workflowMenu && workflowTriggers.length) {
             workflowTriggers.forEach(trigger => {
