@@ -738,8 +738,8 @@
         let autoAddLicenses = true;
 
         const SMBK_CAMERA_MAP = {
-            D: 'VX-SMBK-D-IW',
-            B: 'VX-SMBK-B-IW'
+            D: 'VX-5M-OD-RIAW-X',
+            B: 'VX-5M-B-RIAW-X'
         };
 
         const OS_SEGMENT_MAP = {
@@ -790,6 +790,18 @@
 
             const metadata = {};
 
+            if (Array.isArray(product.includedCameras) && product.includedCameras.length > 0) {
+                metadata.bundleCameras = product.includedCameras.map(({ productId, quantity }) => ({
+                    id: productId,
+                    qty: Number(quantity) || 1
+                }));
+            }
+
+            if (typeof product.includedStorage === 'number') {
+                metadata.bundleStorageTb = product.includedStorage;
+                metadata.bundleStorageDriveCount = Math.max(1, Math.round(metadata.bundleStorageTb / 4));
+            }
+
             for (let i = 1; i < segments.length; i++) {
                 const segment = segments[i];
                 const upper = segment.toUpperCase();
@@ -805,13 +817,15 @@
                 } else if (OS_SEGMENT_MAP[upper]) {
                     metadata.operatingSystem = OS_SEGMENT_MAP[upper];
                 } else if (upper === 'SMBK') {
-                    const bundleInfo = parseSmbkBundleSegments(segments.slice(i + 1));
-                    if (bundleInfo) {
-                        metadata.bundleCameras = bundleInfo.cameras;
-                        metadata.bundleStorageTb = bundleInfo.storageTb;
-                        metadata.bundleStorageDriveCount = bundleInfo.storageDriveCount;
-                        if (bundleInfo.os && !metadata.operatingSystem) {
-                            metadata.operatingSystem = bundleInfo.os;
+                    if (!metadata.bundleCameras) {
+                        const bundleInfo = parseSmbkBundleSegments(segments.slice(i + 1));
+                        if (bundleInfo) {
+                            metadata.bundleCameras = bundleInfo.cameras;
+                            metadata.bundleStorageTb = bundleInfo.storageTb;
+                            metadata.bundleStorageDriveCount = bundleInfo.storageDriveCount;
+                            if (bundleInfo.os && !metadata.operatingSystem) {
+                                metadata.operatingSystem = bundleInfo.os;
+                            }
                         }
                     }
                     break;
