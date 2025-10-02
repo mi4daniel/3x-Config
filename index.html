@@ -742,6 +742,11 @@
             B: 'VX-5M-B-RIAW-X'
         };
 
+        const SUSA_CAMERA_MAP = {
+            D: 'VX-5M-OD-RIAW-X',
+            B: 'VX-5M-B-RIAW-X'
+        };
+
         const OS_SEGMENT_MAP = {
             WIN: 'Windows',
             WINDOWS: 'Windows',
@@ -782,11 +787,40 @@
             };
         }
 
+        function parseSusaBundleSegments(segments) {
+            if (!Array.isArray(segments) || segments.length === 0) return null;
+
+            const matches = segments.reduce((acc, segment) => {
+                const tokens = segment.match(/([DB])(\d+)/gi) || [];
+                return acc.concat(tokens);
+            }, []);
+
+            if (matches.length === 0) return null;
+
+            const cameras = matches.reduce((acc, token) => {
+                const parsed = /([DB])(\d+)/i.exec(token);
+                if (!parsed) return acc;
+                const type = parsed[1].toUpperCase();
+                const qty = parseInt(parsed[2], 10);
+                const cameraId = SUSA_CAMERA_MAP[type];
+                if (cameraId && qty > 0) {
+                    acc.push({ id: cameraId, qty });
+                }
+                return acc;
+            }, []);
+
+            if (cameras.length === 0) return null;
+
+            return { cameras };
+        }
+
         function deriveNvrDetailsFromPartNumber(product) {
             if (!product || typeof product.id !== 'string') return null;
 
             const segments = product.id.split('-');
-            if (segments[0] !== 'NVR') return null;
+            const prefix = segments[0].toUpperCase();
+            const isSusaBundle = prefix === 'SUSA';
+            if (!isSusaBundle && prefix !== 'NVR') return null;
 
             const metadata = {};
 
