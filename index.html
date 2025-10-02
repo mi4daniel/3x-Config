@@ -887,17 +887,9 @@
 
         function findCompatibleMounts(camera) {
             if (!camera || !camera.compatibleMounts) return [];
-
-            const mountCategory = products
-                && products["Infrastructure & Mounting"]
-                && products["Infrastructure & Mounting"]["Camera Mounts"];
-
-            if (!mountCategory || typeof mountCategory !== 'object') return [];
-
-            const allMounts = Object.values(mountCategory)
-                .filter(Array.isArray)
+            const allMounts = (products["Infrastructure & Mounting"]["Camera Mounts"] || [])
+                .flatMap(cat => Object.values(cat))
                 .flat();
-
             return allMounts.filter(mount => camera.compatibleMounts.includes(mount.id));
         }
 
