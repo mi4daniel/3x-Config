@@ -612,32 +612,10 @@
                 </div>
                 <nav class="workflow-menu" aria-label="Configuration workflow">
                     <div class="workflow-group">
-                        <button class="workflow-trigger" type="button" data-target="planMenu" aria-expanded="false" aria-controls="planMenu">
-                            <span class="workflow-step">1</span>
+                        <button class="workflow-trigger" type="button" data-target="configureMenu" aria-expanded="false" aria-controls="configureMenu">
                             <span>Configure Your System</span>
                         </button>
-                        <div id="planMenu" class="workflow-popover" role="menu" aria-hidden="true">
-                            <button id="systemStatusButton" class="workflow-action accent" type="button" role="menuitem">
-                                <span class="action-title">System Status</span>
-                                <span class="action-subtitle">Review current readiness checkpoints</span>
-                            </button>
-                            <button id="storageCalcButton" class="workflow-action" type="button" role="menuitem">
-                                <span class="action-title">Storage Calculator</span>
-                                <span class="action-subtitle">Validate retention goals and throughput</span>
-                            </button>
-                            <button id="uploadLayoutButton" class="workflow-action" type="button" role="menuitem">
-                                <span class="action-title">Upload Layout</span>
-                                <span class="action-subtitle">Bring in floor plans or schematics</span>
-                            </button>
-                            <input type="file" id="layoutFile" class="hidden" accept="image/*">
-                        </div>
-                    </div>
-                    <div class="workflow-group">
-                        <button class="workflow-trigger" type="button" data-target="designMenu" aria-expanded="false" aria-controls="designMenu">
-                            <span class="workflow-step">2</span>
-                            <span>Design the Solution</span>
-                        </button>
-                        <div id="designMenu" class="workflow-popover" role="menu" aria-hidden="true">
+                        <div id="configureMenu" class="workflow-popover" role="menu" aria-hidden="true">
                             <button id="layoutDesignerButton" class="workflow-action accent" type="button" role="menuitem">
                                 <span class="action-title">Camera Layout Designer</span>
                                 <span class="action-subtitle">Map coverage and identify blind spots</span>
@@ -674,7 +652,6 @@
                     </div>
                     <div class="workflow-group">
                         <button class="workflow-trigger" type="button" data-target="designMenu" aria-expanded="false" aria-controls="designMenu">
-                            <span class="workflow-step">2</span>
                             <span>Design Your Solution</span>
                         </button>
                         <div id="designMenu" class="workflow-popover" role="menu" aria-hidden="true">
@@ -691,7 +668,6 @@
                     </div>
                     <div class="workflow-group">
                         <button class="workflow-trigger" type="button" data-target="finalizeMenu" aria-expanded="false" aria-controls="finalizeMenu">
-                            <span class="workflow-step">3</span>
                             <span>Finalize &amp; Share</span>
                         </button>
                         <div id="finalizeMenu" class="workflow-popover" role="menu" aria-hidden="true">
@@ -908,6 +884,14 @@
         const workflowMenu = document.querySelector('.workflow-menu');
         const workflowTriggers = workflowMenu ? workflowMenu.querySelectorAll('.workflow-trigger') : [];
         const workflowActions = workflowMenu ? workflowMenu.querySelectorAll('.workflow-action') : [];
+
+        function findCompatibleMounts(camera) {
+            if (!camera || !camera.compatibleMounts) return [];
+            const allMounts = (products["Infrastructure & Mounting"]["Camera Mounts"] || [])
+                .flatMap(cat => Object.values(cat))
+                .flat();
+            return allMounts.filter(mount => camera.compatibleMounts.includes(mount.id));
+        }
 
         // --- HELPER & UI FUNCTIONS ---
         function getNvrChannelUsage(device) {
