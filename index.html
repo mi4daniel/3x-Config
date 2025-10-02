@@ -608,6 +608,10 @@
                                 <span class="action-title">Camera Layout Designer</span>
                                 <span class="action-subtitle">Map coverage and identify blind spots</span>
                             </button>
+                            <button id="addCameraButton" class="workflow-action success" type="button" role="menuitem">
+                                <span class="action-title">Add Camera</span>
+                                <span class="action-subtitle">Place cameras into your design</span>
+                            </button>
                             <button id="addRackButton" class="workflow-action success" type="button" role="menuitem">
                                 <span class="action-title">Add Rack</span>
                                 <span class="action-subtitle">Start a new equipment grouping</span>
@@ -839,6 +843,7 @@
         const layoutFileEl = document.getElementById('layoutFile');
         const systemStatusButton = document.getElementById('systemStatusButton');
         const layoutDesignerButton = document.getElementById('layoutDesignerButton');
+        const addCameraButton = document.getElementById('addCameraButton');
         const addNvrButton = document.getElementById('addNvrButton');
         const addServerButton = document.getElementById('addServerButton');
         const addPoeSwitchButton = document.getElementById('addPoeSwitchButton');
@@ -1035,15 +1040,28 @@
             setTimeout(() => overlay.classList.add('show'), 10);
 
             const close = () => {
-                overlay.classList.remove('show');
-                overlay.addEventListener('transitionend', () => overlay.remove(), { once: true });
+                const handleRemove = () => {
+                    overlay.removeEventListener('transitionend', handleRemove);
+                    if (overlay.parentNode) {
+                        overlay.parentNode.removeChild(overlay);
+                    }
+                };
+
+                const classes = overlay.className.split(/\s+/).filter(cls => cls && cls !== 'show');
+                overlay.className = classes.length ? classes.join(' ') : 'modal-overlay';
+                overlay.style.opacity = '0';
+                overlay.style.pointerEvents = 'none';
+                overlay.addEventListener('transitionend', handleRemove, { once: true });
+                setTimeout(handleRemove, 250);
             };
             
             overlay.addEventListener('click', (e) => {
                 if (e.target.id === 'closeModalX') close();
                 if (e.target.classList.contains('add-btn')) {
-                    callback(e.target.dataset.productId);
+                    const productId = e.target.dataset.productId;
                     close();
+                    callback(productId);
+                    return;
                 }
                 const header = e.target.closest('.accordion-header');
                 if (header) {
@@ -3016,6 +3034,40 @@
         uploadLayoutButton.addEventListener('click', () => layoutFileEl.click());
         layoutFileEl.addEventListener('change', handleLayoutUpload);
         layoutDesignerButton.addEventListener('click', openLayoutDesigner);
+
+        if (addCameraButton) {
+            addCameraButton.addEventListener('click', () => {
+                const cameraSelectionData = {};
+                const cctvCameras = products && products["CCTV Products"] && products["CCTV Products"]["Cameras"];
+                if (cctvCameras) {
+                    cameraSelectionData["NVR-Compatible Cameras"] = cctvCameras;
+                }
+
+                const vigilCloudCameras = products &&
+                    products["Cloud & Standalone Solutions"] &&
+                    products["Cloud & Standalone Solutions"]["VIGIL Cloud"] &&
+                    products["Cloud & Standalone Solutions"]["VIGIL Cloud"]["VIGIL Cloud Cameras"];
+                if (Array.isArray(vigilCloudCameras)) {
+                    cameraSelectionData["VIGIL Cloud Cameras"] = { "VIGIL Cloud Cameras": vigilCloudCameras };
+                }
+
+                const allInOneCameras = products &&
+                    products["Cloud & Standalone Solutions"] &&
+                    products["Cloud & Standalone Solutions"]["All-in-One Cameras"] &&
+                    products["Cloud & Standalone Solutions"]["All-in-One Cameras"]["All-in-One Cameras"];
+                if (Array.isArray(allInOneCameras)) {
+                    cameraSelectionData["All-in-One Cameras"] = { "All-in-One Cameras": allInOneCameras };
+                }
+
+                if (Object.keys(cameraSelectionData).length === 0) {
+                    return createModal('No Cameras Available', '<p>No camera products are currently available.</p>');
+                }
+
+                createProductSelectionModal('Select a Camera', cameraSelectionData, (productId) => {
+                    addProduct(productId);
+                });
+            });
+        }
 
         if (workflowMenu && workflowTriggers.length) {
             workflowTriggers.forEach(trigger => {
