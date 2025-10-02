@@ -738,6 +738,21 @@
         const workflowTriggers = workflowMenu ? workflowMenu.querySelectorAll('.workflow-trigger') : [];
         const workflowActions = workflowMenu ? workflowMenu.querySelectorAll('.workflow-action') : [];
 
+        function findCompatibleMounts(camera) {
+            if (!camera || !camera.compatibleMounts) return [];
+            const allMounts = (products["Infrastructure & Mounting"]["Camera Mounts"] || [])
+                .flatMap(cat => Object.values(cat))
+                .flat();
+            return allMounts.filter(mount => camera.compatibleMounts.includes(mount.id));
+        }
+
+        function getBuiltInStorage(product) {
+            if (!product || !product.id) return 0;
+            const match = product.id.match(/(\d+)TB/);
+            if (match) return parseInt(match[1], 10);
+            return product.includedStorage || 0;
+        }
+
         // --- HELPER & UI FUNCTIONS ---
         function getNvrChannelUsage(device) {
             return device.cameras.reduce((acc, cam) => acc + ((cam.licenseCount || 1) * cam.quantity), 0);
@@ -2592,7 +2607,7 @@
                 if (dropType === 'rack') {
                     const rackId = dropTarget.dataset.rackId;
                     if(product.deviceType === 'nvr' || product.deviceType === 'server' || product.deviceType === 'poe-switch'){
-                        addProduct(category, subCategory, product.id, null, rackId, parentCategory);
+                        addProduct(product.id, null, rackId);
                     } else {
                         showToast('This item cannot be added directly to a rack.');
                     }
@@ -3126,36 +3141,6 @@
             document.body.removeChild(link);
         }
         
-        async function printLayout() {
-            const layoutData = await getLayoutCanvasAsImage();
-            if (!layoutData) {
-                return showToast("No layout or placed items to print.");
-            }
-
-            const printWindow = window.open('', '', 'height=800,width=1200');
-            printWindow.document.write(`<html><head><title>Camera Layout - ${configuration.projectName || 'Untitled'}</title>
-                <style>
-                    body { font-family: "Inter", sans-serif; margin: 20px; }
-                    @page { size: letter landscape; margin: 0.5in; }
-                    h2 { text-align: center; }
-                    .layout-container { display: flex; gap: 20px; align-items: flex-start; }
-                    .layout-image { flex-grow: 1; max-width: 70%; }
-                    .layout-image img { width: 100%; height: auto; border: 1px solid #ccc; }
-                    .layout-legend { border: 1px solid #ccc; padding: 10px; width: 30%; }
-                    .layout-legend ol { list-style-position: inside; padding-left: 0; margin: 0; }
-                    .layout-legend li { margin-bottom: 5px; }
-                </style>
-            </head><body>
-                <h2>Camera Layout: ${configuration.projectName || 'Untitled'}</h2>
-                <div class="layout-container">
-                    <div class="layout-image"><img src="${layoutData.image}"></div>
-                    ${layoutData.legend}
-                </div>
-            </body></html>`);
-            printWindow.document.close();
-            setTimeout(() => printWindow.print(), 500);
-        }
-
         printButton.addEventListener('click', async () => {
             const projectName = configuration.projectName || 'Untitled Project';
             const printDate = new Date().toLocaleDateString();

@@ -363,47 +363,6 @@
     setTimeout(() => addChatMessage(botResponse, 'bot'), 250);
   }
 
-  function processChatInput() {
-    const input = document.getElementById('chatbot-input');
-    if (!input) return;
-    const userRaw = input.value;
-    const user = userRaw.trim();
-    if (!user) return;
-
-    addChatMessage(userRaw, 'user');
-    input.value = '';
-
-    const qLower = user.toLowerCase();
-    let botResponse = null;
-
-    outer: for (const intent of intents) {
-      for (const pattern of intent.patterns) {
-        if (pattern.test(qLower)) {
-          botResponse = intent.action(user);
-          break outer;
-        }
-      }
-    }
-
-    if (!botResponse) {
-      // Fallback: try camera search then NVR search
-      const cams = filterByWords(index.cameras, user).slice(0, 20);
-      if (cams.length) {
-        deps.createProductSelectionModal('Camera Search Results', cams, deps.addProduct);
-        botResponse = `I found <strong>${cams.length}</strong> camera(s). Showing up to 20.`;
-      } else {
-        const nvrs = filterByWords(index.nvrs, user).slice(0, 20);
-        if (nvrs.length) {
-          deps.createProductSelectionModal('NVR Search Results', nvrs, deps.addProduct);
-          botResponse = `I found <strong>${nvrs.length}</strong> NVR(s). Showing up to 20.`;
-        }
-      }
-    }
-
-    if (!botResponse) botResponse = "I’m not sure yet—try: “recommend an NVR for 24 cameras on Linux,” “find outdoor 5MP turret,” or paste a model ID and ask about capacity.”";
-    setTimeout(() => addChatMessage(botResponse, 'bot'), 250);
-  }
-
   /* =========================
      Init wiring
      ========================= */
