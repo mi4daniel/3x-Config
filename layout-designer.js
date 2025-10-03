@@ -106,10 +106,10 @@
     const style = document.createElement('style');
     style.id = STYLE_ID;
     style.textContent = `
-      .ldz-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:stretch;justify-content:stretch;background:radial-gradient(circle at top,rgba(15,23,42,0.9),rgba(15,23,42,0.75));backdrop-filter:blur(12px);}
-      .ldz-modal{width:100%;height:100%;background:linear-gradient(145deg,#f8fafc,#fff);display:grid;grid-template-columns:minmax(340px,380px) minmax(0,1fr);overflow:hidden;color:#0f172a;position:relative;}
-      @media(max-width:1080px){.ldz-modal{grid-template-columns:1fr;grid-template-rows:minmax(0,420px) minmax(0,1fr);}}
-      .ldz-sidebar{background:rgba(248,250,252,0.92);backdrop-filter:blur(18px);display:flex;flex-direction:column;border-right:1px solid rgba(148,163,184,0.25);}
+      .ldz-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at top,rgba(15,23,42,0.9),rgba(15,23,42,0.75));backdrop-filter:blur(12px);}
+      .ldz-modal{width:min(1200px,96vw);height:min(880px,92vh);background:linear-gradient(145deg,#f8fafc,#fff);border-radius:24px;box-shadow:0 40px 80px -40px rgba(15,23,42,0.45);display:grid;grid-template-columns:minmax(320px,360px) minmax(0,1fr);overflow:hidden;color:#0f172a;position:relative;}
+      @media(max-width:1080px){.ldz-modal{grid-template-columns:1fr;grid-template-rows:minmax(0,420px) minmax(0,1fr);height:92vh;}}
+      .ldz-sidebar{background:rgba(248,250,252,0.92);backdrop-filter:blur(18px);display:flex;flex-direction:column;}
       .ldz-sidebar-header{padding:28px 28px 20px;border-bottom:1px solid rgba(148,163,184,0.25);display:flex;flex-direction:column;gap:14px;}
       .ldz-title{font-size:1.25rem;font-weight:700;letter-spacing:-0.01em;color:#0f172a;}
       .ldz-subtitle{font-size:0.8rem;color:rgba(15,23,42,0.68);line-height:1.4;}
@@ -119,7 +119,7 @@
       .ldz-chip strong{font-size:0.95rem;}
       .ldz-chip.alt{background:rgba(16,185,129,0.08);border-color:rgba(16,185,129,0.2);color:#047857;}
       .ldz-chip.neutral{background:rgba(148,163,184,0.12);border-color:rgba(148,163,184,0.25);color:#0f172a;}
-      .ldz-sidebar-body{padding:20px 28px;display:flex;flex-direction:column;gap:16px;flex:1;overflow:hidden;min-height:0;}
+      .ldz-sidebar-body{padding:20px 28px;display:flex;flex-direction:column;gap:16px;flex:1;overflow:hidden;}
       .ldz-search{position:relative;}
       .ldz-search input{width:100%;padding:10px 12px 10px 38px;border-radius:12px;border:1px solid rgba(148,163,184,0.25);background:rgba(255,255,255,0.9);font-size:0.85rem;color:#0f172a;transition:border-color .2s,box-shadow .2s;}
       .ldz-search input:focus{outline:none;border-color:rgba(99,102,241,0.45);box-shadow:0 0 0 3px rgba(99,102,241,0.15);}
@@ -130,8 +130,7 @@
       .ldz-filter button.active{background:linear-gradient(135deg,rgba(59,130,246,0.18),rgba(99,102,241,0.22));border-color:rgba(99,102,241,0.45);color:#1e3a8a;box-shadow:0 10px 20px -12px rgba(59,130,246,0.65);}
       .ldz-section-heading{display:flex;justify-content:space-between;align-items:center;font-size:0.75rem;font-weight:600;color:rgba(15,23,42,0.55);padding-top:4px;}
       .ldz-section-count{padding:4px 10px;border-radius:9999px;background:rgba(148,163,184,0.15);color:#1f2937;font-size:0.7rem;font-weight:600;}
-      .ldz-list-shell{flex:1;display:flex;flex-direction:column;gap:12px;min-height:0;}
-      .ldz-list{flex:1;overflow:auto;padding-right:6px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth;overscroll-behavior:contain;}
+      .ldz-list{flex:1;overflow:auto;padding-right:6px;display:flex;flex-direction:column;gap:10px;}
       .ldz-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:16px;border:1px solid rgba(148,163,184,0.18);background:rgba(255,255,255,0.95);box-shadow:0 12px 24px -20px rgba(15,23,42,0.65);cursor:grab;transition:transform .2s,box-shadow .2s,border-color .2s;}
       .ldz-item:hover{transform:translateY(-1px);border-color:rgba(59,130,246,0.35);box-shadow:0 18px 32px -24px rgba(59,130,246,0.4);}
       .ldz-item:active{cursor:grabbing;}
@@ -146,12 +145,6 @@
       .ldz-type-pill.fov{background:rgba(234,179,8,0.18);color:#b45309;}
       .ldz-empty-state{padding:40px 12px;text-align:center;color:rgba(15,23,42,0.45);font-size:0.8rem;}
       .ldz-sidebar-footer{padding:20px 28px 28px;border-top:1px solid rgba(148,163,184,0.2);display:flex;flex-direction:column;gap:18px;background:rgba(248,250,252,0.9);}
-      .ldz-scroll-controls{display:flex;align-items:center;justify-content:space-between;gap:12px;}
-      .ldz-scroll-label{font-size:0.7rem;color:rgba(15,23,42,0.55);font-weight:600;letter-spacing:0.01em;}
-      .ldz-scroll-buttons{display:flex;gap:8px;}
-      .ldz-scroll-btn{width:38px;height:34px;border-radius:10px;border:1px solid rgba(148,163,184,0.3);background:rgba(255,255,255,0.9);color:#1e3a8a;font-weight:600;font-size:0.9rem;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 12px 24px -18px rgba(59,130,246,0.55);transition:all .2s;}
-      .ldz-scroll-btn:hover:not(:disabled){border-color:rgba(59,130,246,0.45);background:rgba(59,130,246,0.18);box-shadow:0 16px 32px -18px rgba(59,130,246,0.45);}
-      .ldz-scroll-btn:disabled{opacity:0.4;cursor:not-allowed;box-shadow:none;}
       .ldz-card{background:rgba(255,255,255,0.95);border:1px solid rgba(148,163,184,0.25);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:14px;box-shadow:0 12px 32px -28px rgba(15,23,42,0.45);}
       .ldz-card-title{font-weight:600;font-size:0.8rem;color:#0f172a;display:flex;align-items:center;justify-content:space-between;}
       .ldz-card-actions{display:flex;flex-wrap:wrap;gap:10px;}
@@ -178,7 +171,7 @@
       .ldz-icon-btn.ghost{background:rgba(248,250,252,0.85);color:#1f2937;}
       .ldz-icon-btn.ghost.active{border-color:rgba(59,130,246,0.6);background:rgba(59,130,246,0.12);color:#1e3a8a;}
       .ldz-icon-btn:disabled{opacity:0.45;cursor:not-allowed;box-shadow:none;border-color:rgba(148,163,184,0.2);}
-      .ldz-canvas-wrap{position:relative;background:radial-gradient(circle at top,#0f172a,#020617);display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:grab;height:100%;min-height:0;}
+      .ldz-canvas-wrap{position:relative;background:radial-gradient(circle at top,#0f172a,#020617);display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:grab;}
       .ldz-canvas-wrap.wall-mode{cursor:crosshair;}
       .ldz-canvas-toolbar{position:absolute;top:20px;right:20px;display:flex;gap:10px;flex-wrap:wrap;background:rgba(15,23,42,0.75);backdrop-filter:blur(10px);padding:10px 12px;border-radius:16px;border:1px solid rgba(148,163,184,0.3);box-shadow:0 24px 40px -28px rgba(15,23,42,0.8);z-index:5;}
       .ldz-toolbar-group{display:flex;align-items:center;gap:8px;}
@@ -275,16 +268,7 @@
               <span>Available items</span>
               <span class="ldz-section-count" id="ldzAvailableTotal">0</span>
             </div>
-            <div class="ldz-list-shell">
-              <div class="ldz-list" id="ldzItems"></div>
-              <div class="ldz-scroll-controls">
-                <span class="ldz-scroll-label">Browse devices</span>
-                <div class="ldz-scroll-buttons">
-                  <button type="button" class="ldz-scroll-btn" id="ldzScrollUp" title="Scroll up">&uarr;</button>
-                  <button type="button" class="ldz-scroll-btn" id="ldzScrollDown" title="Scroll down">&darr;</button>
-                </div>
-              </div>
-            </div>
+            <div class="ldz-list" id="ldzItems"></div>
           </div>
           <div class="ldz-sidebar-footer">
             <div id="ldzSelectionControls" class="ldz-card" style="display:none;">
@@ -354,8 +338,6 @@
         </div>
       </div>
 `;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
     document.body.appendChild(overlay);
 
     const schedule = typeof window.requestAnimationFrame === 'function'
@@ -386,9 +368,6 @@
     const placedFovCountEl = overlay.querySelector('#ldzPlacedFovCount');
     const placedNvrCountEl = overlay.querySelector('#ldzPlacedNvrCount');
     const placedWallCountEl = overlay.querySelector('#ldzPlacedWallCount');
-    let itemsListEl = overlay.querySelector('#ldzItems');
-    let scrollUpBtn = overlay.querySelector('#ldzScrollUp');
-    let scrollDownBtn = overlay.querySelector('#ldzScrollDown');
     const zoomIndicator = overlay.querySelector('#ldzZoomIndicator');
     const zoomInBtn = overlay.querySelector('#ldzZoomIn');
     const zoomOutBtn = overlay.querySelector('#ldzZoomOut');
@@ -495,7 +474,7 @@
     }
 
     function renderItemsList(){
-      const list = itemsListEl;
+      const list = overlay.querySelector('#ldzItems');
       if (!list) return;
       const cfg = getConfig();
       const placed = new Set((cfg.layoutPlacements||[]).map(p=>p.uniqueId));
@@ -550,9 +529,6 @@
 
       if (!filtered.length){
         list.innerHTML = '<div class="ldz-empty-state">No items match your filters.</div>';
-        if (scrollUpBtn) scrollUpBtn.disabled = true;
-        if (scrollDownBtn) scrollDownBtn.disabled = true;
-        schedule(updateScrollButtons);
         return;
       }
 
@@ -576,7 +552,6 @@
 
       list.innerHTML = rows.join('');
       list.scrollTop = 0;
-      schedule(updateScrollButtons);
 
       list.querySelectorAll('.ldz-item').forEach(el=>{
         el.addEventListener('dragstart', (e)=>{
