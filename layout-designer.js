@@ -339,7 +339,11 @@
       </div>
 `;
     document.body.appendChild(overlay);
-    
+
+    const schedule = typeof window.requestAnimationFrame === 'function'
+      ? (fn) => window.requestAnimationFrame(fn)
+      : (fn) => setTimeout(fn, 0);
+
     const wrap = overlay.querySelector('.ldz-canvas-wrap');
     const bg = overlay.querySelector('#ldzBg');
     const fovCanvas = overlay.querySelector('#ldzFov');
@@ -438,6 +442,35 @@
       });
       const allNvrs = racks.flatMap(r => r.devices.filter(d => d.product?.deviceType==='nvr'));
       return {allCams, allNvrs};
+    }
+
+    function updateScrollButtons(){
+      if (!itemsListEl || !scrollUpBtn || !scrollDownBtn) return;
+      const maxScroll = Math.max(0, itemsListEl.scrollHeight - itemsListEl.clientHeight);
+      const epsilon = 2;
+      scrollUpBtn.disabled = itemsListEl.scrollTop <= epsilon;
+      scrollDownBtn.disabled = maxScroll <= epsilon || itemsListEl.scrollTop >= (maxScroll - epsilon);
+    }
+
+    function scrollListBy(multiplier){
+      if (!itemsListEl) return;
+      const delta = itemsListEl.clientHeight * multiplier;
+      if (typeof itemsListEl.scrollBy === 'function') {
+        itemsListEl.scrollBy({ top: delta, behavior: 'smooth' });
+      } else {
+        itemsListEl.scrollTop += delta;
+      }
+      schedule(updateScrollButtons);
+    }
+
+    if (itemsListEl) {
+      itemsListEl.addEventListener('scroll', updateScrollButtons);
+    }
+    if (scrollUpBtn) {
+      scrollUpBtn.addEventListener('click', () => scrollListBy(-0.85));
+    }
+    if (scrollDownBtn) {
+      scrollDownBtn.addEventListener('click', () => scrollListBy(0.85));
     }
 
     function renderItemsList(){
@@ -1064,6 +1097,7 @@
         if (document.body.contains(overlay)) {
             document.body.removeChild(overlay);
         }
+        document.body.style.overflow = previousOverflow;
         document.removeEventListener('keydown', handleKeyDown);
         window.removeEventListener('resize', onResize);
     };
