@@ -106,54 +106,104 @@
     const style = document.createElement('style');
     style.id = STYLE_ID;
     style.textContent = `
-      .ldz-overlay{position:fixed;inset:0;z-index:9999;background:rgba(17,24,39,.75);display:flex;align-items:center;justify-content:center}
-      .ldz-modal{background:#fff;color:#111827;border-radius:16px;box-shadow:0 25px 50px rgba(0,0,0,.25);width:min(1100px,95vw);height:85vh;display:flex;overflow:hidden}
-      .ldz-sidebar{width:320px;min-width:280px;max-width:360px;border-right:1px solid #e5e7eb;display:flex;flex-direction:column}
-      .ldz-sidebar header{padding:16px 16px 8px 16px;border-bottom:1px solid #f3f4f6}
-      .ldz-sidebar .ldz-list{padding:12px 12px 0 12px;overflow:auto;flex:1}
-      .ldz-item{display:flex;align-items:center;gap:8px;padding:8px;border-radius:10px;border:1px solid #e5e7eb;margin-bottom:8px;background:#fff;cursor:grab}
-      .ldz-item:active{cursor:grabbing}
-      .ldz-footer{padding:12px;border-top:1px solid #f3f4f6}
-      .ldz-btn{display:block;width:100%;padding:10px 12px;border-radius:10px;border:1px solid #e5e7eb;background:#f3f4f6;font-weight:600; cursor:pointer;}
-      .ldz-btn:disabled{cursor:not-allowed; opacity:0.5;}
-      .ldz-btn.active{background:#e0e7ff;color:#4f46e5;border-color:#c7d2fe;}
-      .ldz-btn.primary{background:#111827;color:#fff;border-color:#111827}
-      .ldz-btn.danger{background:#fef2f2;color:#dc2626;border-color:#fecaca}
-      .ldz-btn + .ldz-btn{margin-top:8px}
-      .ldz-icon-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 8px;border-radius:10px;font-size:11px;line-height:1.2;gap:2px;flex:1;cursor:pointer;border:1px solid #e5e7eb;background-color:#f3f4f6;}
-      .ldz-icon-btn:hover{background:#e5e7eb;}
-      .ldz-icon-btn img{width:24px;height:24px;}
-      .ldz-icon-btn.active{background:#e0e7ff;color:#4f46e5;border-color:#c7d2fe;}
-      .ldz-icon-btn.primary{background:#111827;color:#fff;border-color:#111827}
-      .ldz-icon-btn.primary:hover{background:#374151;}
-      .ldz-icon-btn.danger:hover{background:#fee2e2;}
-      .ldz-canvas-wrap{position:relative;flex:1;background:#111827;display:flex;align-items:center;justify-content:center;overflow:hidden; cursor: default;}
+      .ldz-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:stretch;justify-content:stretch;background:radial-gradient(circle at top,rgba(15,23,42,0.9),rgba(15,23,42,0.75));backdrop-filter:blur(12px);}
+      .ldz-modal{width:100%;height:100%;background:linear-gradient(145deg,#f8fafc,#fff);display:grid;grid-template-columns:minmax(340px,380px) minmax(0,1fr);overflow:hidden;color:#0f172a;position:relative;}
+      @media(max-width:1080px){.ldz-modal{grid-template-columns:1fr;grid-template-rows:minmax(0,420px) minmax(0,1fr);}}
+      .ldz-sidebar{background:rgba(248,250,252,0.92);backdrop-filter:blur(18px);display:flex;flex-direction:column;border-right:1px solid rgba(148,163,184,0.25);}
+      .ldz-sidebar-header{padding:28px 28px 20px;border-bottom:1px solid rgba(148,163,184,0.25);display:flex;flex-direction:column;gap:14px;}
+      .ldz-title{font-size:1.25rem;font-weight:700;letter-spacing:-0.01em;color:#0f172a;}
+      .ldz-subtitle{font-size:0.8rem;color:rgba(15,23,42,0.68);line-height:1.4;}
+      .ldz-stat-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+      .ldz-chip{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:14px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.18);font-size:0.72rem;color:#1d4ed8;font-weight:600;}
+      .ldz-chip span{font-weight:500;color:rgba(15,23,42,0.55);font-size:0.68rem;}
+      .ldz-chip strong{font-size:0.95rem;}
+      .ldz-chip.alt{background:rgba(16,185,129,0.08);border-color:rgba(16,185,129,0.2);color:#047857;}
+      .ldz-chip.neutral{background:rgba(148,163,184,0.12);border-color:rgba(148,163,184,0.25);color:#0f172a;}
+      .ldz-sidebar-body{padding:20px 28px;display:flex;flex-direction:column;gap:16px;flex:1;overflow:hidden;min-height:0;}
+      .ldz-search{position:relative;}
+      .ldz-search input{width:100%;padding:10px 12px 10px 38px;border-radius:12px;border:1px solid rgba(148,163,184,0.25);background:rgba(255,255,255,0.9);font-size:0.85rem;color:#0f172a;transition:border-color .2s,box-shadow .2s;}
+      .ldz-search input:focus{outline:none;border-color:rgba(99,102,241,0.45);box-shadow:0 0 0 3px rgba(99,102,241,0.15);}
+      .ldz-search svg{position:absolute;top:50%;left:12px;width:16px;height:16px;color:rgba(15,23,42,0.45);transform:translateY(-50%);}
+      .ldz-filter{display:flex;flex-wrap:wrap;gap:8px;}
+      .ldz-filter button{flex:1 1 90px;padding:8px 12px;border-radius:9999px;border:1px solid rgba(148,163,184,0.25);background:rgba(255,255,255,0.85);font-weight:600;font-size:0.75rem;color:#475569;cursor:pointer;transition:all .2s;}
+      .ldz-filter button:hover{border-color:rgba(99,102,241,0.4);color:#312e81;}
+      .ldz-filter button.active{background:linear-gradient(135deg,rgba(59,130,246,0.18),rgba(99,102,241,0.22));border-color:rgba(99,102,241,0.45);color:#1e3a8a;box-shadow:0 10px 20px -12px rgba(59,130,246,0.65);}
+      .ldz-section-heading{display:flex;justify-content:space-between;align-items:center;font-size:0.75rem;font-weight:600;color:rgba(15,23,42,0.55);padding-top:4px;}
+      .ldz-section-count{padding:4px 10px;border-radius:9999px;background:rgba(148,163,184,0.15);color:#1f2937;font-size:0.7rem;font-weight:600;}
+      .ldz-list-shell{flex:1;display:flex;flex-direction:column;gap:12px;min-height:0;}
+      .ldz-list{flex:1;overflow:auto;padding-right:6px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth;overscroll-behavior:contain;}
+      .ldz-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:16px;border:1px solid rgba(148,163,184,0.18);background:rgba(255,255,255,0.95);box-shadow:0 12px 24px -20px rgba(15,23,42,0.65);cursor:grab;transition:transform .2s,box-shadow .2s,border-color .2s;}
+      .ldz-item:hover{transform:translateY(-1px);border-color:rgba(59,130,246,0.35);box-shadow:0 18px 32px -24px rgba(59,130,246,0.4);}
+      .ldz-item:active{cursor:grabbing;}
+      .ldz-item-icon{width:36px;height:36px;border-radius:12px;background:rgba(59,130,246,0.1);display:flex;align-items:center;justify-content:center;overflow:hidden;}
+      .ldz-item-icon img{width:100%;height:100%;object-fit:cover;}
+      .ldz-item-fallback{font-weight:700;font-size:0.95rem;color:#1e40af;}
+      .ldz-item-content{flex:1;display:flex;flex-direction:column;gap:4px;}
+      .ldz-item-title{font-weight:600;font-size:0.85rem;color:#0f172a;}
+      .ldz-item-subtitle{font-size:0.7rem;color:rgba(15,23,42,0.55);}
+      .ldz-type-pill{padding:4px 10px;border-radius:9999px;background:rgba(59,130,246,0.15);font-size:0.7rem;font-weight:600;color:#1e3a8a;}
+      .ldz-type-pill.nvr{background:rgba(30,64,175,0.12);color:#1e40af;}
+      .ldz-type-pill.fov{background:rgba(234,179,8,0.18);color:#b45309;}
+      .ldz-empty-state{padding:40px 12px;text-align:center;color:rgba(15,23,42,0.45);font-size:0.8rem;}
+      .ldz-sidebar-footer{padding:20px 28px 28px;border-top:1px solid rgba(148,163,184,0.2);display:flex;flex-direction:column;gap:18px;background:rgba(248,250,252,0.9);}
+      .ldz-scroll-controls{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+      .ldz-scroll-label{font-size:0.7rem;color:rgba(15,23,42,0.55);font-weight:600;letter-spacing:0.01em;}
+      .ldz-scroll-buttons{display:flex;gap:8px;}
+      .ldz-scroll-btn{width:38px;height:34px;border-radius:10px;border:1px solid rgba(148,163,184,0.3);background:rgba(255,255,255,0.9);color:#1e3a8a;font-weight:600;font-size:0.9rem;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 12px 24px -18px rgba(59,130,246,0.55);transition:all .2s;}
+      .ldz-scroll-btn:hover:not(:disabled){border-color:rgba(59,130,246,0.45);background:rgba(59,130,246,0.18);box-shadow:0 16px 32px -18px rgba(59,130,246,0.45);}
+      .ldz-scroll-btn:disabled{opacity:0.4;cursor:not-allowed;box-shadow:none;}
+      .ldz-card{background:rgba(255,255,255,0.95);border:1px solid rgba(148,163,184,0.25);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:14px;box-shadow:0 12px 32px -28px rgba(15,23,42,0.45);}
+      .ldz-card-title{font-weight:600;font-size:0.8rem;color:#0f172a;display:flex;align-items:center;justify-content:space-between;}
+      .ldz-card-actions{display:flex;flex-wrap:wrap;gap:10px;}
+      .ldz-chip-btn{padding:8px 14px;border-radius:12px;border:1px solid rgba(148,163,184,0.25);background:rgba(248,250,252,0.9);font-weight:600;font-size:0.75rem;color:#334155;cursor:pointer;transition:all .2s;}
+      .ldz-chip-btn:hover{border-color:rgba(59,130,246,0.45);color:#1e40af;}
+      .ldz-chip-btn.active{background:rgba(59,130,246,0.18);border-color:rgba(59,130,246,0.45);color:#1e3a8a;}
+      .ldz-chip-btn.danger{background:rgba(254,226,226,0.85);border-color:rgba(254,202,202,0.9);color:#b91c1c;}
+      .ldz-chip-btn.danger:hover{border-color:rgba(239,68,68,0.55);color:#991b1b;}
+      .ldz-field{display:flex;flex-direction:column;gap:6px;}
+      .ldz-label{font-size:0.72rem;color:rgba(15,23,42,0.6);font-weight:500;}
+      .ldz-range{width:100%;}
+      .ldz-colors{display:flex;gap:8px;flex-wrap:wrap;}
+      .ldz-color-swatch{width:26px;height:26px;border-radius:9999px;border:2px solid transparent;cursor:pointer;box-shadow:0 6px 12px -10px rgba(15,23,42,0.6);}
+      .ldz-color-swatch.selected{border-color:#3b82f6;}
+      .ldz-footer-actions{display:flex;flex-direction:column;gap:12px;}
+      .ldz-action-row{display:flex;flex-wrap:wrap;gap:10px;}
+      .ldz-icon-btn{flex:1;min-width:120px;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 12px;border-radius:12px;border:1px solid rgba(148,163,184,0.25);background:rgba(255,255,255,0.9);font-weight:600;font-size:0.78rem;color:#1f2937;cursor:pointer;transition:all .2s;}
+      .ldz-icon-btn img,.ldz-icon-btn svg{width:18px;height:18px;}
+      .ldz-icon-btn:hover{border-color:rgba(59,130,246,0.45);box-shadow:0 12px 26px -20px rgba(59,130,246,0.5);}
+      .ldz-icon-btn.primary{background:linear-gradient(135deg,#1e3a8a,#4338ca);color:#f8fafc;border-color:rgba(67,56,202,0.7);}
+      .ldz-icon-btn.primary:hover{box-shadow:0 16px 32px -18px rgba(67,56,202,0.5);}
+      .ldz-icon-btn.danger{background:linear-gradient(135deg,#f87171,#ef4444);color:#fff;border-color:rgba(248,113,113,0.85);}
+      .ldz-icon-btn.danger:hover{box-shadow:0 16px 32px -18px rgba(248,113,113,0.55);}
+      .ldz-icon-btn.ghost{background:rgba(248,250,252,0.85);color:#1f2937;}
+      .ldz-icon-btn.ghost.active{border-color:rgba(59,130,246,0.6);background:rgba(59,130,246,0.12);color:#1e3a8a;}
+      .ldz-icon-btn:disabled{opacity:0.45;cursor:not-allowed;box-shadow:none;border-color:rgba(148,163,184,0.2);}
+      .ldz-canvas-wrap{position:relative;background:radial-gradient(circle at top,#0f172a,#020617);display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:grab;height:100%;min-height:0;}
       .ldz-canvas-wrap.wall-mode{cursor:crosshair;}
-      #ldzBg, #ldzFov, #ldzWalls{position:absolute;top:0;left:0}
-      #ldzOverlay{position:absolute;top:0;left:0;transform-origin: top left;}
-      .ldz-placed{position:absolute;width:32px;height:32px;border:2px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;font:600 14px/1 Arial, sans-serif;cursor:grab;user-select:none;box-sizing:border-box}
-      .ldz-placed-label{position:absolute;top:100%;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.7);color:#fff;font-size:11px;padding:2px 6px;border-radius:4px;white-space:nowrap;margin-top:5px;font-weight:500}
-      .ldz-placed.camera{background:rgba(0,114,198,.9); border-radius: 9999px;}
-      .ldz-placed.nvr{background:rgba(74,85,104,.9); border-radius: 6px; font-size:12px; font-weight:700;}
-      .ldz-placed.fov{background:rgba(234,179,8,.75); border-radius: 9999px;}
-      .ldz-placed.fov.linked{display:none} /* Hide FOV handle when linked */
-      .ldz-placed.selected{box-shadow:0 0 0 3px rgba(59,130,246,.5)}
-      .ldz-fov-handle{position:absolute;width:10px;height:10px;background:#fff;border-radius:9999px; cursor: crosshair;}
-      .ldz-fov-rotate{top:-12px;left:50%;transform:translateX(-50%)}
-      .ldz-fov-range{bottom:-12px;left:50%;transform:translateX(-50%)}
-      .ldz-camera-rotate-handle{display:none; position:absolute; top:-15px; left:50%; transform:translateX(-50%); width:10px; height:10px; background:#3b82f6; border:1px solid #fff; border-radius:9999px; cursor: crosshair;}
+      .ldz-canvas-toolbar{position:absolute;top:20px;right:20px;display:flex;gap:10px;flex-wrap:wrap;background:rgba(15,23,42,0.75);backdrop-filter:blur(10px);padding:10px 12px;border-radius:16px;border:1px solid rgba(148,163,184,0.3);box-shadow:0 24px 40px -28px rgba(15,23,42,0.8);z-index:5;}
+      .ldz-toolbar-group{display:flex;align-items:center;gap:8px;}
+      .ldz-toolbar-btn{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;border:1px solid rgba(148,163,184,0.35);background:rgba(30,41,59,0.65);color:#e2e8f0;cursor:pointer;transition:all .2s;}
+      .ldz-toolbar-btn:hover{border-color:rgba(59,130,246,0.6);background:rgba(59,130,246,0.18);color:#bfdbfe;}
+      .ldz-toolbar-btn.active{border-color:rgba(59,130,246,0.8);background:rgba(59,130,246,0.25);color:#eff6ff;}
+      .ldz-zoom-indicator{padding:0 10px;font-weight:600;font-size:0.75rem;color:#e2e8f0;}
+      #ldzBg,#ldzFov,#ldzWalls{position:absolute;top:0;left:0;}
+      #ldzOverlay{position:absolute;top:0;left:0;transform-origin:top left;}
+      .ldz-placed{position:absolute;width:36px;height:36px;border-radius:12px;border:2px solid rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;color:#fff;font:600 14px/1 'Inter',sans-serif;cursor:grab;user-select:none;box-shadow:0 14px 32px -24px rgba(15,23,42,0.85);}
+      .ldz-placed.camera{background:linear-gradient(160deg,rgba(59,130,246,0.9),rgba(14,165,233,0.85));border-radius:18px;}
+      .ldz-placed.nvr{background:linear-gradient(160deg,rgba(100,116,139,0.95),rgba(71,85,105,0.92));font-size:12px;font-weight:700;}
+      .ldz-placed.fov{background:rgba(234,179,8,0.75);border-radius:18px;}
+      .ldz-placed.fov.linked{display:none;}
+      .ldz-placed.selected{box-shadow:0 0 0 4px rgba(59,130,246,0.55);}
+      .ldz-placed-label{position:absolute;top:100%;left:50%;transform:translateX(-50%);background:rgba(15,23,42,0.9);color:#f8fafc;font-size:0.68rem;padding:4px 8px;border-radius:8px;white-space:nowrap;margin-top:6px;font-weight:500;}
+      .ldz-camera-rotate-handle{display:none;position:absolute;top:-18px;left:50%;transform:translateX(-50%);width:12px;height:12px;background:#60a5fa;border:2px solid #fff;border-radius:9999px;cursor:crosshair;}
       .ldz-placed.selected .ldz-camera-rotate-handle{display:block;}
-      .ldz-close{position:absolute;top:10px;right:10px;background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:6px 10px;cursor:pointer;z-index:10}
-      .ldz-field{display:flex;align-items:center;gap:8px;margin:8px 12px}
-      .ldz-label{font-size:12px;color:#374151}
-      .ldz-range{width:100%}
-      .ldz-colors{display:flex;gap:6px;padding:8px 12px; justify-content: center;}
-      .ldz-color-swatch{width:24px;height:24px;border-radius:9999px;border:2px solid transparent;cursor:pointer}
-      .ldz-color-swatch.selected{border-color:#3b82f6}
-      .ldz-close{position:absolute;top:10px;right:10px;background:transparent;border:0;padding:0;cursor:pointer;z-index:10;opacity:0.8;}
-      .ldz-close:hover{opacity:1}
-      .ldz-close img{width:32px;height:32px;}
-      #context-menu button { display: block; width: 100%; padding: 8px 12px; text-align: left; background: none; border: none; cursor: pointer; }
+      .ldz-fov-handle{position:absolute;width:12px;height:12px;background:#fff;border-radius:9999px;cursor:crosshair;border:2px solid rgba(59,130,246,0.6);}
+      .ldz-fov-rotate{top:-16px;left:50%;transform:translateX(-50%);}
+      .ldz-fov-range{bottom:-16px;left:50%;transform:translateX(-50%);}
+      .ldz-close{position:absolute;top:18px;right:18px;background:rgba(248,250,252,0.9);border:1px solid rgba(148,163,184,0.3);border-radius:12px;padding:8px;cursor:pointer;z-index:10;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+      .ldz-close:hover{border-color:rgba(248,113,113,0.6);background:rgba(254,226,226,0.85);}
+      .ldz-close img{width:24px;height:24px;}
+      #context-menu button{display:block;width:100%;padding:8px 12px;text-align:left;background:none;border:none;cursor:pointer;}
     `;
     document.head.appendChild(style);
   }
@@ -199,63 +249,119 @@
     overlay.className = 'ldz-overlay';
     overlay.innerHTML = `
       <div class="ldz-modal">
-        <div class="ldz-sidebar">
-          <header>
-            <div style="font-weight:700;font-size:16px">Camera Layout Designer</div>
-            <div style="font-size:12px;color:#6b7280">Drag items or draw walls on the floor plan.</div>
+        <aside class="ldz-sidebar">
+          <header class="ldz-sidebar-header">
+            <div class="ldz-title">Camera Layout Designer</div>
+            <p class="ldz-subtitle">Drag devices, sketch obstructions, and fine-tune coverage zones to mirror the project vision.</p>
+            <div class="ldz-stat-grid">
+              <div class="ldz-chip"><span>Placed cameras</span><strong id="ldzPlacedCameraCount">0</strong></div>
+              <div class="ldz-chip alt"><span>Coverage zones</span><strong id="ldzPlacedFovCount">0</strong></div>
+              <div class="ldz-chip neutral"><span>Recorders</span><strong id="ldzPlacedNvrCount">0</strong></div>
+              <div class="ldz-chip neutral"><span>Walls</span><strong id="ldzPlacedWallCount">0</strong></div>
+            </div>
           </header>
-          <div class="ldz-list"><div id="ldzItems"></div></div>
-          <div class="ldz-footer">
-            <div id="ldzFovControls" style="display: none;">
-                <div class="ldz-field">
-                    <span class="ldz-label">FOV Angle: <strong id="ldzFovAngleValue">90°</strong></span>
-                    <input id="ldzFovAngle" class="ldz-range" type="range" min="15" max="360" value="90">
-                </div>
-                <div class="ldz-field">
-                    <span class="ldz-label">FOV Range:</span>
-                    <input id="ldzFovRange" class="ldz-range" type="range" min="10" max="500" value="60">
-                </div>
-                <div class="ldz-colors" id="ldzFovColors">
-                    <button class="ldz-color-swatch selected" style="background:rgba(234,179,8,0.5)" data-color="rgba(234,179,8,0.5)"></button>
-                    <button class="ldz-color-swatch" style="background:rgba(239,68,68,0.4)" data-color="rgba(239,68,68,0.4)"></button>
-                    <button class="ldz-color-swatch" style="background:rgba(34,197,94,0.4)" data-color="rgba(34,197,94,0.4)"></button>
-                    <button class="ldz-color-swatch" style="background:rgba(139,92,246,0.4)" data-color="rgba(139,92,246,0.4)"></button>
-                </div>
-                <div class="ldz-field">
-                    <span class="ldz-label">FOV Rotation: <strong id="ldzFovRotationValue">0°</strong></span>
-                    <input id="ldzFovRotation" class="ldz-range" type="range" min="0" max="360" value="0">
-                </div>
+          <div class="ldz-sidebar-body">
+            <div class="ldz-search">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input id="ldzSearch" type="search" placeholder="Search devices or names..." autocomplete="off">
             </div>
-            <div id="ldzSelectionControls" style="display: none; flex-direction: column; gap: 8px; margin-top: 8px;">
-                <div style="display: flex; gap: 8px;">
-                    <button id="ldzLinkBtn" class="ldz-icon-btn" style="display:none;"><img src="/icons/link_.png" alt="Link"><span>Link FOV</span></button>
-                    <button id="ldzUnlinkBtn" class="ldz-icon-btn" style="display:none;"><img src="/icons/unlink_.png" alt="Unlink"><span>Unlink FOV</span></button>
+            <div class="ldz-filter" id="ldzFilter">
+              <button class="active" data-filter="all">All</button>
+              <button data-filter="camera">Cameras</button>
+              <button data-filter="nvr">NVRs</button>
+              <button data-filter="fov">FOVs</button>
+            </div>
+            <div class="ldz-section-heading">
+              <span>Available items</span>
+              <span class="ldz-section-count" id="ldzAvailableTotal">0</span>
+            </div>
+            <div class="ldz-list-shell">
+              <div class="ldz-list" id="ldzItems"></div>
+              <div class="ldz-scroll-controls">
+                <span class="ldz-scroll-label">Browse devices</span>
+                <div class="ldz-scroll-buttons">
+                  <button type="button" class="ldz-scroll-btn" id="ldzScrollUp" title="Scroll up">&uarr;</button>
+                  <button type="button" class="ldz-scroll-btn" id="ldzScrollDown" title="Scroll down">&darr;</button>
                 </div>
-                <button id="ldzDeleteBtn" class="ldz-icon-btn danger" style="width:100%;"><img src="/icons/delete_.png" alt="Delete"><span>Delete Item</span></button>
-            </div>
-            <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                <button id="ldzUndo" class="ldz-icon-btn"><img src="/icons/undo.png" alt="Undo"><span>Undo</span></button>
-                <button id="ldzRedo" class="ldz-icon-btn"><img src="/icons/redo.png" alt="Redo"><span>Redo</span></button>
-                <button id="ldzDrawWall" class="ldz-icon-btn"><img src="/icons/wall_.png" alt="Draw Walls"><span>Draw Walls</span></button>
-            </div>
-            <div style="display: flex; gap: 8px; margin-top: 8px;">
-                <button id="ldzReset" class="ldz-icon-btn danger"><img src="/icons/reset-left-line_.png" alt="Reset"><span>Reset</span></button>
-                <button id="ldzDownload" class="ldz-icon-btn primary"><img src="/icons/image-download_.png" alt="Download"><span>Download</span></button>
-                <button id="ldzClose" class="ldz-icon-btn"><img src="/icons/close-circle-twotone_.png" alt="Close"><span>Close</span></button>
+              </div>
             </div>
           </div>
-        </div>
+          <div class="ldz-sidebar-footer">
+            <div id="ldzSelectionControls" class="ldz-card" style="display:none;">
+              <div class="ldz-card-title">Selection</div>
+              <div class="ldz-card-actions">
+                <button id="ldzLinkBtn" class="ldz-chip-btn" style="display:none;">Link FOV</button>
+                <button id="ldzUnlinkBtn" class="ldz-chip-btn" style="display:none;">Unlink FOV</button>
+              </div>
+              <button id="ldzDeleteBtn" class="ldz-icon-btn danger"><img src="/icons/delete_.png" alt="Delete"><span>Remove from layout</span></button>
+            </div>
+            <div id="ldzFovControls" class="ldz-card" style="display:none;">
+              <div class="ldz-card-title">Coverage settings</div>
+              <div class="ldz-field">
+                <span class="ldz-label">FOV Angle <strong id="ldzFovAngleValue">90°</strong></span>
+                <input id="ldzFovAngle" class="ldz-range" type="range" min="15" max="360" value="90">
+              </div>
+              <div class="ldz-field">
+                <span class="ldz-label">FOV Range</span>
+                <input id="ldzFovRange" class="ldz-range" type="range" min="10" max="500" value="60">
+              </div>
+              <div class="ldz-colors" id="ldzFovColors">
+                <button class="ldz-color-swatch selected" style="background:rgba(234,179,8,0.5)" data-color="rgba(234,179,8,0.5)"></button>
+                <button class="ldz-color-swatch" style="background:rgba(239,68,68,0.4)" data-color="rgba(239,68,68,0.4)"></button>
+                <button class="ldz-color-swatch" style="background:rgba(34,197,94,0.4)" data-color="rgba(34,197,94,0.4)"></button>
+                <button class="ldz-color-swatch" style="background:rgba(139,92,246,0.4)" data-color="rgba(139,92,246,0.4)"></button>
+              </div>
+              <div class="ldz-field">
+                <span class="ldz-label">FOV Rotation <strong id="ldzFovRotationValue">0°</strong></span>
+                <input id="ldzFovRotation" class="ldz-range" type="range" min="0" max="360" value="0">
+              </div>
+            </div>
+            <div class="ldz-card">
+              <div class="ldz-card-title">Layout tools</div>
+              <div class="ldz-action-row">
+                <button id="ldzUndo" class="ldz-icon-btn ghost"><img src="/icons/undo.png" alt="Undo"><span>Undo</span></button>
+                <button id="ldzRedo" class="ldz-icon-btn ghost"><img src="/icons/redo.png" alt="Redo"><span>Redo</span></button>
+                <button id="ldzDrawWall" class="ldz-icon-btn ghost"><img src="/icons/wall_.png" alt="Draw Walls"><span>Wall mode</span></button>
+              </div>
+            </div>
+            <div class="ldz-footer-actions">
+              <div class="ldz-action-row">
+                <button id="ldzReset" class="ldz-icon-btn danger"><img src="/icons/reset-left-line_.png" alt="Reset"><span>Reset layout</span></button>
+                <button id="ldzDownload" class="ldz-icon-btn primary"><img src="/icons/image-download_.png" alt="Download"><span>Export image</span></button>
+              </div>
+              <button id="ldzClose" class="ldz-icon-btn ghost"><img src="/icons/close-circle-twotone_.png" alt="Close"><span>Close designer</span></button>
+            </div>
+          </div>
+        </aside>
         <div class="ldz-canvas-wrap">
           <button class="ldz-close" id="ldzX"><img src="/icons/close-circle-twotone_.png" alt="Close"></button>
+          <div class="ldz-canvas-toolbar">
+            <div class="ldz-toolbar-group">
+              <button class="ldz-toolbar-btn" id="ldzZoomOut" title="Zoom out">&minus;</button>
+              <span class="ldz-zoom-indicator" id="ldzZoomIndicator">100%</span>
+              <button class="ldz-toolbar-btn" id="ldzZoomIn" title="Zoom in">+</button>
+            </div>
+            <div class="ldz-toolbar-group">
+              <button class="ldz-toolbar-btn" id="ldzFitView" title="Fit to screen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 9 3 3 9 3"></polyline><polyline points="15 3 21 3 21 9"></polyline><polyline points="21 15 21 21 15 21"></polyline><polyline points="9 21 3 21 3 15"></polyline></svg></button>
+              <button class="ldz-toolbar-btn" id="ldzZoomReset" title="Reset zoom">100%</button>
+              <button class="ldz-toolbar-btn" id="ldzGridToggle" title="Toggle grid"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18"></rect><path d="M9 3v18"></path><path d="M15 3v18"></path><path d="M3 9h18"></path><path d="M3 15h18"></path></svg></button>
+            </div>
+          </div>
           <canvas id="ldzBg"></canvas>
           <canvas id="ldzFov"></canvas>
           <canvas id="ldzWalls"></canvas>
           <div id="ldzOverlay"></div>
         </div>
       </div>
-    `;
+`;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
     document.body.appendChild(overlay);
-    
+
+    const schedule = typeof window.requestAnimationFrame === 'function'
+      ? (fn) => window.requestAnimationFrame(fn)
+      : (fn) => setTimeout(fn, 0);
+
     const wrap = overlay.querySelector('.ldz-canvas-wrap');
     const bg = overlay.querySelector('#ldzBg');
     const fovCanvas = overlay.querySelector('#ldzFov');
@@ -273,6 +379,22 @@
     const linkBtn = overlay.querySelector('#ldzLinkBtn');
     const unlinkBtn = overlay.querySelector('#ldzUnlinkBtn');
     const drawWallBtn = overlay.querySelector('#ldzDrawWall');
+    const searchInput = overlay.querySelector('#ldzSearch');
+    const filterBar = overlay.querySelector('#ldzFilter');
+    const availableCountEl = overlay.querySelector('#ldzAvailableTotal');
+    const placedCameraCountEl = overlay.querySelector('#ldzPlacedCameraCount');
+    const placedFovCountEl = overlay.querySelector('#ldzPlacedFovCount');
+    const placedNvrCountEl = overlay.querySelector('#ldzPlacedNvrCount');
+    const placedWallCountEl = overlay.querySelector('#ldzPlacedWallCount');
+    const itemsListEl = overlay.querySelector('#ldzItems');
+    const scrollUpBtn = overlay.querySelector('#ldzScrollUp');
+    const scrollDownBtn = overlay.querySelector('#ldzScrollDown');
+    const zoomIndicator = overlay.querySelector('#ldzZoomIndicator');
+    const zoomInBtn = overlay.querySelector('#ldzZoomIn');
+    const zoomOutBtn = overlay.querySelector('#ldzZoomOut');
+    const zoomResetBtn = overlay.querySelector('#ldzZoomReset');
+    const fitViewBtn = overlay.querySelector('#ldzFitView');
+    const gridToggleBtn = overlay.querySelector('#ldzGridToggle');
     const ctx = bg.getContext('2d');
     const fovCtx = fovCanvas.getContext('2d');
     const wallCtx = wallCanvas.getContext('2d');
@@ -284,6 +406,9 @@
     let historyIndex = -1;
     let selectedId = null;
     let currentMode = 'place'; // 'place', 'drawWall', or 'linkFov'
+    let showGrid = false;
+    let itemFilter = 'all';
+    let searchQuery = '';
 
     // ---- History Management ----
     function updateHistoryButtons() {
@@ -340,35 +465,118 @@
       return {allCams, allNvrs};
     }
 
+    function updateScrollButtons(){
+      if (!itemsListEl || !scrollUpBtn || !scrollDownBtn) return;
+      const maxScroll = Math.max(0, itemsListEl.scrollHeight - itemsListEl.clientHeight);
+      const epsilon = 2;
+      scrollUpBtn.disabled = itemsListEl.scrollTop <= epsilon;
+      scrollDownBtn.disabled = maxScroll <= epsilon || itemsListEl.scrollTop >= (maxScroll - epsilon);
+    }
+
+    function scrollListBy(multiplier){
+      if (!itemsListEl) return;
+      const delta = itemsListEl.clientHeight * multiplier;
+      if (typeof itemsListEl.scrollBy === 'function') {
+        itemsListEl.scrollBy({ top: delta, behavior: 'smooth' });
+      } else {
+        itemsListEl.scrollTop += delta;
+      }
+      schedule(updateScrollButtons);
+    }
+
+    if (itemsListEl) {
+      itemsListEl.addEventListener('scroll', updateScrollButtons);
+    }
+    if (scrollUpBtn) {
+      scrollUpBtn.addEventListener('click', () => scrollListBy(-0.85));
+    }
+    if (scrollDownBtn) {
+      scrollDownBtn.addEventListener('click', () => scrollListBy(0.85));
+    }
+
     function renderItemsList(){
-      const list = overlay.querySelector('#ldzItems');
+      const list = itemsListEl;
+      if (!list) return;
       const cfg = getConfig();
       const placed = new Set((cfg.layoutPlacements||[]).map(p=>p.uniqueId));
       const {allCams, allNvrs} = collectItems();
-      const avail = [];
+      const items = [];
+
+      const fovUid = `fov-${Date.now()}`;
+      items.push({
+        type:'fov',
+        uniqueId:fovUid,
+        name:'Adjustable FOV',
+        subtitle:'Standalone coverage zone',
+        isTemplate:true
+      });
 
       allCams.forEach(cam=>{
         const qty = Math.max(1, parseInt(cam.quantity,10) || 1);
         for (let i=0;i<qty;i++){
           const uid = `${cam.instanceId}-${i}`;
-          if (!placed.has(uid)) avail.push({type:'camera', uniqueId:uid, name:cam.name||cam.id||`Camera ${cam.instanceId}`, image:cam.image||cam.product?.image});
+          if (placed.has(uid)) continue;
+          items.push({
+            type:'camera',
+            uniqueId:uid,
+            name:cam.name||cam.id||`Camera ${cam.instanceId}`,
+            subtitle:cam.product?.model||cam.product?.sku||'Network camera',
+            image:cam.image||cam.product?.image
+          });
         }
       });
+
       allNvrs.forEach(nvr=>{
         const uid = `nvr-${nvr.id}`;
-        if (!placed.has(uid)) avail.push({type:'nvr', uniqueId:uid, name:nvr.product?.name||nvr.id||'NVR', image:nvr.product?.image});
+        if (placed.has(uid)) return;
+        items.push({
+          type:'nvr',
+          uniqueId:uid,
+          name:nvr.product?.name||nvr.id||'NVR',
+          subtitle:nvr.product?.model||'Video recorder',
+          image:nvr.product?.image
+        });
       });
 
-      const fovUid = `fov-${Date.now()}`;
-      const rows = [`<div class="ldz-item" draggable="true" data-type="fov" data-uid="${fovUid}">
-        <div style="width:28px;height:28px;border-radius:8px;background:#fde68a"></div><div>Adjustable FOV</div></div>`];
-      avail.forEach(it=>{
-        rows.push(`<div class="ldz-item" draggable="true" data-type="${it.type}" data-uid="${it.uniqueId}">
-          <img src="${it.image||''}" onerror="this.style.display='none'" style="width:28px;height:28px;object-fit:contain;border-radius:6px;border:1px solid #e5e7eb;background:#fff"/>
-          <div style="flex:1">${it.name||it.uniqueId}</div>
-        </div>`);
+      const query = searchQuery.trim().toLowerCase();
+      const filtered = items.filter(item=>{
+        if (itemFilter !== 'all' && item.type !== itemFilter) return false;
+        if (!query) return true;
+        const haystack = `${item.name||''} ${item.subtitle||''}`.toLowerCase();
+        return haystack.includes(query);
       });
-      list.innerHTML = rows.join('') || '<div style="color:#6b7280;font-size:12px">No available items</div>';
+
+      if (availableCountEl) availableCountEl.textContent = filtered.length;
+
+      if (!filtered.length){
+        list.innerHTML = '<div class="ldz-empty-state">No items match your filters.</div>';
+        if (scrollUpBtn) scrollUpBtn.disabled = true;
+        if (scrollDownBtn) scrollDownBtn.disabled = true;
+        schedule(updateScrollButtons);
+        return;
+      }
+
+      const rows = filtered.map(item=>{
+        const typeClass = item.type === 'nvr' ? 'ldz-type-pill nvr' : item.type === 'fov' ? 'ldz-type-pill fov' : 'ldz-type-pill';
+        const typeLabel = item.isTemplate ? 'FOV template' : item.type === 'nvr' ? 'Recorder' : item.type === 'camera' ? 'Camera' : 'FOV';
+        const fallbackChar = (String(item.name||'').trim().charAt(0) || '?').toUpperCase();
+        const icon = item.image ? `<img src="${item.image}" alt="">` : `<span class="ldz-item-fallback">${fallbackChar}</span>`;
+        const subtitle = item.subtitle || 'Drag onto the layout';
+        return `
+          <div class="ldz-item" draggable="true" data-type="${item.type}" data-uid="${item.uniqueId}">
+            <div class="ldz-item-icon">${icon}</div>
+            <div class="ldz-item-content">
+              <div class="ldz-item-title">${item.name||item.uniqueId}</div>
+              <div class="ldz-item-subtitle">${subtitle}</div>
+            </div>
+            <span class="${typeClass}">${typeLabel}</span>
+          </div>
+        `;
+      });
+
+      list.innerHTML = rows.join('');
+      list.scrollTop = 0;
+      schedule(updateScrollButtons);
 
       list.querySelectorAll('.ldz-item').forEach(el=>{
         el.addEventListener('dragstart', (e)=>{
@@ -376,7 +584,75 @@
         });
       });
     }
-    
+
+    if (searchInput) {
+      searchInput.addEventListener('input', (e)=>{
+        searchQuery = e.target.value || '';
+        renderItemsList();
+      });
+    }
+
+    if (filterBar) {
+      filterBar.addEventListener('click', (event)=>{
+        const btn = event.target.closest('button[data-filter]');
+        if (!btn) return;
+        itemFilter = btn.dataset.filter || 'all';
+        filterBar.querySelectorAll('button').forEach(b=>b.classList.toggle('active', b === btn));
+        renderItemsList();
+      });
+    }
+
+    function updatePlacementStats(){
+      const cfg = getConfig();
+      const placements = cfg.layoutPlacements || [];
+      const countType = (type) => placements.filter(p => p.type === type).length;
+      if (placedCameraCountEl) placedCameraCountEl.textContent = countType('camera');
+      if (placedFovCountEl) placedFovCountEl.textContent = countType('fov');
+      if (placedNvrCountEl) placedNvrCountEl.textContent = countType('nvr');
+      if (placedWallCountEl) placedWallCountEl.textContent = (cfg.layoutWalls || []).length;
+    }
+
+    function updateZoomDisplay(){
+      if (zoomIndicator) {
+        const pct = Math.round(view.scale * 100);
+        zoomIndicator.textContent = `${pct}%`;
+      }
+    }
+
+    function setZoom(newScale, originX, originY){
+      const rect = wrap.getBoundingClientRect();
+      const ox = typeof originX === 'number' ? originX : rect.width / 2;
+      const oy = typeof originY === 'number' ? originY : rect.height / 2;
+      const oldScale = view.scale || 1;
+      newScale = Math.max(0.1, Math.min(newScale, 10));
+      view.x = ox - (ox - view.x) * (newScale / oldScale);
+      view.y = oy - (oy - view.y) * (newScale / oldScale);
+      view.scale = newScale;
+      redraw();
+      updateZoomDisplay();
+    }
+
+    function drawGrid(targetCtx){
+      if (!showGrid) return;
+      targetCtx.save();
+      const step = 100;
+      if (!img.width || !img.height) { targetCtx.restore(); return; }
+      targetCtx.lineWidth = Math.max(0.5, 1 / view.scale);
+      targetCtx.strokeStyle = 'rgba(226,232,240,0.7)';
+      targetCtx.globalAlpha = 0.35;
+      targetCtx.beginPath();
+      for (let x = 0; x <= img.width; x += step) {
+        targetCtx.moveTo(x, 0);
+        targetCtx.lineTo(x, img.height);
+      }
+      for (let y = 0; y <= img.height; y += step) {
+        targetCtx.moveTo(0, y);
+        targetCtx.lineTo(img.width, y);
+      }
+      targetCtx.stroke();
+      targetCtx.restore();
+    }
+
     // ---- Drawing & View Logic ----
     function redraw() {
         const wrap = overlay.querySelector('.ldz-canvas-wrap');
@@ -394,16 +670,18 @@
         wallCtx.translate(view.x, view.y); wallCtx.scale(view.scale, view.scale);
 
         ctx.drawImage(img, 0, 0);
+        drawGrid(ctx);
         drawWalls(wallCtx);
         drawFovs();
 
         ctx.restore(); fovCtx.restore(); wallCtx.restore();
-        
+
         overlayLayer.style.width = `${img.width}px`;
         overlayLayer.style.height = `${img.height}px`;
         overlayLayer.style.transform = `translate(${view.x}px, ${view.y}px) scale(${view.scale})`;
-        
+
         renderPlacedMarkers();
+        updatePlacementStats();
     }
 
     function resetView() {
@@ -416,8 +694,9 @@
         view.scale = initialScale;
         view.x = (W - img.width * view.scale) / 2;
         view.y = (H - img.height * view.scale) / 2;
-        
+
         redraw();
+        updateZoomDisplay();
     }
 
     function drawWalls(targetCtx) {
@@ -425,7 +704,8 @@
         if (!cfg.layoutWalls) return;
 
         targetCtx.strokeStyle = '#ff3b30';
-        targetCtx.lineWidth = 3;
+        targetCtx.lineWidth = 3 / view.scale;
+        targetCtx.lineCap = 'round';
         targetCtx.beginPath();
         cfg.layoutWalls.forEach(wall => {
             targetCtx.moveTo(wall.x1, wall.y1);
@@ -572,7 +852,7 @@
                 
                 currentMode = 'place';
                 linkBtn.classList.remove('active');
-                wrap.style.cursor = 'default';
+                wrap.style.cursor = 'grab';
                 overlay.querySelectorAll('.ldz-placed.camera').forEach(c => c.style.outline = 'none');
                 
                 redraw();
@@ -585,7 +865,7 @@
           overlayLayer.querySelectorAll('.ldz-placed').forEach(n=>n.classList.remove('selected'));
           el.classList.add('selected');
           selectedId = p.uniqueId;
-          deleteBtn.style.display = 'block';
+          deleteBtn.style.display = 'flex';
 
           let fovPlacement = null;
           const isCamera = p.type === 'camera';
@@ -597,7 +877,7 @@
           } else if (isCamera) {
               fovPlacement = cfg.layoutPlacements.find(fp => fp.linkedTo === p.uniqueId);
           }
-          fovControls.style.display = fovPlacement ? 'block' : 'none';
+          fovControls.style.display = fovPlacement ? 'flex' : 'none';
           const hasLinkedFov = isCamera && !!fovPlacement;
           selectionControls.style.display = 'flex';
           unlinkBtn.style.display = hasLinkedFov ? 'flex' : 'none';
@@ -746,7 +1026,8 @@
 
               // Draw the temporary line
               wallCtx.strokeStyle = 'rgba(255, 59, 48, 0.7)';
-              wallCtx.lineWidth = 3;
+              wallCtx.lineWidth = 3 / view.scale;
+              wallCtx.lineCap = 'round';
               wallCtx.beginPath();
               wallCtx.moveTo(startX, startY);
               wallCtx.lineTo(currentX, currentY);
@@ -786,7 +1067,7 @@
               redraw();
           };
           const onPanUp = () => {
-              wrap.style.cursor = 'default';
+          wrap.style.cursor = 'grab';
               document.removeEventListener('mousemove', onPanMove);
               document.removeEventListener('mouseup', onPanUp);
           };
@@ -800,23 +1081,48 @@
         const rect = wrap.getBoundingClientRect();
         const mouseX = e.clientX - rect.left;
         const mouseY = e.clientY - rect.top;
-        const zoomFactor = 1.1;
-        const oldScale = view.scale;
-        
-        let newScale = e.deltaY > 0 ? oldScale / zoomFactor : oldScale * zoomFactor;
-        newScale = Math.max(0.1, Math.min(newScale, 10));
-
-        view.x = mouseX - (mouseX - view.x) * (newScale / oldScale);
-        view.y = mouseY - (mouseY - view.y) * (newScale / oldScale);
-        view.scale = newScale;
-        
-        redraw();
+        const newScale = e.deltaY > 0 ? view.scale / 1.1 : view.scale * 1.1;
+        setZoom(newScale, mouseX, mouseY);
     });
+
+    if (zoomInBtn) {
+        zoomInBtn.addEventListener('click', () => {
+            setZoom(view.scale * 1.2);
+        });
+    }
+
+    if (zoomOutBtn) {
+        zoomOutBtn.addEventListener('click', () => {
+            setZoom(view.scale / 1.2);
+        });
+    }
+
+    if (zoomResetBtn) {
+        zoomResetBtn.addEventListener('click', () => {
+            setZoom(1, wrap.clientWidth / 2, wrap.clientHeight / 2);
+        });
+    }
+
+    if (fitViewBtn) {
+        fitViewBtn.addEventListener('click', () => {
+            resetView();
+        });
+    }
+
+    if (gridToggleBtn) {
+        gridToggleBtn.addEventListener('click', () => {
+            showGrid = !showGrid;
+            gridToggleBtn.classList.toggle('active', showGrid);
+            redraw();
+        });
+        gridToggleBtn.classList.toggle('active', showGrid);
+    }
 
     const closeAndCleanup = () => {
         if (document.body.contains(overlay)) {
             document.body.removeChild(overlay);
         }
+        document.body.style.overflow = previousOverflow;
         document.removeEventListener('keydown', handleKeyDown);
         window.removeEventListener('resize', onResize);
     };
@@ -830,7 +1136,7 @@
         currentMode = (currentMode === 'place') ? 'drawWall' : 'place';
         drawWallBtn.classList.toggle('active', currentMode === 'drawWall');
         wrap.classList.toggle('wall-mode', currentMode === 'drawWall');
-        if (currentMode === 'place') wrap.style.cursor = 'default';
+        if (currentMode === 'place') wrap.style.cursor = 'grab';
     });
 
     overlay.querySelector('#ldzReset').onclick = () => {
@@ -924,7 +1230,7 @@
         if (currentMode === 'linkFov') { // Toggle off
             currentMode = 'place';
             linkBtn.classList.remove('active');
-            wrap.style.cursor = 'default';
+            wrap.style.cursor = 'grab';
             overlay.querySelectorAll('.ldz-placed.camera').forEach(c => c.style.outline = 'none');
         } else {
             if (!selectedId) return;
@@ -985,7 +1291,7 @@
             drawWallBtn.classList.remove('active');
             linkBtn.classList.remove('active');
             wrap.classList.remove('wall-mode');
-            wrap.style.cursor = 'default';
+            wrap.style.cursor = 'grab';
             overlay.querySelectorAll('.ldz-placed.camera').forEach(c => c.style.outline = 'none');
         } else {
             closeAndCleanup();
@@ -1038,6 +1344,7 @@
     img.src = cfg.cameraLayout;
     
     renderItemsList();
+    updatePlacementStats();
 
     const onResize = ()=>{ if (img.width) resetView(); };
     window.addEventListener('resize', onResize);
