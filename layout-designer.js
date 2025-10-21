@@ -107,8 +107,10 @@
     style.id = STYLE_ID;
     style.textContent = `
       .ldz-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at top,rgba(15,23,42,0.9),rgba(15,23,42,0.75));backdrop-filter:blur(12px);}
-      .ldz-modal{width:min(1400px,98vw);height:min(980px,96vh);background:linear-gradient(145deg,#f8fafc,#fff);border-radius:24px;box-shadow:0 40px 80px -40px rgba(15,23,42,0.45);display:grid;grid-template-columns:minmax(360px,400px) minmax(0,1fr);overflow:hidden;color:#0f172a;position:relative;}
+      .ldz-modal{width:min(1280px,96vw);height:min(940px,96vh);background:linear-gradient(145deg,#f8fafc,#fff);border-radius:24px;box-shadow:0 40px 80px -40px rgba(15,23,42,0.45);display:grid;grid-template-columns:minmax(300px,340px) minmax(0,1fr);overflow:hidden;color:#0f172a;position:relative;}
       @media(max-width:1080px){.ldz-modal{grid-template-columns:1fr;grid-template-rows:minmax(0,420px) minmax(0,1fr);height:94vh;}}
+      @media(max-width:860px){.ldz-modal{grid-template-rows:minmax(0,380px) minmax(0,1fr);}}
+      .ldz-sidebar{max-width:340px;}
       .ldz-sidebar{background:rgba(248,250,252,0.92);backdrop-filter:blur(18px);display:flex;flex-direction:column;}
       .ldz-sidebar-header{padding:28px 28px 20px;border-bottom:1px solid rgba(148,163,184,0.25);display:flex;flex-direction:column;gap:14px;}
       .ldz-title{font-size:1.25rem;font-weight:700;letter-spacing:-0.01em;color:#0f172a;}
@@ -185,7 +187,7 @@
       .ldz-icon-btn:disabled{opacity:0.45;cursor:not-allowed;box-shadow:none;border-color:rgba(148,163,184,0.2);}
       .ldz-canvas-wrap{position:relative;background:radial-gradient(circle at top,#0f172a,#020617);display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:grab;}
       .ldz-canvas-wrap.wall-mode{cursor:crosshair;}
-      .ldz-canvas-toolbar{position:absolute;top:20px;right:20px;display:flex;gap:10px;flex-wrap:wrap;background:rgba(15,23,42,0.75);backdrop-filter:blur(10px);padding:10px 12px;border-radius:16px;border:1px solid rgba(148,163,184,0.3);box-shadow:0 24px 40px -28px rgba(15,23,42,0.8);z-index:5;}
+      .ldz-canvas-toolbar{position:absolute;top:88px;right:24px;display:flex;gap:10px;flex-wrap:wrap;background:rgba(15,23,42,0.75);backdrop-filter:blur(10px);padding:10px 12px;border-radius:16px;border:1px solid rgba(148,163,184,0.3);box-shadow:0 24px 40px -28px rgba(15,23,42,0.8);z-index:5;}
       .ldz-toolbar-group{display:flex;align-items:center;gap:8px;}
       .ldz-toolbar-btn{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;border:1px solid rgba(148,163,184,0.35);background:rgba(30,41,59,0.65);color:#e2e8f0;cursor:pointer;transition:all .2s;}
       .ldz-toolbar-btn:hover{border-color:rgba(59,130,246,0.6);background:rgba(59,130,246,0.18);color:#bfdbfe;}
