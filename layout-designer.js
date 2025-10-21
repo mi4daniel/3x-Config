@@ -107,8 +107,8 @@
     style.id = STYLE_ID;
     style.textContent = `
       .ldz-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at top,rgba(15,23,42,0.9),rgba(15,23,42,0.75));backdrop-filter:blur(12px);}
-      .ldz-modal{width:min(1200px,96vw);height:min(880px,92vh);background:linear-gradient(145deg,#f8fafc,#fff);border-radius:24px;box-shadow:0 40px 80px -40px rgba(15,23,42,0.45);display:grid;grid-template-columns:minmax(320px,360px) minmax(0,1fr);overflow:hidden;color:#0f172a;position:relative;}
-      @media(max-width:1080px){.ldz-modal{grid-template-columns:1fr;grid-template-rows:minmax(0,420px) minmax(0,1fr);height:92vh;}}
+      .ldz-modal{width:min(1400px,98vw);height:min(980px,96vh);background:linear-gradient(145deg,#f8fafc,#fff);border-radius:24px;box-shadow:0 40px 80px -40px rgba(15,23,42,0.45);display:grid;grid-template-columns:minmax(360px,400px) minmax(0,1fr);overflow:hidden;color:#0f172a;position:relative;}
+      @media(max-width:1080px){.ldz-modal{grid-template-columns:1fr;grid-template-rows:minmax(0,420px) minmax(0,1fr);height:94vh;}}
       .ldz-sidebar{background:rgba(248,250,252,0.92);backdrop-filter:blur(18px);display:flex;flex-direction:column;}
       .ldz-sidebar-header{padding:28px 28px 20px;border-bottom:1px solid rgba(148,163,184,0.25);display:flex;flex-direction:column;gap:14px;}
       .ldz-title{font-size:1.25rem;font-weight:700;letter-spacing:-0.01em;color:#0f172a;}
@@ -128,8 +128,14 @@
       .ldz-filter button{flex:1 1 90px;padding:8px 12px;border-radius:9999px;border:1px solid rgba(148,163,184,0.25);background:rgba(255,255,255,0.85);font-weight:600;font-size:0.75rem;color:#475569;cursor:pointer;transition:all .2s;}
       .ldz-filter button:hover{border-color:rgba(99,102,241,0.4);color:#312e81;}
       .ldz-filter button.active{background:linear-gradient(135deg,rgba(59,130,246,0.18),rgba(99,102,241,0.22));border-color:rgba(99,102,241,0.45);color:#1e3a8a;box-shadow:0 10px 20px -12px rgba(59,130,246,0.65);}
-      .ldz-section-heading{display:flex;justify-content:space-between;align-items:center;font-size:0.75rem;font-weight:600;color:rgba(15,23,42,0.55);padding-top:4px;}
+      .ldz-section-heading{display:flex;justify-content:space-between;align-items:center;font-size:0.75rem;font-weight:600;color:rgba(15,23,42,0.55);padding-top:4px;gap:12px;}
+      .ldz-section-title{flex:1;min-width:0;}
+      .ldz-section-tools{display:flex;align-items:center;gap:10px;}
       .ldz-section-count{padding:4px 10px;border-radius:9999px;background:rgba(148,163,184,0.15);color:#1f2937;font-size:0.7rem;font-weight:600;}
+      .ldz-scroll-controls{display:inline-flex;align-items:center;gap:6px;}
+      .ldz-scroll-btn{width:28px;height:28px;border-radius:8px;border:1px solid rgba(148,163,184,0.25);background:rgba(255,255,255,0.9);color:#1f2937;display:inline-flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;cursor:pointer;transition:all .2s;}
+      .ldz-scroll-btn:hover{border-color:rgba(59,130,246,0.45);color:#1e3a8a;}
+      .ldz-scroll-btn:disabled{opacity:0.4;cursor:not-allowed;border-color:rgba(148,163,184,0.2);color:rgba(148,163,184,0.7);}
       .ldz-list{flex:1;overflow:auto;padding-right:6px;display:flex;flex-direction:column;gap:10px;}
       .ldz-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:16px;border:1px solid rgba(148,163,184,0.18);background:rgba(255,255,255,0.95);box-shadow:0 12px 24px -20px rgba(15,23,42,0.65);cursor:grab;transition:transform .2s,box-shadow .2s,border-color .2s;}
       .ldz-item:hover{transform:translateY(-1px);border-color:rgba(59,130,246,0.35);box-shadow:0 18px 32px -24px rgba(59,130,246,0.4);}
@@ -154,8 +160,14 @@
       .ldz-chip-btn.danger{background:rgba(254,226,226,0.85);border-color:rgba(254,202,202,0.9);color:#b91c1c;}
       .ldz-chip-btn.danger:hover{border-color:rgba(239,68,68,0.55);color:#991b1b;}
       .ldz-field{display:flex;flex-direction:column;gap:6px;}
+      .ldz-field-header{display:flex;align-items:center;justify-content:space-between;gap:12px;}
       .ldz-label{font-size:0.72rem;color:rgba(15,23,42,0.6);font-weight:500;}
+      .ldz-label strong{font-weight:700;color:#0f172a;margin-left:6px;}
       .ldz-range{width:100%;}
+      .ldz-stepper{display:inline-flex;gap:6px;}
+      .ldz-step-btn{width:28px;height:28px;border-radius:8px;border:1px solid rgba(148,163,184,0.35);background:rgba(248,250,252,0.95);color:#1f2937;font-size:0.85rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .2s;}
+      .ldz-step-btn:hover{border-color:rgba(59,130,246,0.55);color:#1e3a8a;background:rgba(59,130,246,0.12);}
+      .ldz-step-btn:disabled{opacity:0.45;cursor:not-allowed;border-color:rgba(148,163,184,0.2);}
       .ldz-colors{display:flex;gap:8px;flex-wrap:wrap;}
       .ldz-color-swatch{width:26px;height:26px;border-radius:9999px;border:2px solid transparent;cursor:pointer;box-shadow:0 6px 12px -10px rgba(15,23,42,0.6);}
       .ldz-color-swatch.selected{border-color:#3b82f6;}
@@ -265,8 +277,14 @@
               <button data-filter="fov">FOVs</button>
             </div>
             <div class="ldz-section-heading">
-              <span>Available items</span>
-              <span class="ldz-section-count" id="ldzAvailableTotal">0</span>
+              <span class="ldz-section-title">Available items</span>
+              <div class="ldz-section-tools">
+                <span class="ldz-section-count" id="ldzAvailableTotal">0</span>
+                <div class="ldz-scroll-controls">
+                  <button type="button" class="ldz-scroll-btn" id="ldzScrollUp" title="Scroll up" aria-label="Scroll up" disabled>&#8593;</button>
+                  <button type="button" class="ldz-scroll-btn" id="ldzScrollDown" title="Scroll down" aria-label="Scroll down" disabled>&#8595;</button>
+                </div>
+              </div>
             </div>
             <div class="ldz-list" id="ldzItems"></div>
           </div>
@@ -286,8 +304,14 @@
                 <input id="ldzFovAngle" class="ldz-range" type="range" min="15" max="360" value="90">
               </div>
               <div class="ldz-field">
-                <span class="ldz-label">FOV Range</span>
-                <input id="ldzFovRange" class="ldz-range" type="range" min="10" max="500" value="60">
+                <div class="ldz-field-header">
+                  <span class="ldz-label">FOV Range<strong id="ldzFovRangeValue">—</strong></span>
+                  <div class="ldz-stepper">
+                    <button type="button" class="ldz-step-btn" id="ldzRangeDecrease" aria-label="Decrease range" disabled>&minus;</button>
+                    <button type="button" class="ldz-step-btn" id="ldzRangeIncrease" aria-label="Increase range" disabled>+</button>
+                  </div>
+                </div>
+                <input id="ldzFovRange" class="ldz-range" type="range" min="10" max="2000" value="60">
               </div>
               <div class="ldz-colors" id="ldzFovColors">
                 <button class="ldz-color-swatch selected" style="background:rgba(234,179,8,0.5)" data-color="rgba(234,179,8,0.5)"></button>
@@ -296,7 +320,13 @@
                 <button class="ldz-color-swatch" style="background:rgba(139,92,246,0.4)" data-color="rgba(139,92,246,0.4)"></button>
               </div>
               <div class="ldz-field">
-                <span class="ldz-label">FOV Rotation <strong id="ldzFovRotationValue">0°</strong></span>
+                <div class="ldz-field-header">
+                  <span class="ldz-label">FOV Rotation<strong id="ldzFovRotationValue">—</strong></span>
+                  <div class="ldz-stepper">
+                    <button type="button" class="ldz-step-btn" id="ldzRotateLeft" aria-label="Rotate counter-clockwise" disabled>&#8630;</button>
+                    <button type="button" class="ldz-step-btn" id="ldzRotateRight" aria-label="Rotate clockwise" disabled>&#8631;</button>
+                  </div>
+                </div>
                 <input id="ldzFovRotation" class="ldz-range" type="range" min="0" max="360" value="0">
               </div>
             </div>
@@ -340,6 +370,9 @@
 `;
     document.body.appendChild(overlay);
 
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
     const schedule = typeof window.requestAnimationFrame === 'function'
       ? (fn) => window.requestAnimationFrame(fn)
       : (fn) => setTimeout(fn, 0);
@@ -352,14 +385,22 @@
     const fovAngleInput = overlay.querySelector('#ldzFovAngle');
     const fovAngleValue = overlay.querySelector('#ldzFovAngleValue');
     const fovRangeInput = overlay.querySelector('#ldzFovRange');
+    const fovRangeValue = overlay.querySelector('#ldzFovRangeValue');
     const fovControls = overlay.querySelector('#ldzFovControls');
     const fovColors = overlay.querySelector('#ldzFovColors');
     const fovRotationInput = overlay.querySelector('#ldzFovRotation');
     const fovRotationValue = overlay.querySelector('#ldzFovRotationValue');
+    const rangeDecreaseBtn = overlay.querySelector('#ldzRangeDecrease');
+    const rangeIncreaseBtn = overlay.querySelector('#ldzRangeIncrease');
+    const rotateLeftBtn = overlay.querySelector('#ldzRotateLeft');
+    const rotateRightBtn = overlay.querySelector('#ldzRotateRight');
     const selectionControls = overlay.querySelector('#ldzSelectionControls');
     const deleteBtn = overlay.querySelector('#ldzDeleteBtn');
     const linkBtn = overlay.querySelector('#ldzLinkBtn');
     const unlinkBtn = overlay.querySelector('#ldzUnlinkBtn');
+    const itemsListEl = overlay.querySelector('#ldzItems');
+    const scrollUpBtn = overlay.querySelector('#ldzScrollUp');
+    const scrollDownBtn = overlay.querySelector('#ldzScrollDown');
     const drawWallBtn = overlay.querySelector('#ldzDrawWall');
     const searchInput = overlay.querySelector('#ldzSearch');
     const filterBar = overlay.querySelector('#ldzFilter');
@@ -388,6 +429,10 @@
     let showGrid = false;
     let itemFilter = 'all';
     let searchQuery = '';
+    let fovHistoryTimer = null;
+
+    const RANGE_STEP = 10;
+    const ROTATION_STEP = 5;
 
     // ---- History Management ----
     function updateHistoryButtons() {
@@ -474,7 +519,7 @@
     }
 
     function renderItemsList(){
-      const list = overlay.querySelector('#ldzItems');
+      const list = itemsListEl;
       if (!list) return;
       const cfg = getConfig();
       const placed = new Set((cfg.layoutPlacements||[]).map(p=>p.uniqueId));
@@ -529,6 +574,7 @@
 
       if (!filtered.length){
         list.innerHTML = '<div class="ldz-empty-state">No items match your filters.</div>';
+        schedule(updateScrollButtons);
         return;
       }
 
@@ -552,6 +598,7 @@
 
       list.innerHTML = rows.join('');
       list.scrollTop = 0;
+      schedule(updateScrollButtons);
 
       list.querySelectorAll('.ldz-item').forEach(el=>{
         el.addEventListener('dragstart', (e)=>{
@@ -854,6 +901,10 @@
           }
           fovControls.style.display = fovPlacement ? 'flex' : 'none';
           const hasLinkedFov = isCamera && !!fovPlacement;
+          const fovControlsEnabled = !!fovPlacement;
+          [rangeDecreaseBtn, rangeIncreaseBtn, rotateLeftBtn, rotateRightBtn].forEach(btn => {
+              if (btn) btn.disabled = !fovControlsEnabled;
+          });
           selectionControls.style.display = 'flex';
           unlinkBtn.style.display = hasLinkedFov ? 'flex' : 'none';
           linkBtn.style.display = isUnlinkedFov ? 'flex' : 'none';
@@ -862,9 +913,10 @@
               const a = (fovPlacement.fov?.angle ?? 90);
               fovAngleInput.value = a;
               fovAngleValue.textContent = `${a}°`;
-              
+
               const r = (fovPlacement.fov?.range ?? 60);
               fovRangeInput.value = r;
+              if (fovRangeValue) fovRangeValue.textContent = `${r} ft`;
 
               const rot = (fovPlacement.fov?.rotation ?? 0);
               fovRotationInput.value = rot;
@@ -873,6 +925,9 @@
               fovColors.querySelectorAll('.ldz-color-swatch').forEach(sw => {
                   sw.classList.toggle('selected', sw.dataset.color === (fovPlacement.fov?.color || 'rgba(234,179,8,0.5)'));
               });
+          } else {
+              if (fovRangeValue) fovRangeValue.textContent = '—';
+              if (fovRotationValue) fovRotationValue.textContent = '—';
           }
 
           const isRotateFov = e.target.classList.contains('ldz-fov-rotate');
@@ -913,11 +968,15 @@
                 const ang = Math.atan2(mouseY - p.y, mouseX - p.x) * 180 / Math.PI;
                 p.fov = p.fov || {angle:90, range:60, rotation:0};
                 p.fov.rotation = Math.round(ang + 90);
+                if (fovRotationInput) fovRotationInput.value = p.fov.rotation;
+                if (fovRotationValue) fovRotationValue.textContent = `${p.fov.rotation}°`;
                 redraw();
             } else if (mode==='range'){
                 const delta = Math.sqrt(Math.pow(mouseX - p.x, 2) + Math.pow(mouseY - p.y, 2));
                 p.fov = p.fov || {angle:90, range:60, rotation:0};
                 p.fov.range = Math.max(10, Math.min(2000, Math.round(delta)));
+                if (fovRangeInput) fovRangeInput.value = p.fov.range;
+                if (fovRangeValue) fovRangeValue.textContent = `${p.fov.range} ft`;
                 redraw();
             }
           }
@@ -1100,6 +1159,7 @@
         document.body.style.overflow = previousOverflow;
         document.removeEventListener('keydown', handleKeyDown);
         window.removeEventListener('resize', onResize);
+        flushFovHistoryCommit();
     };
 
     overlay.querySelector('#ldzClose').addEventListener('click', closeAndCleanup);
@@ -1135,6 +1195,21 @@
       }
     };
 
+    function queueFovHistoryCommit() {
+        if (fovHistoryTimer) clearTimeout(fovHistoryTimer);
+        fovHistoryTimer = setTimeout(() => {
+            saveHistory();
+            fovHistoryTimer = null;
+        }, 250);
+    }
+
+    function flushFovHistoryCommit() {
+        if (fovHistoryTimer) {
+            clearTimeout(fovHistoryTimer);
+            fovHistoryTimer = null;
+        }
+    }
+
     function updateSelectedFov(prop, value, finalize = false) {
         if (!selectedId) return;
         const cfg = getConfig();
@@ -1156,9 +1231,35 @@
             redraw();
             saveConfig();
             if (finalize) {
+                flushFovHistoryCommit();
                 saveHistory();
             }
+            else {
+                queueFovHistoryCommit();
+            }
         }
+    }
+
+    function setFovControlValue(prop, value, finalize = false) {
+        const input = prop === 'rotation' ? fovRotationInput : fovRangeInput;
+        if (!input) return;
+        const min = input.min !== '' ? parseInt(input.min, 10) : Number.NEGATIVE_INFINITY;
+        const max = input.max !== '' ? parseInt(input.max, 10) : Number.POSITIVE_INFINITY;
+        const clamped = Math.max(min, Math.min(max, value));
+        if (prop === 'rotation' && fovRotationValue) {
+            fovRotationValue.textContent = `${clamped}°`;
+        } else if (prop === 'range' && fovRangeValue) {
+            fovRangeValue.textContent = `${clamped} ft`;
+        }
+        input.value = clamped;
+        updateSelectedFov(prop, clamped, finalize);
+    }
+
+    function adjustFovValue(prop, delta) {
+        const input = prop === 'rotation' ? fovRotationInput : fovRangeInput;
+        if (!input) return;
+        const current = parseInt(input.value, 10) || 0;
+        setFovControlValue(prop, current + delta, false);
     }
 
     fovAngleInput.addEventListener('input', (e)=>{
@@ -1173,23 +1274,64 @@
     
     fovRangeInput.addEventListener('input', (e)=>{
       const range = parseInt(e.target.value,10);
-      updateSelectedFov('range', range);
+      setFovControlValue('range', range);
     });
     fovRangeInput.addEventListener('change', (e)=>{
       const range = parseInt(e.target.value,10);
-      updateSelectedFov('range', range, true);
+      setFovControlValue('range', range, true);
     });
 
     fovRotationInput.addEventListener('input', (e)=>{
       const rotation = parseInt(e.target.value,10);
-      fovRotationValue.textContent = `${rotation}°`;
-      updateSelectedFov('rotation', rotation);
+      setFovControlValue('rotation', rotation);
     });
     fovRotationInput.addEventListener('change', (e)=>{
       const rotation = parseInt(e.target.value,10);
-      updateSelectedFov('rotation', rotation, true);
+      setFovControlValue('rotation', rotation, true);
     });
 
+    if (rangeDecreaseBtn) {
+      rangeDecreaseBtn.addEventListener('click', (e) => {
+        const step = e.shiftKey ? RANGE_STEP * 3 : RANGE_STEP;
+        adjustFovValue('range', -step);
+      });
+    }
+    if (rangeIncreaseBtn) {
+      rangeIncreaseBtn.addEventListener('click', (e) => {
+        const step = e.shiftKey ? RANGE_STEP * 3 : RANGE_STEP;
+        adjustFovValue('range', step);
+      });
+    }
+    if (rotateLeftBtn) {
+      rotateLeftBtn.addEventListener('click', (e) => {
+        const step = e.shiftKey ? ROTATION_STEP * 3 : ROTATION_STEP;
+        adjustFovValue('rotation', -step);
+      });
+    }
+    if (rotateRightBtn) {
+      rotateRightBtn.addEventListener('click', (e) => {
+        const step = e.shiftKey ? ROTATION_STEP * 3 : ROTATION_STEP;
+        adjustFovValue('rotation', step);
+      });
+    }
+
+    if (fovRangeInput) {
+      fovRangeInput.addEventListener('wheel', (event) => {
+        if (fovControls && fovControls.style.display === 'none') return;
+        event.preventDefault();
+        const step = event.shiftKey ? RANGE_STEP * 3 : RANGE_STEP;
+        adjustFovValue('range', event.deltaY < 0 ? step : -step);
+      }, { passive: false });
+    }
+
+    if (fovRotationInput) {
+      fovRotationInput.addEventListener('wheel', (event) => {
+        if (fovControls && fovControls.style.display === 'none') return;
+        event.preventDefault();
+        const step = event.shiftKey ? ROTATION_STEP * 3 : ROTATION_STEP;
+        adjustFovValue('rotation', event.deltaY < 0 ? step : -step);
+      }, { passive: false });
+    }
 
     fovColors.addEventListener('click', (e) => {
         const swatch = e.target.closest('.ldz-color-swatch');
@@ -1239,6 +1381,11 @@
         fovControls.style.display = 'none';
         unlinkBtn.style.display = 'none';
         linkBtn.style.display = 'none';
+        [rangeDecreaseBtn, rangeIncreaseBtn, rotateLeftBtn, rotateRightBtn].forEach(btn => {
+            if (btn) btn.disabled = true;
+        });
+        if (fovRangeValue) fovRangeValue.textContent = '—';
+        if (fovRotationValue) fovRotationValue.textContent = '—';
         saveConfig();
         saveHistory();
         renderItemsList();
@@ -1273,11 +1420,33 @@
         }
         return;
       }
+      const activeElement = document.activeElement;
+      const isEditable = activeElement && (activeElement.isContentEditable || activeElement.tagName === 'TEXTAREA' || (activeElement.tagName === 'INPUT' && activeElement.type !== 'range' && activeElement.type !== 'checkbox'));
+      if (isEditable) return;
       if (!selectedId) return;
       const cfg = getConfig();
       const placement = (cfg.layoutPlacements || []).find(p => p.uniqueId === selectedId);
       if (!placement) return;
-      
+
+      const key = e.key.toLowerCase();
+      const linkedFov = placement.type === 'fov'
+          ? placement
+          : (cfg.layoutPlacements || []).find(p => p.linkedTo === placement.uniqueId);
+      if (linkedFov) {
+          if (key === 'q' || key === 'e') {
+              e.preventDefault();
+              const step = (e.shiftKey ? 3 : 1) * ROTATION_STEP;
+              adjustFovValue('rotation', key === 'q' ? -step : step);
+              return;
+          }
+          if (key === 'w' || key === 's') {
+              e.preventDefault();
+              const step = (e.shiftKey ? 3 : 1) * RANGE_STEP;
+              adjustFovValue('range', key === 'w' ? step : -step);
+              return;
+          }
+      }
+
       let needsUpdate = false;
       if (e.key === 'Delete' || e.key === 'Backspace') {
           e.preventDefault();
