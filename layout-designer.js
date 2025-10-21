@@ -340,6 +340,9 @@
 `;
     document.body.appendChild(overlay);
 
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
     const schedule = typeof window.requestAnimationFrame === 'function'
       ? (fn) => window.requestAnimationFrame(fn)
       : (fn) => setTimeout(fn, 0);
@@ -360,6 +363,9 @@
     const deleteBtn = overlay.querySelector('#ldzDeleteBtn');
     const linkBtn = overlay.querySelector('#ldzLinkBtn');
     const unlinkBtn = overlay.querySelector('#ldzUnlinkBtn');
+    const itemsListEl = overlay.querySelector('#ldzItems');
+    const scrollUpBtn = overlay.querySelector('#ldzScrollUp');
+    const scrollDownBtn = overlay.querySelector('#ldzScrollDown');
     const drawWallBtn = overlay.querySelector('#ldzDrawWall');
     const searchInput = overlay.querySelector('#ldzSearch');
     const filterBar = overlay.querySelector('#ldzFilter');
@@ -474,7 +480,7 @@
     }
 
     function renderItemsList(){
-      const list = overlay.querySelector('#ldzItems');
+      const list = itemsListEl;
       if (!list) return;
       const cfg = getConfig();
       const placed = new Set((cfg.layoutPlacements||[]).map(p=>p.uniqueId));
