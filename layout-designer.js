@@ -480,13 +480,23 @@
 
     function scrollListBy(multiplier){
       if (!itemsListEl) return;
-      const delta = itemsListEl.clientHeight * multiplier;
-      if (typeof itemsListEl.scrollBy === 'function') {
-        itemsListEl.scrollBy({ top: delta, behavior: 'smooth' });
+      const viewport = itemsListEl.clientHeight;
+      const maxScroll = Math.max(0, itemsListEl.scrollHeight - viewport);
+      if (maxScroll <= 0) return;
+
+      const delta = viewport * multiplier;
+      const target = Math.max(0, Math.min(itemsListEl.scrollTop + delta, maxScroll));
+
+      if (typeof itemsListEl.scrollTo === 'function') {
+        itemsListEl.scrollTo({ top: target, behavior: 'smooth' });
+      } else if (typeof itemsListEl.scrollBy === 'function') {
+        itemsListEl.scrollBy({ top: target - itemsListEl.scrollTop });
       } else {
-        itemsListEl.scrollTop += delta;
+        itemsListEl.scrollTop = target;
       }
+
       schedule(updateScrollButtons);
+      setTimeout(updateScrollButtons, 250);
     }
 
     if (itemsListEl) {
