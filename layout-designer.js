@@ -107,7 +107,7 @@
     style.id = STYLE_ID;
     style.textContent = `
       .ldz-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at top,rgba(15,23,42,0.9),rgba(15,23,42,0.75));backdrop-filter:blur(12px);}
-      .ldz-modal{width:min(1280px,96vw);height:min(940px,96vh);background:linear-gradient(145deg,#f8fafc,#fff);border-radius:24px;box-shadow:0 40px 80px -40px rgba(15,23,42,0.45);display:grid;grid-template-columns:minmax(300px,340px) minmax(0,1fr);overflow:hidden;color:#0f172a;position:relative;}
+      .ldz-modal{width:min(1440px,96vw);height:min(1040px,96vh);background:linear-gradient(145deg,#f8fafc,#fff);border-radius:24px;box-shadow:0 40px 80px -40px rgba(15,23,42,0.45);display:grid;grid-template-columns:minmax(300px,340px) minmax(0,1fr);overflow:hidden;color:#0f172a;position:relative;}
       @media(max-width:1080px){.ldz-modal{grid-template-columns:1fr;grid-template-rows:minmax(0,420px) minmax(0,1fr);height:94vh;}}
       @media(max-width:860px){.ldz-modal{grid-template-rows:minmax(0,380px) minmax(0,1fr);}}
       .ldz-sidebar{max-width:340px;}
@@ -122,14 +122,7 @@
       .ldz-chip.alt{background:rgba(16,185,129,0.08);border-color:rgba(16,185,129,0.2);color:#047857;}
       .ldz-chip.neutral{background:rgba(148,163,184,0.12);border-color:rgba(148,163,184,0.25);color:#0f172a;}
       .ldz-sidebar-body{padding:20px 28px;display:flex;flex-direction:column;gap:16px;flex:1;overflow:hidden;}
-      .ldz-search{position:relative;}
-      .ldz-search input{width:100%;padding:10px 12px 10px 38px;border-radius:12px;border:1px solid rgba(148,163,184,0.25);background:rgba(255,255,255,0.9);font-size:0.85rem;color:#0f172a;transition:border-color .2s,box-shadow .2s;}
-      .ldz-search input:focus{outline:none;border-color:rgba(99,102,241,0.45);box-shadow:0 0 0 3px rgba(99,102,241,0.15);}
-      .ldz-search svg{position:absolute;top:50%;left:12px;width:16px;height:16px;color:rgba(15,23,42,0.45);transform:translateY(-50%);}
-      .ldz-filter{display:flex;flex-wrap:wrap;gap:8px;}
-      .ldz-filter button{flex:1 1 90px;padding:8px 12px;border-radius:9999px;border:1px solid rgba(148,163,184,0.25);background:rgba(255,255,255,0.85);font-weight:600;font-size:0.75rem;color:#475569;cursor:pointer;transition:all .2s;}
-      .ldz-filter button:hover{border-color:rgba(99,102,241,0.4);color:#312e81;}
-      .ldz-filter button.active{background:linear-gradient(135deg,rgba(59,130,246,0.18),rgba(99,102,241,0.22));border-color:rgba(99,102,241,0.45);color:#1e3a8a;box-shadow:0 10px 20px -12px rgba(59,130,246,0.65);}
+      .ldz-sidebar-body .ldz-card{box-shadow:0 12px 32px -28px rgba(15,23,42,0.4);}
       .ldz-section-heading{display:flex;justify-content:space-between;align-items:center;font-size:0.75rem;font-weight:600;color:rgba(15,23,42,0.55);padding-top:4px;gap:12px;}
       .ldz-section-title{flex:1;min-width:0;}
       .ldz-section-tools{display:flex;align-items:center;gap:10px;}
@@ -268,15 +261,13 @@
             </div>
           </header>
           <div class="ldz-sidebar-body">
-            <div class="ldz-search">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-              <input id="ldzSearch" type="search" placeholder="Search devices or names..." autocomplete="off">
-            </div>
-            <div class="ldz-filter" id="ldzFilter">
-              <button class="active" data-filter="all">All</button>
-              <button data-filter="camera">Cameras</button>
-              <button data-filter="nvr">NVRs</button>
-              <button data-filter="fov">FOVs</button>
+            <div class="ldz-card">
+              <div class="ldz-card-title">Layout tools</div>
+              <div class="ldz-action-row">
+                <button id="ldzUndo" class="ldz-icon-btn ghost"><img src="/icons/undo.png" alt="Undo"><span>Undo</span></button>
+                <button id="ldzRedo" class="ldz-icon-btn ghost"><img src="/icons/redo.png" alt="Redo"><span>Redo</span></button>
+                <button id="ldzDrawWall" class="ldz-icon-btn ghost"><img src="/icons/wall_.png" alt="Draw Walls"><span>Wall mode</span></button>
+              </div>
             </div>
             <div class="ldz-section-heading">
               <span class="ldz-section-title">Available items</span>
@@ -330,14 +321,6 @@
                   </div>
                 </div>
                 <input id="ldzFovRotation" class="ldz-range" type="range" min="0" max="360" value="0">
-              </div>
-            </div>
-            <div class="ldz-card">
-              <div class="ldz-card-title">Layout tools</div>
-              <div class="ldz-action-row">
-                <button id="ldzUndo" class="ldz-icon-btn ghost"><img src="/icons/undo.png" alt="Undo"><span>Undo</span></button>
-                <button id="ldzRedo" class="ldz-icon-btn ghost"><img src="/icons/redo.png" alt="Redo"><span>Redo</span></button>
-                <button id="ldzDrawWall" class="ldz-icon-btn ghost"><img src="/icons/wall_.png" alt="Draw Walls"><span>Wall mode</span></button>
               </div>
             </div>
             <div class="ldz-footer-actions">
@@ -404,8 +387,6 @@
     const scrollUpBtn = overlay.querySelector('#ldzScrollUp');
     const scrollDownBtn = overlay.querySelector('#ldzScrollDown');
     const drawWallBtn = overlay.querySelector('#ldzDrawWall');
-    const searchInput = overlay.querySelector('#ldzSearch');
-    const filterBar = overlay.querySelector('#ldzFilter');
     const availableCountEl = overlay.querySelector('#ldzAvailableTotal');
     const placedCameraCountEl = overlay.querySelector('#ldzPlacedCameraCount');
     const placedFovCountEl = overlay.querySelector('#ldzPlacedFovCount');
@@ -429,8 +410,6 @@
     let selectedId = null;
     let currentMode = 'place'; // 'place', 'drawWall', or 'linkFov'
     let showGrid = false;
-    let itemFilter = 'all';
-    let searchQuery = '';
     let fovHistoryTimer = null;
 
     const RANGE_STEP = 10;
@@ -491,9 +470,18 @@
       return {allCams, allNvrs};
     }
 
+    function getListViewportHeight(){
+      if (!itemsListEl) return 0;
+      const rect = itemsListEl.getBoundingClientRect();
+      if (rect && rect.height) return rect.height;
+      if (itemsListEl.clientHeight) return itemsListEl.clientHeight;
+      return 0;
+    }
+
     function updateScrollButtons(){
       if (!itemsListEl || !scrollUpBtn || !scrollDownBtn) return;
-      const maxScroll = Math.max(0, itemsListEl.scrollHeight - itemsListEl.clientHeight);
+      const viewport = getListViewportHeight();
+      const maxScroll = Math.max(0, itemsListEl.scrollHeight - viewport);
       const epsilon = 2;
       scrollUpBtn.disabled = itemsListEl.scrollTop <= epsilon;
       scrollDownBtn.disabled = maxScroll <= epsilon || itemsListEl.scrollTop >= (maxScroll - epsilon);
@@ -501,13 +489,25 @@
 
     function scrollListBy(multiplier){
       if (!itemsListEl) return;
-      const delta = itemsListEl.clientHeight * multiplier;
-      if (typeof itemsListEl.scrollBy === 'function') {
-        itemsListEl.scrollBy({ top: delta, behavior: 'smooth' });
+      const viewport = getListViewportHeight();
+      const effectiveViewport = viewport > 0 ? viewport : (itemsListEl.clientHeight || itemsListEl.scrollHeight || 0);
+      const maxScroll = Math.max(0, itemsListEl.scrollHeight - (viewport || itemsListEl.clientHeight || 0));
+      if (maxScroll <= 0) return;
+
+      const direction = multiplier >= 0 ? 1 : -1;
+      const baseDistance = Math.max(60, effectiveViewport * Math.min(Math.abs(multiplier), 1));
+      const target = Math.max(0, Math.min(itemsListEl.scrollTop + (direction * baseDistance), maxScroll));
+
+      if (typeof itemsListEl.scrollTo === 'function') {
+        itemsListEl.scrollTo({ top: target, behavior: 'smooth' });
+      } else if (typeof itemsListEl.scrollBy === 'function') {
+        itemsListEl.scrollBy({ top: target - itemsListEl.scrollTop });
       } else {
-        itemsListEl.scrollTop += delta;
+        itemsListEl.scrollTop = target;
       }
+
       schedule(updateScrollButtons);
+      setTimeout(updateScrollButtons, 300);
     }
 
     if (itemsListEl) {
@@ -564,23 +564,15 @@
         });
       });
 
-      const query = searchQuery.trim().toLowerCase();
-      const filtered = items.filter(item=>{
-        if (itemFilter !== 'all' && item.type !== itemFilter) return false;
-        if (!query) return true;
-        const haystack = `${item.name||''} ${item.subtitle||''}`.toLowerCase();
-        return haystack.includes(query);
-      });
+      if (availableCountEl) availableCountEl.textContent = items.length;
 
-      if (availableCountEl) availableCountEl.textContent = filtered.length;
-
-      if (!filtered.length){
-        list.innerHTML = '<div class="ldz-empty-state">No items match your filters.</div>';
+      if (!items.length){
+        list.innerHTML = '<div class="ldz-empty-state">No items available to place.</div>';
         schedule(updateScrollButtons);
         return;
       }
 
-      const rows = filtered.map(item=>{
+      const rows = items.map(item=>{
         const typeClass = item.type === 'nvr' ? 'ldz-type-pill nvr' : item.type === 'fov' ? 'ldz-type-pill fov' : 'ldz-type-pill';
         const typeLabel = item.isTemplate ? 'FOV template' : item.type === 'nvr' ? 'Recorder' : item.type === 'camera' ? 'Camera' : 'FOV';
         const fallbackChar = (String(item.name||'').trim().charAt(0) || '?').toUpperCase();
@@ -606,23 +598,6 @@
         el.addEventListener('dragstart', (e)=>{
           e.dataTransfer.setData('text/plain', JSON.stringify({ type: el.dataset.type, uniqueId: el.dataset.uid }));
         });
-      });
-    }
-
-    if (searchInput) {
-      searchInput.addEventListener('input', (e)=>{
-        searchQuery = e.target.value || '';
-        renderItemsList();
-      });
-    }
-
-    if (filterBar) {
-      filterBar.addEventListener('click', (event)=>{
-        const btn = event.target.closest('button[data-filter]');
-        if (!btn) return;
-        itemFilter = btn.dataset.filter || 'all';
-        filterBar.querySelectorAll('button').forEach(b=>b.classList.toggle('active', b === btn));
-        renderItemsList();
       });
     }
 
