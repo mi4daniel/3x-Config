@@ -111,7 +111,7 @@
     style.id = STYLE_ID;
     style.textContent = `
       .ldz-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:stretch;justify-content:stretch;background:radial-gradient(circle at top,rgba(15,23,42,0.9),rgba(15,23,42,0.75));backdrop-filter:blur(12px);}
-      .ldz-modal{width:100vw;height:100vh;background:linear-gradient(145deg,#f8fafc,#fff);border-radius:0;box-shadow:none;display:grid;grid-template-columns:minmax(300px,420px) minmax(0,1fr);overflow:hidden;color:#0f172a;position:relative;}
+      .ldz-modal{width:100vw;height:100vh;background:linear-gradient(145deg,#f8fafc,#fff);border-radius:0;box-shadow:none;display:grid;grid-template-columns:minmax(300px,380px) minmax(0,1fr) minmax(300px,380px);overflow:hidden;color:#0f172a;position:relative;}
       @media(max-width:1080px){.ldz-modal{grid-template-columns:1fr;grid-template-rows:minmax(0,420px) minmax(0,1fr);height:100vh;}}
       @media(max-width:860px){.ldz-modal{grid-template-rows:minmax(0,380px) minmax(0,1fr);}}
       .ldz-sidebar{max-width:420px;}
@@ -256,26 +256,13 @@
     overlay.className = 'ldz-overlay';
     overlay.innerHTML = `
       <div class="ldz-modal">
-        <aside class="ldz-sidebar">
+        <!-- Left Sidebar for Available Items -->
+        <aside class="ldz-sidebar" style="border-right: 1px solid rgba(148,163,184,0.18);">
           <header class="ldz-sidebar-header">
             <div class="ldz-title">Camera Layout Designer</div>
-            <p class="ldz-subtitle">Drag devices, sketch obstructions, and fine-tune coverage zones to mirror the project vision.</p>
-            <div class="ldz-stat-grid">
-              <div class="ldz-chip"><span>Placed cameras</span><strong id="ldzPlacedCameraCount">0</strong></div>
-              <div class="ldz-chip alt"><span>Coverage zones</span><strong id="ldzPlacedFovCount">0</strong></div>
-              <div class="ldz-chip neutral"><span>Recorders</span><strong id="ldzPlacedNvrCount">0</strong></div>
-              <div class="ldz-chip neutral"><span>Walls</span><strong id="ldzPlacedWallCount">0</strong></div>
-            </div>
+            <p class="ldz-subtitle">Drag items from this list onto the floorplan.</p>
           </header>
           <div class="ldz-sidebar-body">
-            <div class="ldz-card">
-              <div class="ldz-card-title">Layout tools</div>
-              <div class="ldz-action-row">
-                <button id="ldzUndo" class="ldz-icon-btn ghost"><img src="/icons/undo.png" alt="Undo"><span>Undo</span></button>
-                <button id="ldzRedo" class="ldz-icon-btn ghost"><img src="/icons/redo.png" alt="Redo"><span>Redo</span></button>
-                <button id="ldzDrawWall" class="ldz-icon-btn ghost"><img src="/icons/wall_.png" alt="Draw Walls"><span>Wall mode</span></button>
-              </div>
-            </div>
             <div class="ldz-section-heading">
               <span class="ldz-section-title">Available items</span>
               <div class="ldz-section-tools">
@@ -288,77 +275,9 @@
             </div>
             <div class="ldz-list" id="ldzItems"></div>
           </div>
-          <div class="ldz-sidebar-footer">
-            <div id="ldzSelectionControls" class="ldz-card" style="display:none;">
-              <div class="ldz-card-title">Selection</div>
-              <div class="ldz-card-actions">
-                <button id="ldzLinkBtn" class="ldz-chip-btn" style="display:none;">Link FOV</button>
-                <button id="ldzUnlinkBtn" class="ldz-chip-btn" style="display:none;">Unlink FOV</button>
-              </div>
-              <div id="ldzCameraRangeControl" class="ldz-field" style="display:none;">
-                <div class="ldz-field-header">
-                  <span class="ldz-label">Camera FOV Distance<strong id="ldzCameraRangeValue">—</strong></span>
-                  <div class="ldz-stepper">
-                    <button type="button" class="ldz-step-btn" id="ldzCameraRangeDecrease" aria-label="Decrease camera range" disabled>&minus;</button>
-                    <button type="button" class="ldz-step-btn" id="ldzCameraRangeIncrease" aria-label="Increase camera range" disabled>+</button>
-                  </div>
-                </div>
-                <input id="ldzCameraRange" class="ldz-range" type="range" min="1" max="2000" value="60">
-              </div>
-              <button id="ldzDeleteBtn" class="ldz-icon-btn danger"><img src="/icons/delete_.png" alt="Delete"><span>Remove from layout</span></button>
-            </div>
-            <div id="ldzFovControls" class="ldz-card" style="display:none;">
-              <div class="ldz-card-title">Coverage settings</div>
-              <div class="ldz-field">
-                <span class="ldz-label">FOV Angle <strong id="ldzFovAngleValue">90°</strong></span>
-                <input id="ldzFovAngle" class="ldz-range" type="range" min="5" max="360" value="90">
-              </div>
-              <div class="ldz-field">
-                <div class="ldz-field-header">
-                  <span class="ldz-label">FOV Range<strong id="ldzFovRangeValue">—</strong></span>
-                  <div class="ldz-stepper">
-                    <button type="button" class="ldz-step-btn" id="ldzRangeDecrease" aria-label="Decrease range" disabled>&minus;</button>
-                    <button type="button" class="ldz-step-btn" id="ldzRangeIncrease" aria-label="Increase range" disabled>+</button>
-                  </div>
-                </div>
-                <input id="ldzFovRange" class="ldz-range" type="range" min="1" max="2000" value="60">
-              </div>
-              <div class="ldz-colors" id="ldzFovColors">
-                <button class="ldz-color-swatch selected" style="background:rgba(234,179,8,0.5)" data-color="rgba(234,179,8,0.5)"></button>
-                <button class="ldz-color-swatch" style="background:rgba(239,68,68,0.4)" data-color="rgba(239,68,68,0.4)"></button>
-                <button class="ldz-color-swatch" style="background:rgba(34,197,94,0.4)" data-color="rgba(34,197,94,0.4)"></button>
-                <button class="ldz-color-swatch" style="background:rgba(139,92,246,0.4)" data-color="rgba(139,92,246,0.4)"></button>
-              </div>
-              <div class="ldz-field">
-                <div class="ldz-field-header">
-                  <span class="ldz-label">FOV Rotation<strong id="ldzFovRotationValue">—</strong></span>
-                  <div class="ldz-stepper">
-                    <button type="button" class="ldz-step-btn" id="ldzRotateLeft" aria-label="Rotate counter-clockwise" disabled>&#8630;</button>
-                    <button type="button" class="ldz-step-btn" id="ldzRotateRight" aria-label="Rotate clockwise" disabled>&#8631;</button>
-                  </div>
-                </div>
-                <input id="ldzFovRotation" class="ldz-range" type="range" min="0" max="360" value="0">
-              </div>
-            </div>
-
-            <div class="ldz-card" id="ldzScaleCard" style="display:flex;flex-direction:column;">
-              <div class="ldz-card-title">Floorplan scale</div>
-              <div class="ldz-field">
-                <div class="ldz-field-header">
-                  <span class="ldz-label">Pixels per foot <strong id="ldzScaleValue">1</strong></span>
-                </div>
-                <input id="ldzScaleInput" class="ldz-range" type="range" min="0.1" max="20" step="0.1" value="${cfg.layoutScale || 1}">
-              </div>
-            </div>
-            <div class="ldz-footer-actions">
-              <div class="ldz-action-row">
-                <button id="ldzReset" class="ldz-icon-btn danger"><img src="/icons/reset-left-line_.png" alt="Reset"><span>Reset layout</span></button>
-                <button id="ldzDownload" class="ldz-icon-btn primary"><img src="/icons/image-download_.png" alt="Download"><span>Export image</span></button>
-              </div>
-              <button id="ldzClose" class="ldz-icon-btn ghost"><img src="/icons/close-circle-twotone_.png" alt="Close"><span>Close designer</span></button>
-            </div>
-          </div>
         </aside>
+
+        <!-- Canvas Area -->
         <div class="ldz-canvas-wrap">
           <button class="ldz-close" id="ldzX"><img src="/icons/close-circle-twotone_.png" alt="Close"></button>
           <div class="ldz-canvas-toolbar">
@@ -378,6 +297,71 @@
           <canvas id="ldzWalls"></canvas>
           <div id="ldzOverlay"></div>
         </div>
+
+        <!-- Right Sidebar for Tools & Controls -->
+        <aside class="ldz-sidebar" style="border-left: 1px solid rgba(148,163,184,0.18);">
+            <header class="ldz-sidebar-header">
+                <div class="ldz-stat-grid">
+                    <div class="ldz-chip"><span>Placed cameras</span><strong id="ldzPlacedCameraCount">0</strong></div>
+                    <div class="ldz-chip alt"><span>Coverage zones</span><strong id="ldzPlacedFovCount">0</strong></div>
+                    <div class="ldz-chip neutral"><span>Recorders</span><strong id="ldzPlacedNvrCount">0</strong></div>
+                    <div class="ldz-chip neutral"><span>Walls</span><strong id="ldzPlacedWallCount">0</strong></div>
+                </div>
+            </header>
+            <div class="ldz-sidebar-body">
+                <div class="ldz-card">
+                    <div class="ldz-card-title">Layout tools</div>
+                    <div class="ldz-action-row">
+                        <button id="ldzUndo" class="ldz-icon-btn ghost"><img src="/icons/undo.png" alt="Undo"><span>Undo</span></button>
+                        <button id="ldzRedo" class="ldz-icon-btn ghost"><img src="/icons/redo.png" alt="Redo"><span>Redo</span></button>
+                        <button id="ldzDrawWall" class="ldz-icon-btn ghost"><img src="/icons/wall_.png" alt="Draw Walls"><span>Wall mode</span></button>
+                    </div>
+                </div>
+                <div id="ldzSelectionControls" class="ldz-card" style="display:none;">
+                    <div class="ldz-card-title">Selection</div>
+                    <div class="ldz-card-actions">
+                        <button id="ldzLinkBtn" class="ldz-chip-btn" style="display:none;">Link FOV</button>
+                        <button id="ldzUnlinkBtn" class="ldz-chip-btn" style="display:none;">Unlink FOV</button>
+                    </div>
+                    <div id="ldzCameraRangeControl" class="ldz-field" style="display:none;">
+                        <div class="ldz-field-header">
+                            <span class="ldz-label">Camera FOV Distance<strong id="ldzCameraRangeValue">—</strong></span>
+                            <div class="ldz-stepper">
+                                <button type="button" class="ldz-step-btn" id="ldzCameraRangeDecrease" aria-label="Decrease camera range" disabled>&minus;</button>
+                                <button type="button" class="ldz-step-btn" id="ldzCameraRangeIncrease" aria-label="Increase camera range" disabled>+</button>
+                            </div>
+                        </div>
+                        <input id="ldzCameraRange" class="ldz-range" type="range" min="1" max="2000" value="60">
+                    </div>
+                    <button id="ldzDeleteBtn" class="ldz-icon-btn danger"><img src="/icons/delete_.png" alt="Delete"><span>Remove from layout</span></button>
+                </div>
+                <div id="ldzFovControls" class="ldz-card" style="display:none;">
+                    <div class="ldz-card-title">Coverage settings</div>
+                    <div class="ldz-field"><span class="ldz-label">FOV Angle <strong id="ldzFovAngleValue">90°</strong></span><input id="ldzFovAngle" class="ldz-range" type="range" min="5" max="360" value="90"></div>
+                    <div class="ldz-field">
+                        <div class="ldz-field-header"><span class="ldz-label">FOV Range<strong id="ldzFovRangeValue">—</strong></span>
+                            <div class="ldz-stepper"><button type="button" class="ldz-step-btn" id="ldzRangeDecrease" aria-label="Decrease range" disabled>&minus;</button><button type="button" class="ldz-step-btn" id="ldzRangeIncrease" aria-label="Increase range" disabled>+</button></div>
+                        </div><input id="ldzFovRange" class="ldz-range" type="range" min="1" max="2000" value="60">
+                    </div>
+                    <div class="ldz-colors" id="ldzFovColors"><button class="ldz-color-swatch selected" style="background:rgba(234,179,8,0.5)" data-color="rgba(234,179,8,0.5)"></button><button class="ldz-color-swatch" style="background:rgba(239,68,68,0.4)" data-color="rgba(239,68,68,0.4)"></button><button class="ldz-color-swatch" style="background:rgba(34,197,94,0.4)" data-color="rgba(34,197,94,0.4)"></button><button class="ldz-color-swatch" style="background:rgba(139,92,246,0.4)" data-color="rgba(139,92,246,0.4)"></button></div>
+                    <div class="ldz-field">
+                        <div class="ldz-field-header"><span class="ldz-label">FOV Rotation<strong id="ldzFovRotationValue">—</strong></span>
+                            <div class="ldz-stepper"><button type="button" class="ldz-step-btn" id="ldzRotateLeft" aria-label="Rotate counter-clockwise" disabled>&#8630;</button><button type="button" class="ldz-step-btn" id="ldzRotateRight" aria-label="Rotate clockwise" disabled>&#8631;</button></div>
+                        </div><input id="ldzFovRotation" class="ldz-range" type="range" min="0" max="360" value="0">
+                    </div>
+                </div>
+                <div class="ldz-card" id="ldzScaleCard" style="display:flex;flex-direction:column;">
+                    <div class="ldz-card-title">Floorplan scale</div>
+                    <div class="ldz-field"><div class="ldz-field-header"><span class="ldz-label">Pixels per foot <strong id="ldzScaleValue">1</strong></span></div><input id="ldzScaleInput" class="ldz-range" type="range" min="0.1" max="20" step="0.1" value="${cfg.layoutScale || 1}"></div>
+                </div>
+            </div>
+            <div class="ldz-sidebar-footer">
+                <div class="ldz-footer-actions">
+                    <div class="ldz-action-row"><button id="ldzReset" class="ldz-icon-btn danger"><img src="/icons/reset-left-line_.png" alt="Reset"><span>Reset layout</span></button><button id="ldzDownload" class="ldz-icon-btn primary"><img src="/icons/image-download_.png" alt="Download"><span>Export image</span></button></div>
+                    <button id="ldzClose" class="ldz-icon-btn ghost"><img src="/icons/close-circle-twotone_.png" alt="Close"><span>Close designer</span></button>
+                </div>
+            </div>
+        </aside>
       </div>
 `;
     document.body.appendChild(overlay);
