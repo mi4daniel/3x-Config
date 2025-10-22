@@ -40,6 +40,8 @@
     cfg.allInOneCameras = Array.isArray(cfg.allInOneCameras) ? cfg.allInOneCameras : [];
     cfg.layoutPlacements = Array.isArray(cfg.layoutPlacements) ? cfg.layoutPlacements : [];
     cfg.layoutWalls = Array.isArray(cfg.layoutWalls) ? cfg.layoutWalls : [];
+    // layoutScale stores pixelsPerFoot
+    if (typeof cfg.layoutScale === 'undefined' || cfg.layoutScale === null) cfg.layoutScale = 1; 
     return cfg;
   }
 
@@ -51,6 +53,7 @@
       bucket.layoutPlacements = cfg.layoutPlacements || [];
       bucket.layoutWalls = cfg.layoutWalls || [];
       bucket.cameraLayout = cfg.cameraLayout || null;
+      bucket.layoutScale = cfg.layoutScale || 1;
       localStorage.setItem(STORAGE_KEY, JSON.stringify(bucket));
     } catch(e){
       console.error("Failed to save layout config:", e);
@@ -67,6 +70,7 @@
         if (Array.isArray(parsed.layoutPlacements)) cfg.layoutPlacements = parsed.layoutPlacements;
         if (Array.isArray(parsed.layoutWalls)) cfg.layoutWalls = parsed.layoutWalls;
         if (parsed.cameraLayout) cfg.cameraLayout = parsed.cameraLayout;
+        if (parsed.layoutScale) cfg.layoutScale = parsed.layoutScale;
       }
     }catch(e){
         console.error("Failed to bootstrap layout from storage:", e);
@@ -84,8 +88,8 @@
   function lineSegmentsIntersect(p1, q1, p2, q2) {
       function orientation(p, q, r) {
           const val = (q.y - p.y) * (r.x - q.x) - (q.x - p.x) * (r.y - q.y);
-          if (val === 0) return 0;
-          return (val > 0) ? 1 : 2;
+          if (val === 0) return 0; // Collinear
+          return (val > 0) ? 1 : 2; // Clockwise or Counterclockwise
       }
       function onSegment(p, q, r) {
           return (q.x <= Math.max(p.x, r.x) && q.x >= Math.min(p.x, r.x) && q.y <= Math.max(p.y, r.y) && q.y >= Math.min(p.y, r.y));
@@ -106,13 +110,13 @@
     const style = document.createElement('style');
     style.id = STYLE_ID;
     style.textContent = `
-      .ldz-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at top,rgba(15,23,42,0.9),rgba(15,23,42,0.75));backdrop-filter:blur(12px);}
-      .ldz-modal{width:min(1440px,96vw);height:min(1040px,96vh);background:linear-gradient(145deg,#f8fafc,#fff);border-radius:24px;box-shadow:0 40px 80px -40px rgba(15,23,42,0.45);display:grid;grid-template-columns:minmax(300px,340px) minmax(0,1fr);overflow:hidden;color:#0f172a;position:relative;}
-      @media(max-width:1080px){.ldz-modal{grid-template-columns:1fr;grid-template-rows:minmax(0,420px) minmax(0,1fr);height:94vh;}}
+      .ldz-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:stretch;justify-content:stretch;background:radial-gradient(circle at top,rgba(15,23,42,0.9),rgba(15,23,42,0.75));backdrop-filter:blur(12px);}
+      .ldz-modal{width:100vw;height:100vh;background:linear-gradient(145deg,#f8fafc,#fff);border-radius:0;box-shadow:none;display:grid;grid-template-columns:minmax(300px,420px) minmax(0,1fr);overflow:hidden;color:#0f172a;position:relative;}
+      @media(max-width:1080px){.ldz-modal{grid-template-columns:1fr;grid-template-rows:minmax(0,420px) minmax(0,1fr);height:100vh;}}
       @media(max-width:860px){.ldz-modal{grid-template-rows:minmax(0,380px) minmax(0,1fr);}}
-      .ldz-sidebar{max-width:340px;}
-      .ldz-sidebar{background:rgba(248,250,252,0.92);backdrop-filter:blur(18px);display:flex;flex-direction:column;}
-      .ldz-sidebar-header{padding:28px 28px 20px;border-bottom:1px solid rgba(148,163,184,0.25);display:flex;flex-direction:column;gap:14px;}
+      .ldz-sidebar{max-width:420px;}
+      .ldz-sidebar{background:rgba(248,250,252,0.95);backdrop-filter:blur(12px);display:flex;flex-direction:column;}
+      .ldz-sidebar-header{padding:28px 28px 20px;border-bottom:1px solid rgba(148,163,184,0.18);display:flex;flex-direction:column;gap:14px;}
       .ldz-title{font-size:1.25rem;font-weight:700;letter-spacing:-0.01em;color:#0f172a;}
       .ldz-subtitle{font-size:0.8rem;color:rgba(15,23,42,0.68);line-height:1.4;}
       .ldz-stat-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
@@ -121,7 +125,7 @@
       .ldz-chip strong{font-size:0.95rem;}
       .ldz-chip.alt{background:rgba(16,185,129,0.08);border-color:rgba(16,185,129,0.2);color:#221e1f;}
       .ldz-chip.neutral{background:rgba(34,30,31,0.12);border-color:rgba(34,30,31,0.2);color:#221e1f;}
-      .ldz-sidebar-body{padding:20px 28px;display:flex;flex-direction:column;gap:16px;flex:1;overflow:hidden;}
+      .ldz-sidebar-body{padding:20px 28px;display:flex;flex-direction:column;gap:16px;flex:1;overflow:visible;}
       .ldz-sidebar-body .ldz-card{box-shadow:0 12px 32px -28px rgba(15,23,42,0.4);}
       .ldz-section-heading{display:flex;justify-content:space-between;align-items:center;font-size:0.75rem;font-weight:600;color:rgba(15,23,42,0.55);padding-top:4px;gap:12px;}
       .ldz-section-title{flex:1;min-width:0;}
@@ -131,8 +135,8 @@
       .ldz-scroll-btn{width:28px;height:28px;border-radius:8px;border:1px solid rgba(34,30,31,0.2);background:rgba(255,255,255,0.9);color:#221e1f;display:inline-flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;cursor:pointer;transition:all .2s;}
       .ldz-scroll-btn:hover{border-color:rgba(194,32,51,0.45);color:#c22033;}
       .ldz-scroll-btn:disabled{opacity:0.4;cursor:not-allowed;border-color:rgba(34,30,31,0.18);color:rgba(96,92,94,0.7);}
-      .ldz-list{flex:1;overflow:auto;padding-right:6px;display:flex;flex-direction:column;gap:10px;}
-      .ldz-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:16px;border:1px solid rgba(34,30,31,0.18);background:rgba(255,255,255,0.96);box-shadow:0 12px 24px -20px rgba(34,30,31,0.65);cursor:grab;transition:transform .2s,box-shadow .2s,border-color .2s;}
+      .ldz-list{flex:1;overflow:auto;padding-right:6px;display:flex;flex-direction:column;gap:10px;max-height:calc(100vh - 420px);}
+      .ldz-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:16px;border:1px solid rgba(34,30,31,0.18);background:rgba(255,255,255,0.96);box-shadow:0 12px 24px -20px rgba(34,30,31,0.65);cursor:grab;transition:transform .2s,box-shadow .2s,border-color .2s;position:relative;}
       .ldz-item:hover{transform:translateY(-1px);border-color:rgba(194,32,51,0.35);box-shadow:0 18px 32px -24px rgba(194,32,51,0.4);}
       .ldz-item:active{cursor:grabbing;}
       .ldz-item-icon{width:36px;height:36px;border-radius:12px;background:rgba(194,32,51,0.1);display:flex;align-items:center;justify-content:center;overflow:hidden;}
@@ -188,13 +192,13 @@
       .ldz-zoom-indicator{padding:0 10px;font-weight:600;font-size:0.75rem;color:#f6f7fb;}
       #ldzBg,#ldzFov,#ldzWalls{position:absolute;top:0;left:0;}
       #ldzOverlay{position:absolute;top:0;left:0;transform-origin:top left;}
-      .ldz-placed{position:absolute;width:36px;height:36px;border-radius:12px;border:2px solid rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;color:#fff;font:600 14px/1 'Inter',sans-serif;cursor:grab;user-select:none;box-shadow:0 14px 32px -24px rgba(34,30,31,0.85);}
+      .ldz-placed{position:absolute;width:36px;height:36px;border-radius:12px;border:2px solid rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;color:#fff;font:600 14px/1 'Inter',sans-serif;cursor:grab;user-select:none;box-shadow:0 14px 32px -24px rgba(34,30,31,0.85);pointer-events:auto;}
       .ldz-placed.camera{background:linear-gradient(160deg,rgba(194,32,51,0.9),rgba(194,32,51,0.85));border-radius:18px;}
       .ldz-placed.nvr{background:linear-gradient(160deg,rgba(100,116,139,0.95),rgba(71,85,105,0.92));font-size:12px;font-weight:700;}
       .ldz-placed.fov{background:rgba(234,179,8,0.75);border-radius:18px;}
       .ldz-placed.fov.linked{display:none;}
       .ldz-placed.selected{box-shadow:0 0 0 4px rgba(194,32,51,0.55);}
-      .ldz-placed-label{position:absolute;top:100%;left:50%;transform:translateX(-50%);background:rgba(34,30,31,0.9);color:#f6f7fb;font-size:0.68rem;padding:4px 8px;border-radius:8px;white-space:nowrap;margin-top:6px;font-weight:500;}
+      .ldz-placed-label{position:absolute;top:100%;left:50%;transform:translateX(-50%);background:rgba(34,30,31,0.9);color:#f6f7fb;font-size:0.68rem;padding:4px 8px;border-radius:8px;white-space:nowrap;margin-top:6px;font-weight:500;pointer-events:auto;}
       .ldz-camera-rotate-handle{display:none;position:absolute;top:-18px;left:50%;transform:translateX(-50%);width:12px;height:12px;background:#c22033;border:2px solid #fff;border-radius:9999px;cursor:crosshair;}
       .ldz-placed.selected .ldz-camera-rotate-handle{display:block;}
       .ldz-fov-handle{position:absolute;width:12px;height:12px;background:#fff;border-radius:9999px;cursor:crosshair;border:2px solid rgba(194,32,51,0.6);}
@@ -204,6 +208,9 @@
       .ldz-close:hover{border-color:rgba(194,32,51,0.6);background:rgba(194,32,51,0.15);}
       .ldz-close img{width:24px;height:24px;}
       #context-menu button{display:block;width:100%;padding:8px 12px;text-align:left;background:none;border:none;cursor:pointer;}
+      .ldz-item-badge{position:absolute;left:8px;top:8px;background:#c22033;color:#fff;width:18px;height:18px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:700;}
+      .ldz-placed-badge{position:absolute;right:-8px;bottom:-8px;background:#fff;color:#c22033;width:18px;height:18px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;font-size:0.68rem;font-weight:700;border:2px solid rgba(34,30,31,0.12);transform-origin:center;}
+      .ldz-place-label-input{font-size:0.68rem;padding:3px 6px;border-radius:6px;border:1px solid rgba(0,0,0,0.12);outline:none;}
     `;
     document.head.appendChild(style);
   }
@@ -296,7 +303,7 @@
                     <button type="button" class="ldz-step-btn" id="ldzCameraRangeIncrease" aria-label="Increase camera range" disabled>+</button>
                   </div>
                 </div>
-                <input id="ldzCameraRange" class="ldz-range" type="range" min="10" max="2000" value="60">
+                <input id="ldzCameraRange" class="ldz-range" type="range" min="1" max="2000" value="60">
               </div>
               <button id="ldzDeleteBtn" class="ldz-icon-btn danger"><img src="/icons/delete_.png" alt="Delete"><span>Remove from layout</span></button>
             </div>
@@ -304,7 +311,7 @@
               <div class="ldz-card-title">Coverage settings</div>
               <div class="ldz-field">
                 <span class="ldz-label">FOV Angle <strong id="ldzFovAngleValue">90°</strong></span>
-                <input id="ldzFovAngle" class="ldz-range" type="range" min="15" max="360" value="90">
+                <input id="ldzFovAngle" class="ldz-range" type="range" min="5" max="360" value="90">
               </div>
               <div class="ldz-field">
                 <div class="ldz-field-header">
@@ -314,7 +321,7 @@
                     <button type="button" class="ldz-step-btn" id="ldzRangeIncrease" aria-label="Increase range" disabled>+</button>
                   </div>
                 </div>
-                <input id="ldzFovRange" class="ldz-range" type="range" min="10" max="2000" value="60">
+                <input id="ldzFovRange" class="ldz-range" type="range" min="1" max="2000" value="60">
               </div>
               <div class="ldz-colors" id="ldzFovColors">
                 <button class="ldz-color-swatch selected" style="background:rgba(234,179,8,0.5)" data-color="rgba(234,179,8,0.5)"></button>
@@ -331,6 +338,16 @@
                   </div>
                 </div>
                 <input id="ldzFovRotation" class="ldz-range" type="range" min="0" max="360" value="0">
+              </div>
+            </div>
+
+            <div class="ldz-card" id="ldzScaleCard" style="display:flex;flex-direction:column;">
+              <div class="ldz-card-title">Floorplan scale</div>
+              <div class="ldz-field">
+                <div class="ldz-field-header">
+                  <span class="ldz-label">Pixels per foot <strong id="ldzScaleValue">1</strong></span>
+                </div>
+                <input id="ldzScaleInput" class="ldz-range" type="range" min="0.1" max="20" step="0.1" value="${cfg.layoutScale || 1}">
               </div>
             </div>
             <div class="ldz-footer-actions">
@@ -371,7 +388,7 @@
     const schedule = typeof window.requestAnimationFrame === 'function'
       ? (fn) => window.requestAnimationFrame(fn)
       : (fn) => setTimeout(fn, 0);
-
+    
     const wrap = overlay.querySelector('.ldz-canvas-wrap');
     const bg = overlay.querySelector('#ldzBg');
     const fovCanvas = overlay.querySelector('#ldzFov');
@@ -413,6 +430,8 @@
     const zoomResetBtn = overlay.querySelector('#ldzZoomReset');
     const fitViewBtn = overlay.querySelector('#ldzFitView');
     const gridToggleBtn = overlay.querySelector('#ldzGridToggle');
+    const scaleInput = overlay.querySelector('#ldzScaleInput');
+    const scaleValueEl = overlay.querySelector('#ldzScaleValue');
     const ctx = bg.getContext('2d');
     const fovCtx = fovCanvas.getContext('2d');
     const wallCtx = wallCanvas.getContext('2d');
@@ -428,6 +447,9 @@
     let fovHistoryTimer = null;
     let listResizeObserver = null;
     let listMutationObserver = null;
+
+    // pixelsPerFoot = how many pixels equal one foot on the floorplan
+    let pixelsPerFoot = Math.max(0.0001, Number(cfg.layoutScale || 1));
 
     const RANGE_STEP = 10;
     const ROTATION_STEP = 5;
@@ -581,6 +603,7 @@
       });
 
       allNvrs.forEach(nvr=>{
+        
         const uid = `nvr-${nvr.id}`;
         if (placed.has(uid)) return;
         items.push({
@@ -601,13 +624,16 @@
       }
 
       const rows = items.map(item=>{
+        
         const typeClass = item.type === 'nvr' ? 'ldz-type-pill nvr' : item.type === 'fov' ? 'ldz-type-pill fov' : 'ldz-type-pill';
         const typeLabel = item.isTemplate ? 'FOV template' : item.type === 'nvr' ? 'Recorder' : item.type === 'camera' ? 'Camera' : 'FOV';
         const fallbackChar = (String(item.name||'').trim().charAt(0) || '?').toUpperCase();
         const icon = item.image ? `<img src="${item.image}" alt="">` : `<span class="ldz-item-fallback">${fallbackChar}</span>`;
         const subtitle = item.subtitle || 'Drag onto the layout';
+        const badge = item.index ? `<span class="ldz-item-badge">${item.index}</span>` : '';
         return `
           <div class="ldz-item" draggable="true" data-type="${item.type}" data-uid="${item.uniqueId}">
+            ${badge}
             <div class="ldz-item-icon">${icon}</div>
             <div class="ldz-item-content">
               <div class="ldz-item-title">${item.name||item.uniqueId}</div>
@@ -757,7 +783,10 @@
                 }
             }
             const fovAngle = p.fov?.angle ?? 90;
-            const fovRange = p.fov?.range ?? 60;
+            // range stored in feet: rangeFt (new). If legacy 'range' exists and no rangeFt, use it as px fallback.
+            const fovRangePx = (typeof p.fov?.rangeFt === 'number')
+                ? (p.fov.rangeFt * pixelsPerFoot)
+                : (p.fov?.range ?? 60);
             const fovRotation = (p.fov?.rotation ?? 0) * Math.PI / 180;
             const halfAngleRad = (fovAngle / 2) * Math.PI / 180;
 
@@ -768,10 +797,10 @@
             fovCtx.beginPath();
             if (fovAngle < 360) {
                 fovCtx.moveTo(0, 0);
-                fovCtx.arc(0, 0, fovRange, -halfAngleRad, halfAngleRad);
+                fovCtx.arc(0, 0, fovRangePx, -halfAngleRad, halfAngleRad);
                 fovCtx.closePath();
             } else {
-                fovCtx.arc(0, 0, fovRange, 0, 2 * Math.PI);
+                fovCtx.arc(0, 0, fovRangePx, 0, 2 * Math.PI);
             }
             fovCtx.fillStyle = p.fov?.color || 'rgba(255,255,0,.25)';
             fovCtx.fill();
@@ -807,6 +836,147 @@
         });
     }
 
+    // Export function (makes a standalone image of current layout including FOVs, walls and markers)
+    window.getLayoutCanvasAsImage = async function() {
+        if (!img.width || !img.height) return null;
+        const exportCanvas = document.createElement('canvas');
+        exportCanvas.width = img.width;
+        exportCanvas.height = img.height;
+        const ex = exportCanvas.getContext('2d');
+
+        // Draw base image
+        ex.drawImage(img, 0, 0);
+
+        // Draw FOVs (similar logic to drawFovs but using ex)
+        const cfg2 = getConfig();
+        const walls = cfg2.layoutWalls || [];
+        (cfg2.layoutPlacements || []).forEach(p => {
+            if (p.type !== 'fov') return;
+
+            let fovOrigin = { x: p.x, y: p.y };
+            if (p.linkedTo) {
+                const parentCam = cfg2.layoutPlacements.find(cam => cam.uniqueId === p.linkedTo);
+                if (parentCam) fovOrigin = { x: parentCam.x, y: parentCam.y };
+            }
+            const fovAngle = p.fov?.angle ?? 90;
+            const fovRangePx = (typeof p.fov?.rangeFt === 'number') ? (p.fov.rangeFt * pixelsPerFoot) : (p.fov?.range ?? 60);
+            const fovRotation = (p.fov?.rotation ?? 0) * Math.PI / 180;
+            const halfAngleRad = (fovAngle / 2) * Math.PI / 180;
+
+            ex.save();
+            ex.translate(fovOrigin.x, fovOrigin.y);
+            ex.rotate(fovRotation);
+            ex.beginPath();
+            if (fovAngle < 360) {
+              ex.moveTo(0,0);
+              ex.arc(0,0,fovRangePx, -halfAngleRad, halfAngleRad);
+              ex.closePath();
+            } else {
+              ex.arc(0,0,fovRangePx, 0, Math.PI*2);
+            }
+            ex.fillStyle = p.fov?.color || 'rgba(255,255,0,0.25)';
+            ex.fill();
+            ex.restore();
+
+            // Shadows
+            if (walls.length>0) {
+              ex.save();
+              ex.globalCompositeOperation = 'destination-out';
+              ex.fillStyle = 'black';
+              walls.forEach(wall=>{
+                const wallP1 = {x: wall.x1, y: wall.y1};
+                const wallP2 = {x: wall.x2, y: wall.y2};
+                const shadowP1 = getRayCircleIntersection(fovOrigin, wallP1, 10000);
+                const shadowP2 = getRayCircleIntersection(fovOrigin, wallP2, 10000);
+                if (!shadowP1 || !shadowP2) return;
+                ex.beginPath();
+                ex.moveTo(wallP1.x, wallP1.y);
+                ex.lineTo(wallP2.x, wallP2.y);
+                ex.lineTo(shadowP2.x, shadowP2.y);
+                ex.lineTo(shadowP1.x, shadowP1.y);
+                ex.closePath();
+                ex.fill();
+              });
+              ex.restore();
+            }
+        });
+
+        // Draw walls
+        ex.save();
+        ex.strokeStyle = '#ff3b30';
+        ex.lineWidth = 3;
+        ex.lineCap = 'round';
+        ex.beginPath();
+        (cfg2.layoutWalls || []).forEach(w=>{
+          ex.moveTo(w.x1, w.y1);
+          ex.lineTo(w.x2, w.y2);
+        });
+        ex.stroke();
+        ex.restore();
+
+        // Draw markers (simple circle + number badge + text)
+        (cfg2.layoutPlacements || []).forEach(p=>{
+          if (p.type === 'camera') {
+            ex.save();
+            ex.beginPath();
+            ex.fillStyle = '#c22033';
+            ex.strokeStyle = '#fff';
+            ex.lineWidth = 2;
+            ex.arc(p.x, p.y, 18, 0, Math.PI*2);
+            ex.fill();
+            ex.stroke();
+            ex.restore();
+
+            // number badge
+            const idx = String(p.uniqueId).split('-').slice(-1)[0];
+            if (idx != null) {
+              ex.save();
+              ex.fillStyle = '#fff';
+              ex.strokeStyle = 'rgba(34,30,31,0.12)';
+              ex.lineWidth = 2;
+              ex.beginPath();
+              ex.arc(p.x + 12, p.y + 12, 9, 0, Math.PI*2);
+              ex.fill();
+              ex.stroke();
+              ex.fillStyle = '#c22033';
+              ex.font = 'bold 11px sans-serif';
+              ex.textAlign = 'center';
+              ex.textBaseline = 'middle';
+              ex.fillText(String(idx), p.x + 12, p.y + 12);
+              ex.restore();
+            }
+
+            // label text
+            const label = p.label || '';
+            if (label) {
+              ex.save();
+              ex.fillStyle = 'rgba(34,30,31,0.95)';
+              ex.font = '12px sans-serif';
+              ex.textAlign = 'center';
+              ex.fillText(label, p.x, p.y + 28);
+              ex.restore();
+            }
+          } else if (p.type === 'nvr') {
+            ex.save();
+            ex.fillStyle = '#475569';
+            ex.fillRect(p.x - 12, p.y - 12, 24, 24);
+            ex.restore();
+            const label = p.label || '';
+            if (label) {
+              ex.save();
+              ex.fillStyle = 'rgba(34,30,31,0.95)';
+              ex.font = '12px sans-serif';
+              ex.textAlign = 'center';
+              ex.fillText(label, p.x, p.y + 28);
+              ex.restore();
+            }
+          }
+        });
+
+        return { image: exportCanvas.toDataURL('image/png') };
+    };
+
+    // ---- rest of code remains but with scale-aware conversions, editable labels, counter-rotated label/badge ----
 
     function getCameraIcon(name = '') {
         const lowerName = name.toLowerCase();
@@ -820,6 +990,7 @@
     }
 
     function renderPlacedMarkers(){
+      
       const cfg = getConfig();
       const { allCams, allNvrs } = collectItems();
       overlayLayer.innerHTML = '';
@@ -833,20 +1004,67 @@
         el.dataset.uid = p.uniqueId;
         el.style.transform = `translate(${p.x - 16}px, ${p.y - 16}px) rotate(${p.rotation || 0}deg)`;
         
+        // label and number will be inserted as separate elements so they can be counter-rotated
         let itemName = '', iconHtml = '';
         if (p.type === 'camera') {
             const baseId = parseInt(String(p.uniqueId).split('-')[0], 10);
             const cam = allCams.find(c => c.instanceId === baseId);
-            itemName = cam?.name || 'Camera';
+            itemName = p.label || cam?.name || 'Camera';
             iconHtml = getCameraIcon(itemName);
         } else if (p.type === 'nvr') {
             const nvr = allNvrs.find(n => `nvr-${n.id}` === p.uniqueId);
-            itemName = nvr?.product?.name || 'NVR';
+            itemName = p.label || nvr?.product?.name || 'NVR';
             iconHtml = 'NVR';
         } else if (p.type === 'fov') {
-            itemName = 'Field of View';
+            itemName = p.label || 'Field of View';
         }
-        el.innerHTML = `${iconHtml}<span class="ldz-placed-label">${itemName}</span>`;
+        el.innerHTML = `${iconHtml}`;
+
+        // badge for camera numbering (pull last segment)
+        if (p.type === 'camera') {
+          const idx = String(p.uniqueId).split('-').slice(-1)[0];
+          const badge = document.createElement('div');
+          badge.className = 'ldz-placed-badge';
+          badge.textContent = idx;
+          // counter-rotate the badge so it remains upright
+          badge.style.transform = `rotate(${-(p.rotation || 0)}deg)`;
+          el.appendChild(badge);
+        }
+
+        // label
+        const labelEl = document.createElement('div');
+        labelEl.className = 'ldz-placed-label';
+        labelEl.textContent = itemName;
+        // counter-rotate label so it stays readable
+        labelEl.style.transform = `translateX(-50%) rotate(${-(p.rotation || 0)}deg)`;
+        labelEl.addEventListener('dblclick', (ev) => {
+          ev.stopPropagation();
+          // replace with input
+          const input = document.createElement('input');
+          input.className = 'ldz-place-label-input';
+          input.value = p.label || '';
+          labelEl.replaceWith(input);
+          input.focus();
+          input.select();
+          function commit() {
+            const val = (input.value || '').trim();
+            if (val) p.label = val;
+            else delete p.label;
+            saveConfig();
+            saveHistory();
+            redraw();
+          }
+          input.addEventListener('blur', commit, { once: true });
+          input.addEventListener('keydown', (ke) => {
+            if (ke.key === 'Enter') {
+              input.blur();
+            } else if (ke.key === 'Escape') {
+              // cancel
+              input.replaceWith(labelEl);
+            }
+          });
+        });
+        el.appendChild(labelEl);
 
         if (p.type==='fov'){
           const rot = document.createElement('div');
@@ -929,11 +1147,12 @@
               fovAngleInput.value = a;
               fovAngleValue.textContent = `${a}°`;
 
-              const r = (fovPlacement.fov?.range ?? 60);
-              fovRangeInput.value = r;
-              if (fovRangeValue) fovRangeValue.textContent = `${r} ft`;
-              if (cameraRangeInput) cameraRangeInput.value = r;
-              if (cameraRangeValue) cameraRangeValue.textContent = `${r} ft`;
+              // Range in feet: prefer stored rangeFt
+              const rFt = (typeof fovPlacement.fov?.rangeFt === 'number') ? fovPlacement.fov.rangeFt : (fovPlacement.fov?.range ?? 60);
+              fovRangeInput.value = rFt;
+              if (fovRangeValue) fovRangeValue.textContent = `${rFt} ft`;
+              if (cameraRangeInput) cameraRangeInput.value = rFt;
+              if (cameraRangeValue) cameraRangeValue.textContent = `${rFt} ft`;
 
               const rot = (fovPlacement.fov?.rotation ?? 0);
               fovRotationInput.value = rot;
@@ -991,11 +1210,13 @@
                 if (fovRotationValue) fovRotationValue.textContent = `${p.fov.rotation}°`;
                 redraw();
             } else if (mode==='range'){
-                const delta = Math.sqrt(Math.pow(mouseX - p.x, 2) + Math.pow(mouseY - p.y, 2));
-                p.fov = p.fov || {angle:90, range:60, rotation:0};
-                p.fov.range = Math.max(10, Math.min(2000, Math.round(delta)));
-                if (fovRangeInput) fovRangeInput.value = p.fov.range;
-                if (fovRangeValue) fovRangeValue.textContent = `${p.fov.range} ft`;
+                const deltaPx = Math.sqrt(Math.pow(mouseX - p.x, 2) + Math.pow(mouseY - p.y, 2));
+                p.fov = p.fov || {angle:90, rangeFt:60, rotation:0};
+                // convert px to feet using pixelsPerFoot (px per ft)
+                const rangeFt = Math.max(1, Math.min(2000, Math.round(deltaPx / Math.max(1e-6, pixelsPerFoot))));
+                p.fov.rangeFt = rangeFt;
+                if (fovRangeInput) fovRangeInput.value = p.fov.rangeFt;
+                if (fovRangeValue) fovRangeValue.textContent = `${p.fov.rangeFt} ft`;
                 redraw();
             }
           }
@@ -1039,11 +1260,11 @@
           const fovItem = {
               type: 'fov', uniqueId: `fov-${Date.now()}`, linkedTo: mainItem.uniqueId,
               x: mainItem.x, y: mainItem.y,
-              fov: { angle: 90, range: 60, rotation: 0, color: 'rgba(234,179,8,0.5)' }
+              fov: { angle: 90, rangeFt: 60, rotation: 0, color: 'rgba(234,179,8,0.5)' }
           };
           newPlacements.push(fovItem);
       } else if (mainItem.type === 'fov') {
-          mainItem.fov = { angle: 90, range: 60, rotation: 0, color: 'rgba(234,179,8,0.5)' };
+          mainItem.fov = { angle: 90, rangeFt: 60, rotation: 0, color: 'rgba(234,179,8,0.5)' };
       }
       
       newPlacements.push(mainItem);
@@ -1221,6 +1442,18 @@
       redraw();
     };
 
+      }
+    };
+
+    if (scaleInput) {
+      scaleInput.addEventListener('input', (e) => {
+        pixelsPerFoot = Math.max(0.0001, Number(e.target.value));
+        if (scaleValueEl) scaleValueEl.textContent = pixelsPerFoot.toFixed(2);
+        getConfig().layoutScale = pixelsPerFoot;
+        saveConfig();
+        redraw();
+      });
+    }
     overlay.querySelector('#ldzDownload').onclick = async ()=>{
       const data = await window.getLayoutCanvasAsImage();
       if (data){
@@ -1261,7 +1494,7 @@
         
         if (placementToUpdate) {
             if (!placementToUpdate.fov) {
-                 placementToUpdate.fov = { angle: 90, range: 60, rotation: 0 };
+                 placementToUpdate.fov = { angle: 90, rangeFt: 60, rotation: 0 };
             }
             placementToUpdate.fov[prop] = value;
             redraw();
@@ -1324,11 +1557,11 @@
     
     fovRangeInput.addEventListener('input', (e)=>{
       const range = parseInt(e.target.value,10);
-      setFovControlValue('range', range);
+      setFovControlValue('rangeFt', range);
     });
     fovRangeInput.addEventListener('change', (e)=>{
       const range = parseInt(e.target.value,10);
-      setFovControlValue('range', range, true);
+      setFovControlValue('rangeFt', range, true);
     });
 
     if (cameraRangeInput) {
@@ -1354,19 +1587,19 @@
     if (rangeDecreaseBtn) {
       rangeDecreaseBtn.addEventListener('click', (e) => {
         const step = e.shiftKey ? RANGE_STEP * 3 : RANGE_STEP;
-        adjustFovValue('range', -step);
+        adjustFovValue('rangeFt', -step);
       });
     }
     if (rangeIncreaseBtn) {
       rangeIncreaseBtn.addEventListener('click', (e) => {
         const step = e.shiftKey ? RANGE_STEP * 3 : RANGE_STEP;
-        adjustFovValue('range', step);
+        adjustFovValue('rangeFt', step);
       });
     }
     if (cameraRangeDecreaseBtn) {
       cameraRangeDecreaseBtn.addEventListener('click', (e) => {
         const step = e.shiftKey ? RANGE_STEP * 3 : RANGE_STEP;
-        adjustFovValue('range', -step);
+        adjustFovValue('rangeFt', -step);
       });
     }
     if (cameraRangeIncreaseBtn) {
@@ -1393,7 +1626,7 @@
         if (fovControls && fovControls.style.display === 'none') return;
         event.preventDefault();
         const step = event.shiftKey ? RANGE_STEP * 3 : RANGE_STEP;
-        adjustFovValue('range', event.deltaY < 0 ? step : -step);
+        adjustFovValue('rangeFt', event.deltaY < 0 ? step : -step);
       }, { passive: false });
     }
 
@@ -1521,13 +1754,13 @@
           if (key === 'q' || key === 'e') {
               e.preventDefault();
               const step = (e.shiftKey ? 3 : 1) * ROTATION_STEP;
-              adjustFovValue('rotation', key === 'q' ? -step : step);
+              adjustFovValue('rotation', key === 'q' ? -step : step, true);
               return;
           }
           if (key === 'w' || key === 's') {
               e.preventDefault();
               const step = (e.shiftKey ? 3 : 1) * RANGE_STEP;
-              adjustFovValue('range', key === 'w' ? step : -step);
+              adjustFovValue('rangeFt', key === 'w' ? step : -step, true);
               return;
           }
       }
@@ -1574,6 +1807,9 @@
     
     renderItemsList();
     updatePlacementStats();
+    if (scaleValueEl) scaleValueEl.textContent = pixelsPerFoot.toFixed(2);
+    if (scaleInput) scaleInput.value = pixelsPerFoot;
+
 
     const onResize = ()=>{ if (img.width) resetView(); };
     window.addEventListener('resize', onResize);
