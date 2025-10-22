@@ -116,92 +116,92 @@
       .ldz-title{font-size:1.25rem;font-weight:700;letter-spacing:-0.01em;color:#0f172a;}
       .ldz-subtitle{font-size:0.8rem;color:rgba(15,23,42,0.68);line-height:1.4;}
       .ldz-stat-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
-      .ldz-chip{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:14px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.18);font-size:0.72rem;color:#1d4ed8;font-weight:600;}
-      .ldz-chip span{font-weight:500;color:rgba(15,23,42,0.55);font-size:0.68rem;}
+      .ldz-chip{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:14px;background:rgba(194,32,51,0.08);border:1px solid rgba(194,32,51,0.18);font-size:0.72rem;color:#c22033;font-weight:600;}
+      .ldz-chip span{font-weight:500;color:rgba(34,30,31,0.55);font-size:0.68rem;}
       .ldz-chip strong{font-size:0.95rem;}
-      .ldz-chip.alt{background:rgba(16,185,129,0.08);border-color:rgba(16,185,129,0.2);color:#047857;}
-      .ldz-chip.neutral{background:rgba(148,163,184,0.12);border-color:rgba(148,163,184,0.25);color:#0f172a;}
+      .ldz-chip.alt{background:rgba(16,185,129,0.08);border-color:rgba(16,185,129,0.2);color:#221e1f;}
+      .ldz-chip.neutral{background:rgba(34,30,31,0.12);border-color:rgba(34,30,31,0.2);color:#221e1f;}
       .ldz-sidebar-body{padding:20px 28px;display:flex;flex-direction:column;gap:16px;flex:1;overflow:hidden;}
       .ldz-sidebar-body .ldz-card{box-shadow:0 12px 32px -28px rgba(15,23,42,0.4);}
       .ldz-section-heading{display:flex;justify-content:space-between;align-items:center;font-size:0.75rem;font-weight:600;color:rgba(15,23,42,0.55);padding-top:4px;gap:12px;}
       .ldz-section-title{flex:1;min-width:0;}
       .ldz-section-tools{display:flex;align-items:center;gap:10px;}
-      .ldz-section-count{padding:4px 10px;border-radius:9999px;background:rgba(148,163,184,0.15);color:#1f2937;font-size:0.7rem;font-weight:600;}
+      .ldz-section-count{padding:4px 10px;border-radius:9999px;background:rgba(34,30,31,0.15);color:#221e1f;font-size:0.7rem;font-weight:600;}
       .ldz-scroll-controls{display:inline-flex;align-items:center;gap:6px;}
-      .ldz-scroll-btn{width:28px;height:28px;border-radius:8px;border:1px solid rgba(148,163,184,0.25);background:rgba(255,255,255,0.9);color:#1f2937;display:inline-flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;cursor:pointer;transition:all .2s;}
-      .ldz-scroll-btn:hover{border-color:rgba(59,130,246,0.45);color:#1e3a8a;}
-      .ldz-scroll-btn:disabled{opacity:0.4;cursor:not-allowed;border-color:rgba(148,163,184,0.2);color:rgba(148,163,184,0.7);}
+      .ldz-scroll-btn{width:28px;height:28px;border-radius:8px;border:1px solid rgba(34,30,31,0.2);background:rgba(255,255,255,0.9);color:#221e1f;display:inline-flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;cursor:pointer;transition:all .2s;}
+      .ldz-scroll-btn:hover{border-color:rgba(194,32,51,0.45);color:#c22033;}
+      .ldz-scroll-btn:disabled{opacity:0.4;cursor:not-allowed;border-color:rgba(34,30,31,0.18);color:rgba(96,92,94,0.7);}
       .ldz-list{flex:1;overflow:auto;padding-right:6px;display:flex;flex-direction:column;gap:10px;}
-      .ldz-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:16px;border:1px solid rgba(148,163,184,0.18);background:rgba(255,255,255,0.95);box-shadow:0 12px 24px -20px rgba(15,23,42,0.65);cursor:grab;transition:transform .2s,box-shadow .2s,border-color .2s;}
-      .ldz-item:hover{transform:translateY(-1px);border-color:rgba(59,130,246,0.35);box-shadow:0 18px 32px -24px rgba(59,130,246,0.4);}
+      .ldz-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:16px;border:1px solid rgba(34,30,31,0.18);background:rgba(255,255,255,0.96);box-shadow:0 12px 24px -20px rgba(34,30,31,0.65);cursor:grab;transition:transform .2s,box-shadow .2s,border-color .2s;}
+      .ldz-item:hover{transform:translateY(-1px);border-color:rgba(194,32,51,0.35);box-shadow:0 18px 32px -24px rgba(194,32,51,0.4);}
       .ldz-item:active{cursor:grabbing;}
-      .ldz-item-icon{width:36px;height:36px;border-radius:12px;background:rgba(59,130,246,0.1);display:flex;align-items:center;justify-content:center;overflow:hidden;}
+      .ldz-item-icon{width:36px;height:36px;border-radius:12px;background:rgba(194,32,51,0.1);display:flex;align-items:center;justify-content:center;overflow:hidden;}
       .ldz-item-icon img{width:100%;height:100%;object-fit:cover;}
-      .ldz-item-fallback{font-weight:700;font-size:0.95rem;color:#1e40af;}
+      .ldz-item-fallback{font-weight:700;font-size:0.95rem;color:#c22033;}
       .ldz-item-content{flex:1;display:flex;flex-direction:column;gap:4px;}
-      .ldz-item-title{font-weight:600;font-size:0.85rem;color:#0f172a;}
-      .ldz-item-subtitle{font-size:0.7rem;color:rgba(15,23,42,0.55);}
-      .ldz-type-pill{padding:4px 10px;border-radius:9999px;background:rgba(59,130,246,0.15);font-size:0.7rem;font-weight:600;color:#1e3a8a;}
-      .ldz-type-pill.nvr{background:rgba(30,64,175,0.12);color:#1e40af;}
+      .ldz-item-title{font-weight:600;font-size:0.85rem;color:#221e1f;}
+      .ldz-item-subtitle{font-size:0.7rem;color:rgba(34,30,31,0.55);}
+      .ldz-type-pill{padding:4px 10px;border-radius:9999px;background:rgba(194,32,51,0.15);font-size:0.7rem;font-weight:600;color:#c22033;}
+      .ldz-type-pill.nvr{background:rgba(34,30,31,0.12);color:#c22033;}
       .ldz-type-pill.fov{background:rgba(234,179,8,0.18);color:#b45309;}
-      .ldz-empty-state{padding:40px 12px;text-align:center;color:rgba(15,23,42,0.45);font-size:0.8rem;}
-      .ldz-sidebar-footer{padding:20px 28px 28px;border-top:1px solid rgba(148,163,184,0.2);display:flex;flex-direction:column;gap:18px;background:rgba(248,250,252,0.9);}
-      .ldz-card{background:rgba(255,255,255,0.95);border:1px solid rgba(148,163,184,0.25);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:14px;box-shadow:0 12px 32px -28px rgba(15,23,42,0.45);}
-      .ldz-card-title{font-weight:600;font-size:0.8rem;color:#0f172a;display:flex;align-items:center;justify-content:space-between;}
+      .ldz-empty-state{padding:40px 12px;text-align:center;color:rgba(34,30,31,0.45);font-size:0.8rem;}
+      .ldz-sidebar-footer{padding:20px 28px 28px;border-top:1px solid rgba(34,30,31,0.18);display:flex;flex-direction:column;gap:18px;background:rgba(246,247,251,0.9);}
+      .ldz-card{background:rgba(255,255,255,0.96);border:1px solid rgba(34,30,31,0.2);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:14px;box-shadow:0 12px 32px -28px rgba(34,30,31,0.45);}
+      .ldz-card-title{font-weight:600;font-size:0.8rem;color:#221e1f;display:flex;align-items:center;justify-content:space-between;}
       .ldz-card-actions{display:flex;flex-wrap:wrap;gap:10px;}
-      .ldz-chip-btn{padding:8px 14px;border-radius:12px;border:1px solid rgba(148,163,184,0.25);background:rgba(248,250,252,0.9);font-weight:600;font-size:0.75rem;color:#334155;cursor:pointer;transition:all .2s;}
-      .ldz-chip-btn:hover{border-color:rgba(59,130,246,0.45);color:#1e40af;}
-      .ldz-chip-btn.active{background:rgba(59,130,246,0.18);border-color:rgba(59,130,246,0.45);color:#1e3a8a;}
-      .ldz-chip-btn.danger{background:rgba(254,226,226,0.85);border-color:rgba(254,202,202,0.9);color:#b91c1c;}
-      .ldz-chip-btn.danger:hover{border-color:rgba(239,68,68,0.55);color:#991b1b;}
+      .ldz-chip-btn{padding:8px 14px;border-radius:12px;border:1px solid rgba(34,30,31,0.2);background:rgba(246,247,251,0.9);font-weight:600;font-size:0.75rem;color:#221e1f;cursor:pointer;transition:all .2s;}
+      .ldz-chip-btn:hover{border-color:rgba(194,32,51,0.45);color:#c22033;}
+      .ldz-chip-btn.active{background:rgba(194,32,51,0.18);border-color:rgba(194,32,51,0.45);color:#c22033;}
+      .ldz-chip-btn.danger{background:rgba(194,32,51,0.12);border-color:rgba(194,32,51,0.35);color:#c22033;}
+      .ldz-chip-btn.danger:hover{border-color:rgba(194,32,51,0.55);color:#221e1f;}
       .ldz-field{display:flex;flex-direction:column;gap:6px;}
       .ldz-field-header{display:flex;align-items:center;justify-content:space-between;gap:12px;}
-      .ldz-label{font-size:0.72rem;color:rgba(15,23,42,0.6);font-weight:500;}
-      .ldz-label strong{font-weight:700;color:#0f172a;margin-left:6px;}
+      .ldz-label{font-size:0.72rem;color:rgba(34,30,31,0.6);font-weight:500;}
+      .ldz-label strong{font-weight:700;color:#221e1f;margin-left:6px;}
       .ldz-range{width:100%;}
       .ldz-stepper{display:inline-flex;gap:6px;}
-      .ldz-step-btn{width:28px;height:28px;border-radius:8px;border:1px solid rgba(148,163,184,0.35);background:rgba(248,250,252,0.95);color:#1f2937;font-size:0.85rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .2s;}
-      .ldz-step-btn:hover{border-color:rgba(59,130,246,0.55);color:#1e3a8a;background:rgba(59,130,246,0.12);}
-      .ldz-step-btn:disabled{opacity:0.45;cursor:not-allowed;border-color:rgba(148,163,184,0.2);}
+      .ldz-step-btn{width:28px;height:28px;border-radius:8px;border:1px solid rgba(34,30,31,0.35);background:rgba(246,247,251,0.95);color:#221e1f;font-size:0.85rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .2s;}
+      .ldz-step-btn:hover{border-color:rgba(194,32,51,0.55);color:#c22033;background:rgba(194,32,51,0.12);}
+      .ldz-step-btn:disabled{opacity:0.45;cursor:not-allowed;border-color:rgba(34,30,31,0.18);}
       .ldz-colors{display:flex;gap:8px;flex-wrap:wrap;}
-      .ldz-color-swatch{width:26px;height:26px;border-radius:9999px;border:2px solid transparent;cursor:pointer;box-shadow:0 6px 12px -10px rgba(15,23,42,0.6);}
-      .ldz-color-swatch.selected{border-color:#3b82f6;}
+      .ldz-color-swatch{width:26px;height:26px;border-radius:9999px;border:2px solid transparent;cursor:pointer;box-shadow:0 6px 12px -10px rgba(34,30,31,0.6);}
+      .ldz-color-swatch.selected{border-color:#c22033;}
       .ldz-footer-actions{display:flex;flex-direction:column;gap:12px;}
       .ldz-action-row{display:flex;flex-wrap:wrap;gap:10px;}
-      .ldz-icon-btn{flex:1;min-width:120px;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 12px;border-radius:12px;border:1px solid rgba(148,163,184,0.25);background:rgba(255,255,255,0.9);font-weight:600;font-size:0.78rem;color:#1f2937;cursor:pointer;transition:all .2s;}
+      .ldz-icon-btn{flex:1;min-width:120px;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 12px;border-radius:12px;border:1px solid rgba(34,30,31,0.2);background:rgba(255,255,255,0.9);font-weight:600;font-size:0.78rem;color:#221e1f;cursor:pointer;transition:all .2s;}
       .ldz-icon-btn img,.ldz-icon-btn svg{width:18px;height:18px;}
-      .ldz-icon-btn:hover{border-color:rgba(59,130,246,0.45);box-shadow:0 12px 26px -20px rgba(59,130,246,0.5);}
-      .ldz-icon-btn.primary{background:linear-gradient(135deg,#1e3a8a,#4338ca);color:#f8fafc;border-color:rgba(67,56,202,0.7);}
-      .ldz-icon-btn.primary:hover{box-shadow:0 16px 32px -18px rgba(67,56,202,0.5);}
-      .ldz-icon-btn.danger{background:linear-gradient(135deg,#f87171,#ef4444);color:#fff;border-color:rgba(248,113,113,0.85);}
-      .ldz-icon-btn.danger:hover{box-shadow:0 16px 32px -18px rgba(248,113,113,0.55);}
-      .ldz-icon-btn.ghost{background:rgba(248,250,252,0.85);color:#1f2937;}
-      .ldz-icon-btn.ghost.active{border-color:rgba(59,130,246,0.6);background:rgba(59,130,246,0.12);color:#1e3a8a;}
-      .ldz-icon-btn:disabled{opacity:0.45;cursor:not-allowed;box-shadow:none;border-color:rgba(148,163,184,0.2);}
-      .ldz-canvas-wrap{position:relative;background:radial-gradient(circle at top,#0f172a,#020617);display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:grab;}
+      .ldz-icon-btn:hover{border-color:rgba(194,32,51,0.45);box-shadow:0 12px 26px -20px rgba(194,32,51,0.5);}
+      .ldz-icon-btn.primary{background:linear-gradient(135deg,#c22033,#221e1f);color:#f6f7fb;border-color:rgba(194,32,51,0.6);}
+      .ldz-icon-btn.primary:hover{box-shadow:0 16px 32px -18px rgba(194,32,51,0.4);}
+      .ldz-icon-btn.danger{background:linear-gradient(135deg,#c22033,#000000);color:#fff;border-color:rgba(194,32,51,0.65);}
+      .ldz-icon-btn.danger:hover{box-shadow:0 16px 32px -18px rgba(194,32,51,0.45);}
+      .ldz-icon-btn.ghost{background:rgba(246,247,251,0.85);color:#221e1f;}
+      .ldz-icon-btn.ghost.active{border-color:rgba(194,32,51,0.6);background:rgba(194,32,51,0.12);color:#c22033;}
+      .ldz-icon-btn:disabled{opacity:0.45;cursor:not-allowed;box-shadow:none;border-color:rgba(34,30,31,0.18);}
+      .ldz-canvas-wrap{position:relative;background:radial-gradient(circle at top,#221e1f,#000000);display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:grab;}
       .ldz-canvas-wrap.wall-mode{cursor:crosshair;}
-      .ldz-canvas-toolbar{position:absolute;top:88px;right:24px;display:flex;gap:10px;flex-wrap:wrap;background:rgba(15,23,42,0.75);backdrop-filter:blur(10px);padding:10px 12px;border-radius:16px;border:1px solid rgba(148,163,184,0.3);box-shadow:0 24px 40px -28px rgba(15,23,42,0.8);z-index:5;}
+      .ldz-canvas-toolbar{position:absolute;top:88px;right:24px;display:flex;gap:10px;flex-wrap:wrap;background:rgba(34,30,31,0.75);backdrop-filter:blur(10px);padding:10px 12px;border-radius:16px;border:1px solid rgba(34,30,31,0.3);box-shadow:0 24px 40px -28px rgba(34,30,31,0.8);z-index:5;}
       .ldz-toolbar-group{display:flex;align-items:center;gap:8px;}
-      .ldz-toolbar-btn{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;border:1px solid rgba(148,163,184,0.35);background:rgba(30,41,59,0.65);color:#e2e8f0;cursor:pointer;transition:all .2s;}
-      .ldz-toolbar-btn:hover{border-color:rgba(59,130,246,0.6);background:rgba(59,130,246,0.18);color:#bfdbfe;}
-      .ldz-toolbar-btn.active{border-color:rgba(59,130,246,0.8);background:rgba(59,130,246,0.25);color:#eff6ff;}
-      .ldz-zoom-indicator{padding:0 10px;font-weight:600;font-size:0.75rem;color:#e2e8f0;}
+      .ldz-toolbar-btn{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;border:1px solid rgba(34,30,31,0.35);background:rgba(34,30,31,0.65);color:#f6f7fb;cursor:pointer;transition:all .2s;}
+      .ldz-toolbar-btn:hover{border-color:rgba(194,32,51,0.6);background:rgba(194,32,51,0.18);color:#f6c8cf;}
+      .ldz-toolbar-btn.active{border-color:rgba(194,32,51,0.8);background:rgba(194,32,51,0.25);color:#fde7ea;}
+      .ldz-zoom-indicator{padding:0 10px;font-weight:600;font-size:0.75rem;color:#f6f7fb;}
       #ldzBg,#ldzFov,#ldzWalls{position:absolute;top:0;left:0;}
       #ldzOverlay{position:absolute;top:0;left:0;transform-origin:top left;}
-      .ldz-placed{position:absolute;width:36px;height:36px;border-radius:12px;border:2px solid rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;color:#fff;font:600 14px/1 'Inter',sans-serif;cursor:grab;user-select:none;box-shadow:0 14px 32px -24px rgba(15,23,42,0.85);}
-      .ldz-placed.camera{background:linear-gradient(160deg,rgba(59,130,246,0.9),rgba(14,165,233,0.85));border-radius:18px;}
+      .ldz-placed{position:absolute;width:36px;height:36px;border-radius:12px;border:2px solid rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;color:#fff;font:600 14px/1 'Inter',sans-serif;cursor:grab;user-select:none;box-shadow:0 14px 32px -24px rgba(34,30,31,0.85);}
+      .ldz-placed.camera{background:linear-gradient(160deg,rgba(194,32,51,0.9),rgba(194,32,51,0.85));border-radius:18px;}
       .ldz-placed.nvr{background:linear-gradient(160deg,rgba(100,116,139,0.95),rgba(71,85,105,0.92));font-size:12px;font-weight:700;}
       .ldz-placed.fov{background:rgba(234,179,8,0.75);border-radius:18px;}
       .ldz-placed.fov.linked{display:none;}
-      .ldz-placed.selected{box-shadow:0 0 0 4px rgba(59,130,246,0.55);}
-      .ldz-placed-label{position:absolute;top:100%;left:50%;transform:translateX(-50%);background:rgba(15,23,42,0.9);color:#f8fafc;font-size:0.68rem;padding:4px 8px;border-radius:8px;white-space:nowrap;margin-top:6px;font-weight:500;}
-      .ldz-camera-rotate-handle{display:none;position:absolute;top:-18px;left:50%;transform:translateX(-50%);width:12px;height:12px;background:#60a5fa;border:2px solid #fff;border-radius:9999px;cursor:crosshair;}
+      .ldz-placed.selected{box-shadow:0 0 0 4px rgba(194,32,51,0.55);}
+      .ldz-placed-label{position:absolute;top:100%;left:50%;transform:translateX(-50%);background:rgba(34,30,31,0.9);color:#f6f7fb;font-size:0.68rem;padding:4px 8px;border-radius:8px;white-space:nowrap;margin-top:6px;font-weight:500;}
+      .ldz-camera-rotate-handle{display:none;position:absolute;top:-18px;left:50%;transform:translateX(-50%);width:12px;height:12px;background:#c22033;border:2px solid #fff;border-radius:9999px;cursor:crosshair;}
       .ldz-placed.selected .ldz-camera-rotate-handle{display:block;}
-      .ldz-fov-handle{position:absolute;width:12px;height:12px;background:#fff;border-radius:9999px;cursor:crosshair;border:2px solid rgba(59,130,246,0.6);}
+      .ldz-fov-handle{position:absolute;width:12px;height:12px;background:#fff;border-radius:9999px;cursor:crosshair;border:2px solid rgba(194,32,51,0.6);}
       .ldz-fov-rotate{top:-16px;left:50%;transform:translateX(-50%);}
       .ldz-fov-range{bottom:-16px;left:50%;transform:translateX(-50%);}
-      .ldz-close{position:absolute;top:18px;right:18px;background:rgba(248,250,252,0.9);border:1px solid rgba(148,163,184,0.3);border-radius:12px;padding:8px;cursor:pointer;z-index:10;display:flex;align-items:center;justify-content:center;transition:all .2s;}
-      .ldz-close:hover{border-color:rgba(248,113,113,0.6);background:rgba(254,226,226,0.85);}
+      .ldz-close{position:absolute;top:18px;right:18px;background:rgba(246,247,251,0.9);border:1px solid rgba(34,30,31,0.3);border-radius:12px;padding:8px;cursor:pointer;z-index:10;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+      .ldz-close:hover{border-color:rgba(194,32,51,0.6);background:rgba(194,32,51,0.15);}
       .ldz-close img{width:24px;height:24px;}
       #context-menu button{display:block;width:100%;padding:8px 12px;text-align:left;background:none;border:none;cursor:pointer;}
     `;
@@ -287,6 +287,16 @@
               <div class="ldz-card-actions">
                 <button id="ldzLinkBtn" class="ldz-chip-btn" style="display:none;">Link FOV</button>
                 <button id="ldzUnlinkBtn" class="ldz-chip-btn" style="display:none;">Unlink FOV</button>
+              </div>
+              <div id="ldzCameraRangeControl" class="ldz-field" style="display:none;">
+                <div class="ldz-field-header">
+                  <span class="ldz-label">Camera FOV Distance<strong id="ldzCameraRangeValue">—</strong></span>
+                  <div class="ldz-stepper">
+                    <button type="button" class="ldz-step-btn" id="ldzCameraRangeDecrease" aria-label="Decrease camera range" disabled>&minus;</button>
+                    <button type="button" class="ldz-step-btn" id="ldzCameraRangeIncrease" aria-label="Increase camera range" disabled>+</button>
+                  </div>
+                </div>
+                <input id="ldzCameraRange" class="ldz-range" type="range" min="10" max="2000" value="60">
               </div>
               <button id="ldzDeleteBtn" class="ldz-icon-btn danger"><img src="/icons/delete_.png" alt="Delete"><span>Remove from layout</span></button>
             </div>
@@ -380,6 +390,11 @@
     const rotateLeftBtn = overlay.querySelector('#ldzRotateLeft');
     const rotateRightBtn = overlay.querySelector('#ldzRotateRight');
     const selectionControls = overlay.querySelector('#ldzSelectionControls');
+    const cameraRangeControl = overlay.querySelector('#ldzCameraRangeControl');
+    const cameraRangeInput = overlay.querySelector('#ldzCameraRange');
+    const cameraRangeValue = overlay.querySelector('#ldzCameraRangeValue');
+    const cameraRangeDecreaseBtn = overlay.querySelector('#ldzCameraRangeDecrease');
+    const cameraRangeIncreaseBtn = overlay.querySelector('#ldzCameraRangeIncrease');
     const deleteBtn = overlay.querySelector('#ldzDeleteBtn');
     const linkBtn = overlay.querySelector('#ldzLinkBtn');
     const unlinkBtn = overlay.querySelector('#ldzUnlinkBtn');
@@ -411,6 +426,8 @@
     let currentMode = 'place'; // 'place', 'drawWall', or 'linkFov'
     let showGrid = false;
     let fovHistoryTimer = null;
+    let listResizeObserver = null;
+    let listMutationObserver = null;
 
     const RANGE_STEP = 10;
     const ROTATION_STEP = 5;
@@ -508,8 +525,18 @@
       setTimeout(updateScrollButtons, 250);
     }
 
+    const listScrollListener = () => schedule(updateScrollButtons);
+
     if (itemsListEl) {
-      itemsListEl.addEventListener('scroll', updateScrollButtons);
+      itemsListEl.addEventListener('scroll', listScrollListener, { passive: true });
+      if (typeof ResizeObserver !== 'undefined') {
+        listResizeObserver = new ResizeObserver(listScrollListener);
+        listResizeObserver.observe(itemsListEl);
+      }
+      if (typeof MutationObserver !== 'undefined') {
+        listMutationObserver = new MutationObserver(listScrollListener);
+        listMutationObserver.observe(itemsListEl, { childList: true, subtree: true });
+      }
     }
     if (scrollUpBtn) {
       scrollUpBtn.addEventListener('click', () => scrollListBy(-0.85));
@@ -517,6 +544,9 @@
     if (scrollDownBtn) {
       scrollDownBtn.addEventListener('click', () => scrollListBy(0.85));
     }
+
+    schedule(updateScrollButtons);
+    setTimeout(updateScrollButtons, 120);
 
     function renderItemsList(){
       const list = itemsListEl;
@@ -877,8 +907,18 @@
           fovControls.style.display = fovPlacement ? 'flex' : 'none';
           const hasLinkedFov = isCamera && !!fovPlacement;
           const fovControlsEnabled = !!fovPlacement;
+          const cameraRangeEnabled = isCamera && !!fovPlacement;
           [rangeDecreaseBtn, rangeIncreaseBtn, rotateLeftBtn, rotateRightBtn].forEach(btn => {
               if (btn) btn.disabled = !fovControlsEnabled;
+          });
+          if (cameraRangeControl) {
+              cameraRangeControl.style.display = cameraRangeEnabled ? 'flex' : 'none';
+          }
+          if (cameraRangeInput) {
+              cameraRangeInput.disabled = !cameraRangeEnabled;
+          }
+          [cameraRangeDecreaseBtn, cameraRangeIncreaseBtn].forEach(btn => {
+              if (btn) btn.disabled = !cameraRangeEnabled;
           });
           selectionControls.style.display = 'flex';
           unlinkBtn.style.display = hasLinkedFov ? 'flex' : 'none';
@@ -892,6 +932,8 @@
               const r = (fovPlacement.fov?.range ?? 60);
               fovRangeInput.value = r;
               if (fovRangeValue) fovRangeValue.textContent = `${r} ft`;
+              if (cameraRangeInput) cameraRangeInput.value = r;
+              if (cameraRangeValue) cameraRangeValue.textContent = `${r} ft`;
 
               const rot = (fovPlacement.fov?.rotation ?? 0);
               fovRotationInput.value = rot;
@@ -903,6 +945,8 @@
           } else {
               if (fovRangeValue) fovRangeValue.textContent = '—';
               if (fovRotationValue) fovRotationValue.textContent = '—';
+              if (cameraRangeValue) cameraRangeValue.textContent = '—';
+              if (cameraRangeInput) cameraRangeInput.disabled = true;
           }
 
           const isRotateFov = e.target.classList.contains('ldz-fov-rotate');
@@ -1066,7 +1110,13 @@
           selectionControls.style.display = 'none';
           fovControls.style.display = 'none';
           unlinkBtn.style.display = 'none';
-          
+          if (cameraRangeControl) cameraRangeControl.style.display = 'none';
+          if (cameraRangeValue) cameraRangeValue.textContent = '—';
+          if (cameraRangeInput) cameraRangeInput.disabled = true;
+          [cameraRangeDecreaseBtn, cameraRangeIncreaseBtn].forEach(btn => {
+              if (btn) btn.disabled = true;
+          });
+
           const panStartX = e.clientX - view.x;
           const panStartY = e.clientY - view.y;
           wrap.style.cursor = 'grabbing';
@@ -1134,6 +1184,17 @@
         document.body.style.overflow = previousOverflow;
         document.removeEventListener('keydown', handleKeyDown);
         window.removeEventListener('resize', onResize);
+        if (itemsListEl) {
+            itemsListEl.removeEventListener('scroll', listScrollListener);
+        }
+        if (listResizeObserver) {
+            try { listResizeObserver.disconnect(); } catch (e) {}
+            listResizeObserver = null;
+        }
+        if (listMutationObserver) {
+            try { listMutationObserver.disconnect(); } catch (e) {}
+            listMutationObserver = null;
+        }
         flushFovHistoryCommit();
     };
 
@@ -1216,24 +1277,38 @@
     }
 
     function setFovControlValue(prop, value, finalize = false) {
-        const input = prop === 'rotation' ? fovRotationInput : fovRangeInput;
-        if (!input) return;
-        const min = input.min !== '' ? parseInt(input.min, 10) : Number.NEGATIVE_INFINITY;
-        const max = input.max !== '' ? parseInt(input.max, 10) : Number.POSITIVE_INFINITY;
+        const inputs = prop === 'rotation'
+            ? [fovRotationInput].filter(Boolean)
+            : [fovRangeInput, cameraRangeInput].filter(Boolean);
+        if (!inputs.length) return;
+        const baseInput = inputs[0];
+        const min = baseInput.min !== '' ? parseInt(baseInput.min, 10) : Number.NEGATIVE_INFINITY;
+        const max = baseInput.max !== '' ? parseInt(baseInput.max, 10) : Number.POSITIVE_INFINITY;
         const clamped = Math.max(min, Math.min(max, value));
-        if (prop === 'rotation' && fovRotationValue) {
-            fovRotationValue.textContent = `${clamped}°`;
-        } else if (prop === 'range' && fovRangeValue) {
-            fovRangeValue.textContent = `${clamped} ft`;
+        if (prop === 'rotation') {
+            if (fovRotationValue) {
+                fovRotationValue.textContent = `${clamped}°`;
+            }
+        } else if (prop === 'range') {
+            if (fovRangeValue) {
+                fovRangeValue.textContent = `${clamped} ft`;
+            }
+            if (cameraRangeValue) {
+                cameraRangeValue.textContent = `${clamped} ft`;
+            }
         }
-        input.value = clamped;
+        inputs.forEach((inputEl) => {
+            inputEl.value = clamped;
+        });
         updateSelectedFov(prop, clamped, finalize);
     }
 
     function adjustFovValue(prop, delta) {
-        const input = prop === 'rotation' ? fovRotationInput : fovRangeInput;
-        if (!input) return;
-        const current = parseInt(input.value, 10) || 0;
+        const inputs = prop === 'rotation'
+            ? [fovRotationInput].filter(Boolean)
+            : [fovRangeInput, cameraRangeInput].filter(Boolean);
+        if (!inputs.length) return;
+        const current = parseInt(inputs[0].value, 10) || 0;
         setFovControlValue(prop, current + delta, false);
     }
 
@@ -1256,6 +1331,17 @@
       setFovControlValue('range', range, true);
     });
 
+    if (cameraRangeInput) {
+      cameraRangeInput.addEventListener('input', (e) => {
+        const range = parseInt(e.target.value, 10);
+        setFovControlValue('range', range);
+      });
+      cameraRangeInput.addEventListener('change', (e) => {
+        const range = parseInt(e.target.value, 10);
+        setFovControlValue('range', range, true);
+      });
+    }
+
     fovRotationInput.addEventListener('input', (e)=>{
       const rotation = parseInt(e.target.value,10);
       setFovControlValue('rotation', rotation);
@@ -1273,6 +1359,18 @@
     }
     if (rangeIncreaseBtn) {
       rangeIncreaseBtn.addEventListener('click', (e) => {
+        const step = e.shiftKey ? RANGE_STEP * 3 : RANGE_STEP;
+        adjustFovValue('range', step);
+      });
+    }
+    if (cameraRangeDecreaseBtn) {
+      cameraRangeDecreaseBtn.addEventListener('click', (e) => {
+        const step = e.shiftKey ? RANGE_STEP * 3 : RANGE_STEP;
+        adjustFovValue('range', -step);
+      });
+    }
+    if (cameraRangeIncreaseBtn) {
+      cameraRangeIncreaseBtn.addEventListener('click', (e) => {
         const step = e.shiftKey ? RANGE_STEP * 3 : RANGE_STEP;
         adjustFovValue('range', step);
       });
@@ -1334,7 +1432,7 @@
             linkBtn.classList.add('active');
             wrap.style.cursor = 'pointer';
             overlay.querySelectorAll('.ldz-placed.camera').forEach(c => {
-                c.style.outline = '2px dashed #3b82f6';
+                c.style.outline = '2px dashed #c22033';
                 c.style.outlineOffset = '2px';
             });
             if (typeof window.showToast === 'function') showToast('Select a camera to link this FOV.');
@@ -1356,6 +1454,12 @@
         fovControls.style.display = 'none';
         unlinkBtn.style.display = 'none';
         linkBtn.style.display = 'none';
+        if (cameraRangeControl) cameraRangeControl.style.display = 'none';
+        if (cameraRangeValue) cameraRangeValue.textContent = '—';
+        if (cameraRangeInput) cameraRangeInput.disabled = true;
+        [cameraRangeDecreaseBtn, cameraRangeIncreaseBtn].forEach(btn => {
+            if (btn) btn.disabled = true;
+        });
         [rangeDecreaseBtn, rangeIncreaseBtn, rotateLeftBtn, rotateRightBtn].forEach(btn => {
             if (btn) btn.disabled = true;
         });
@@ -1378,6 +1482,12 @@
             saveHistory();
             redraw();
             unlinkBtn.style.display = 'none';
+            if (cameraRangeControl) cameraRangeControl.style.display = 'none';
+            if (cameraRangeValue) cameraRangeValue.textContent = '—';
+            if (cameraRangeInput) cameraRangeInput.disabled = true;
+            [cameraRangeDecreaseBtn, cameraRangeIncreaseBtn].forEach(btn => {
+                if (btn) btn.disabled = true;
+            });
         }
     };
 
