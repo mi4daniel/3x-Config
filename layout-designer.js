@@ -106,11 +106,11 @@
     const style = document.createElement('style');
     style.id = STYLE_ID;
     style.textContent = `
-      .ldz-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at top,rgba(34,30,31,0.9),rgba(34,30,31,0.75));backdrop-filter:blur(12px);}
-      .ldz-modal{width:min(1440px,96vw);height:min(1040px,96vh);background:linear-gradient(145deg,#f6f7fb,#fff);border-radius:24px;box-shadow:0 40px 80px -40px rgba(34,30,31,0.45);display:grid;grid-template-columns:minmax(300px,340px) minmax(0,1fr);overflow:hidden;color:#221e1f;position:relative;}
-      @media(max-width:1080px){.ldz-modal{grid-template-columns:1fr;grid-template-rows:minmax(0,420px) minmax(0,1fr);height:94vh;}}
-      @media(max-width:860px){.ldz-modal{grid-template-rows:minmax(0,380px) minmax(0,1fr);}}
-      .ldz-sidebar{max-width:340px;}
+      .ldz-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:stretch;justify-content:stretch;background:radial-gradient(circle at top,rgba(34,30,31,0.92),rgba(34,30,31,0.78));backdrop-filter:blur(12px);}
+      .ldz-modal{width:100%;height:100%;background:linear-gradient(145deg,#f6f7fb,#fff);border-radius:0;box-shadow:0 28px 64px -40px rgba(34,30,31,0.55);display:grid;grid-template-columns:minmax(320px,360px) minmax(0,1fr);overflow:hidden;color:#221e1f;position:relative;}
+      @media(max-width:1080px){.ldz-modal{grid-template-columns:1fr;grid-template-rows:minmax(0,420px) minmax(0,1fr);}}
+      @media(max-width:860px){.ldz-modal{grid-template-rows:minmax(0,360px) minmax(0,1fr);}}
+      .ldz-sidebar{max-width:360px;}
       .ldz-sidebar{background:rgba(246,247,251,0.92);backdrop-filter:blur(18px);display:flex;flex-direction:column;}
       .ldz-sidebar-header{padding:28px 28px 20px;border-bottom:1px solid rgba(34,30,31,0.2);display:flex;flex-direction:column;gap:14px;}
       .ldz-title{font-size:1.25rem;font-weight:700;letter-spacing:-0.01em;color:#221e1f;}
@@ -288,6 +288,16 @@
                 <button id="ldzLinkBtn" class="ldz-chip-btn" style="display:none;">Link FOV</button>
                 <button id="ldzUnlinkBtn" class="ldz-chip-btn" style="display:none;">Unlink FOV</button>
               </div>
+              <div id="ldzCameraRangeControl" class="ldz-field" style="display:none;">
+                <div class="ldz-field-header">
+                  <span class="ldz-label">Camera FOV Distance<strong id="ldzCameraRangeValue">—</strong></span>
+                  <div class="ldz-stepper">
+                    <button type="button" class="ldz-step-btn" id="ldzCameraRangeDecrease" aria-label="Decrease camera range" disabled>&minus;</button>
+                    <button type="button" class="ldz-step-btn" id="ldzCameraRangeIncrease" aria-label="Increase camera range" disabled>+</button>
+                  </div>
+                </div>
+                <input id="ldzCameraRange" class="ldz-range" type="range" min="10" max="2000" value="60">
+              </div>
               <button id="ldzDeleteBtn" class="ldz-icon-btn danger"><img src="/icons/delete_.png" alt="Delete"><span>Remove from layout</span></button>
             </div>
             <div id="ldzFovControls" class="ldz-card" style="display:none;">
@@ -380,6 +390,11 @@
     const rotateLeftBtn = overlay.querySelector('#ldzRotateLeft');
     const rotateRightBtn = overlay.querySelector('#ldzRotateRight');
     const selectionControls = overlay.querySelector('#ldzSelectionControls');
+    const cameraRangeControl = overlay.querySelector('#ldzCameraRangeControl');
+    const cameraRangeInput = overlay.querySelector('#ldzCameraRange');
+    const cameraRangeValue = overlay.querySelector('#ldzCameraRangeValue');
+    const cameraRangeDecreaseBtn = overlay.querySelector('#ldzCameraRangeDecrease');
+    const cameraRangeIncreaseBtn = overlay.querySelector('#ldzCameraRangeIncrease');
     const deleteBtn = overlay.querySelector('#ldzDeleteBtn');
     const linkBtn = overlay.querySelector('#ldzLinkBtn');
     const unlinkBtn = overlay.querySelector('#ldzUnlinkBtn');
@@ -902,8 +917,18 @@
           fovControls.style.display = fovPlacement ? 'flex' : 'none';
           const hasLinkedFov = isCamera && !!fovPlacement;
           const fovControlsEnabled = !!fovPlacement;
+          const cameraRangeEnabled = isCamera && !!fovPlacement;
           [rangeDecreaseBtn, rangeIncreaseBtn, rotateLeftBtn, rotateRightBtn].forEach(btn => {
               if (btn) btn.disabled = !fovControlsEnabled;
+          });
+          if (cameraRangeControl) {
+              cameraRangeControl.style.display = cameraRangeEnabled ? 'flex' : 'none';
+          }
+          if (cameraRangeInput) {
+              cameraRangeInput.disabled = !cameraRangeEnabled;
+          }
+          [cameraRangeDecreaseBtn, cameraRangeIncreaseBtn].forEach(btn => {
+              if (btn) btn.disabled = !cameraRangeEnabled;
           });
           selectionControls.style.display = 'flex';
           unlinkBtn.style.display = hasLinkedFov ? 'flex' : 'none';
@@ -917,6 +942,8 @@
               const r = (fovPlacement.fov?.range ?? 60);
               fovRangeInput.value = r;
               if (fovRangeValue) fovRangeValue.textContent = `${r} ft`;
+              if (cameraRangeInput) cameraRangeInput.value = r;
+              if (cameraRangeValue) cameraRangeValue.textContent = `${r} ft`;
 
               const rot = (fovPlacement.fov?.rotation ?? 0);
               fovRotationInput.value = rot;
@@ -928,6 +955,8 @@
           } else {
               if (fovRangeValue) fovRangeValue.textContent = '—';
               if (fovRotationValue) fovRotationValue.textContent = '—';
+              if (cameraRangeValue) cameraRangeValue.textContent = '—';
+              if (cameraRangeInput) cameraRangeInput.disabled = true;
           }
 
           const isRotateFov = e.target.classList.contains('ldz-fov-rotate');
@@ -1091,7 +1120,13 @@
           selectionControls.style.display = 'none';
           fovControls.style.display = 'none';
           unlinkBtn.style.display = 'none';
-          
+          if (cameraRangeControl) cameraRangeControl.style.display = 'none';
+          if (cameraRangeValue) cameraRangeValue.textContent = '—';
+          if (cameraRangeInput) cameraRangeInput.disabled = true;
+          [cameraRangeDecreaseBtn, cameraRangeIncreaseBtn].forEach(btn => {
+              if (btn) btn.disabled = true;
+          });
+
           const panStartX = e.clientX - view.x;
           const panStartY = e.clientY - view.y;
           wrap.style.cursor = 'grabbing';
@@ -1252,24 +1287,38 @@
     }
 
     function setFovControlValue(prop, value, finalize = false) {
-        const input = prop === 'rotation' ? fovRotationInput : fovRangeInput;
-        if (!input) return;
-        const min = input.min !== '' ? parseInt(input.min, 10) : Number.NEGATIVE_INFINITY;
-        const max = input.max !== '' ? parseInt(input.max, 10) : Number.POSITIVE_INFINITY;
+        const inputs = prop === 'rotation'
+            ? [fovRotationInput].filter(Boolean)
+            : [fovRangeInput, cameraRangeInput].filter(Boolean);
+        if (!inputs.length) return;
+        const baseInput = inputs[0];
+        const min = baseInput.min !== '' ? parseInt(baseInput.min, 10) : Number.NEGATIVE_INFINITY;
+        const max = baseInput.max !== '' ? parseInt(baseInput.max, 10) : Number.POSITIVE_INFINITY;
         const clamped = Math.max(min, Math.min(max, value));
-        if (prop === 'rotation' && fovRotationValue) {
-            fovRotationValue.textContent = `${clamped}°`;
-        } else if (prop === 'range' && fovRangeValue) {
-            fovRangeValue.textContent = `${clamped} ft`;
+        if (prop === 'rotation') {
+            if (fovRotationValue) {
+                fovRotationValue.textContent = `${clamped}°`;
+            }
+        } else if (prop === 'range') {
+            if (fovRangeValue) {
+                fovRangeValue.textContent = `${clamped} ft`;
+            }
+            if (cameraRangeValue) {
+                cameraRangeValue.textContent = `${clamped} ft`;
+            }
         }
-        input.value = clamped;
+        inputs.forEach((inputEl) => {
+            inputEl.value = clamped;
+        });
         updateSelectedFov(prop, clamped, finalize);
     }
 
     function adjustFovValue(prop, delta) {
-        const input = prop === 'rotation' ? fovRotationInput : fovRangeInput;
-        if (!input) return;
-        const current = parseInt(input.value, 10) || 0;
+        const inputs = prop === 'rotation'
+            ? [fovRotationInput].filter(Boolean)
+            : [fovRangeInput, cameraRangeInput].filter(Boolean);
+        if (!inputs.length) return;
+        const current = parseInt(inputs[0].value, 10) || 0;
         setFovControlValue(prop, current + delta, false);
     }
 
@@ -1292,6 +1341,17 @@
       setFovControlValue('range', range, true);
     });
 
+    if (cameraRangeInput) {
+      cameraRangeInput.addEventListener('input', (e) => {
+        const range = parseInt(e.target.value, 10);
+        setFovControlValue('range', range);
+      });
+      cameraRangeInput.addEventListener('change', (e) => {
+        const range = parseInt(e.target.value, 10);
+        setFovControlValue('range', range, true);
+      });
+    }
+
     fovRotationInput.addEventListener('input', (e)=>{
       const rotation = parseInt(e.target.value,10);
       setFovControlValue('rotation', rotation);
@@ -1309,6 +1369,18 @@
     }
     if (rangeIncreaseBtn) {
       rangeIncreaseBtn.addEventListener('click', (e) => {
+        const step = e.shiftKey ? RANGE_STEP * 3 : RANGE_STEP;
+        adjustFovValue('range', step);
+      });
+    }
+    if (cameraRangeDecreaseBtn) {
+      cameraRangeDecreaseBtn.addEventListener('click', (e) => {
+        const step = e.shiftKey ? RANGE_STEP * 3 : RANGE_STEP;
+        adjustFovValue('range', -step);
+      });
+    }
+    if (cameraRangeIncreaseBtn) {
+      cameraRangeIncreaseBtn.addEventListener('click', (e) => {
         const step = e.shiftKey ? RANGE_STEP * 3 : RANGE_STEP;
         adjustFovValue('range', step);
       });
@@ -1392,6 +1464,12 @@
         fovControls.style.display = 'none';
         unlinkBtn.style.display = 'none';
         linkBtn.style.display = 'none';
+        if (cameraRangeControl) cameraRangeControl.style.display = 'none';
+        if (cameraRangeValue) cameraRangeValue.textContent = '—';
+        if (cameraRangeInput) cameraRangeInput.disabled = true;
+        [cameraRangeDecreaseBtn, cameraRangeIncreaseBtn].forEach(btn => {
+            if (btn) btn.disabled = true;
+        });
         [rangeDecreaseBtn, rangeIncreaseBtn, rotateLeftBtn, rotateRightBtn].forEach(btn => {
             if (btn) btn.disabled = true;
         });
@@ -1414,6 +1492,12 @@
             saveHistory();
             redraw();
             unlinkBtn.style.display = 'none';
+            if (cameraRangeControl) cameraRangeControl.style.display = 'none';
+            if (cameraRangeValue) cameraRangeValue.textContent = '—';
+            if (cameraRangeInput) cameraRangeInput.disabled = true;
+            [cameraRangeDecreaseBtn, cameraRangeIncreaseBtn].forEach(btn => {
+                if (btn) btn.disabled = true;
+            });
         }
     };
 
