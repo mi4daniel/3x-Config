@@ -470,9 +470,18 @@
       return {allCams, allNvrs};
     }
 
+    function getListViewportHeight(){
+      if (!itemsListEl) return 0;
+      const rect = itemsListEl.getBoundingClientRect();
+      if (rect && rect.height) return rect.height;
+      if (itemsListEl.clientHeight) return itemsListEl.clientHeight;
+      return 0;
+    }
+
     function updateScrollButtons(){
       if (!itemsListEl || !scrollUpBtn || !scrollDownBtn) return;
-      const maxScroll = Math.max(0, itemsListEl.scrollHeight - itemsListEl.clientHeight);
+      const viewport = getListViewportHeight();
+      const maxScroll = Math.max(0, itemsListEl.scrollHeight - viewport);
       const epsilon = 2;
       scrollUpBtn.disabled = itemsListEl.scrollTop <= epsilon;
       scrollDownBtn.disabled = maxScroll <= epsilon || itemsListEl.scrollTop >= (maxScroll - epsilon);
