@@ -106,15 +106,15 @@
     const style = document.createElement('style');
     style.id = STYLE_ID;
     style.textContent = `
-      .ldz-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:stretch;justify-content:stretch;background:radial-gradient(circle at top,rgba(34,30,31,0.92),rgba(34,30,31,0.78));backdrop-filter:blur(12px);}
-      .ldz-modal{width:100%;height:100%;background:linear-gradient(145deg,#f6f7fb,#fff);border-radius:0;box-shadow:0 28px 64px -40px rgba(34,30,31,0.55);display:grid;grid-template-columns:minmax(320px,360px) minmax(0,1fr);overflow:hidden;color:#221e1f;position:relative;}
-      @media(max-width:1080px){.ldz-modal{grid-template-columns:1fr;grid-template-rows:minmax(0,420px) minmax(0,1fr);}}
-      @media(max-width:860px){.ldz-modal{grid-template-rows:minmax(0,360px) minmax(0,1fr);}}
-      .ldz-sidebar{max-width:360px;}
-      .ldz-sidebar{background:rgba(246,247,251,0.92);backdrop-filter:blur(18px);display:flex;flex-direction:column;}
-      .ldz-sidebar-header{padding:28px 28px 20px;border-bottom:1px solid rgba(34,30,31,0.2);display:flex;flex-direction:column;gap:14px;}
-      .ldz-title{font-size:1.25rem;font-weight:700;letter-spacing:-0.01em;color:#221e1f;}
-      .ldz-subtitle{font-size:0.8rem;color:rgba(34,30,31,0.68);line-height:1.4;}
+      .ldz-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at top,rgba(15,23,42,0.9),rgba(15,23,42,0.75));backdrop-filter:blur(12px);}
+      .ldz-modal{width:min(1440px,96vw);height:min(1040px,96vh);background:linear-gradient(145deg,#f8fafc,#fff);border-radius:24px;box-shadow:0 40px 80px -40px rgba(15,23,42,0.45);display:grid;grid-template-columns:minmax(300px,340px) minmax(0,1fr);overflow:hidden;color:#0f172a;position:relative;}
+      @media(max-width:1080px){.ldz-modal{grid-template-columns:1fr;grid-template-rows:minmax(0,420px) minmax(0,1fr);height:94vh;}}
+      @media(max-width:860px){.ldz-modal{grid-template-rows:minmax(0,380px) minmax(0,1fr);}}
+      .ldz-sidebar{max-width:340px;}
+      .ldz-sidebar{background:rgba(248,250,252,0.92);backdrop-filter:blur(18px);display:flex;flex-direction:column;}
+      .ldz-sidebar-header{padding:28px 28px 20px;border-bottom:1px solid rgba(148,163,184,0.25);display:flex;flex-direction:column;gap:14px;}
+      .ldz-title{font-size:1.25rem;font-weight:700;letter-spacing:-0.01em;color:#0f172a;}
+      .ldz-subtitle{font-size:0.8rem;color:rgba(15,23,42,0.68);line-height:1.4;}
       .ldz-stat-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
       .ldz-chip{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:14px;background:rgba(194,32,51,0.08);border:1px solid rgba(194,32,51,0.18);font-size:0.72rem;color:#c22033;font-weight:600;}
       .ldz-chip span{font-weight:500;color:rgba(34,30,31,0.55);font-size:0.68rem;}
@@ -122,8 +122,8 @@
       .ldz-chip.alt{background:rgba(16,185,129,0.08);border-color:rgba(16,185,129,0.2);color:#221e1f;}
       .ldz-chip.neutral{background:rgba(34,30,31,0.12);border-color:rgba(34,30,31,0.2);color:#221e1f;}
       .ldz-sidebar-body{padding:20px 28px;display:flex;flex-direction:column;gap:16px;flex:1;overflow:hidden;}
-      .ldz-sidebar-body .ldz-card{box-shadow:0 12px 32px -28px rgba(34,30,31,0.4);}
-      .ldz-section-heading{display:flex;justify-content:space-between;align-items:center;font-size:0.75rem;font-weight:600;color:rgba(34,30,31,0.55);padding-top:4px;gap:12px;}
+      .ldz-sidebar-body .ldz-card{box-shadow:0 12px 32px -28px rgba(15,23,42,0.4);}
+      .ldz-section-heading{display:flex;justify-content:space-between;align-items:center;font-size:0.75rem;font-weight:600;color:rgba(15,23,42,0.55);padding-top:4px;gap:12px;}
       .ldz-section-title{flex:1;min-width:0;}
       .ldz-section-tools{display:flex;align-items:center;gap:10px;}
       .ldz-section-count{padding:4px 10px;border-radius:9999px;background:rgba(34,30,31,0.15);color:#221e1f;font-size:0.7rem;font-weight:600;}
@@ -489,50 +489,40 @@
 
     function getListViewportHeight(){
       if (!itemsListEl) return 0;
-      if (itemsListEl.clientHeight) return itemsListEl.clientHeight;
       const rect = itemsListEl.getBoundingClientRect();
       if (rect && rect.height) return rect.height;
+      if (itemsListEl.clientHeight) return itemsListEl.clientHeight;
       return 0;
-    }
-
-    function computeScrollMetrics(){
-      const viewport = getListViewportHeight();
-      const scrollTop = itemsListEl ? itemsListEl.scrollTop : 0;
-      const maxScroll = itemsListEl ? Math.max(0, itemsListEl.scrollHeight - viewport) : 0;
-      return { viewport, scrollTop, maxScroll };
     }
 
     function updateScrollButtons(){
       if (!itemsListEl || !scrollUpBtn || !scrollDownBtn) return;
-      const { scrollTop, maxScroll } = computeScrollMetrics();
-      const epsilon = 1;
-      scrollUpBtn.disabled = scrollTop <= epsilon;
-      scrollDownBtn.disabled = maxScroll - scrollTop <= epsilon;
+      const viewport = getListViewportHeight();
+      const maxScroll = Math.max(0, itemsListEl.scrollHeight - viewport);
+      const epsilon = 2;
+      scrollUpBtn.disabled = itemsListEl.scrollTop <= epsilon;
+      scrollDownBtn.disabled = maxScroll <= epsilon || itemsListEl.scrollTop >= (maxScroll - epsilon);
     }
 
     function scrollListBy(multiplier){
       if (!itemsListEl) return;
-      const { viewport, scrollTop, maxScroll } = computeScrollMetrics();
-      if (maxScroll <= 0) {
-        updateScrollButtons();
-        return;
-      }
+      const viewport = itemsListEl.clientHeight;
+      const maxScroll = Math.max(0, itemsListEl.scrollHeight - viewport);
+      if (maxScroll <= 0) return;
 
-      const direction = multiplier >= 0 ? 1 : -1;
-      const stepBase = viewport > 0 ? viewport : Math.min(itemsListEl.scrollHeight, 240);
-      const baseDistance = Math.max(80, stepBase * Math.min(Math.abs(multiplier), 1));
-      const target = Math.max(0, Math.min(scrollTop + direction * baseDistance, maxScroll));
+      const delta = viewport * multiplier;
+      const target = Math.max(0, Math.min(itemsListEl.scrollTop + delta, maxScroll));
 
       if (typeof itemsListEl.scrollTo === 'function') {
         itemsListEl.scrollTo({ top: target, behavior: 'smooth' });
       } else if (typeof itemsListEl.scrollBy === 'function') {
-        itemsListEl.scrollBy({ top: target - scrollTop });
+        itemsListEl.scrollBy({ top: target - itemsListEl.scrollTop });
       } else {
         itemsListEl.scrollTop = target;
       }
 
       schedule(updateScrollButtons);
-      setTimeout(updateScrollButtons, 300);
+      setTimeout(updateScrollButtons, 250);
     }
 
     const listScrollListener = () => schedule(updateScrollButtons);
