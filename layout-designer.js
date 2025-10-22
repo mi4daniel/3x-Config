@@ -1442,9 +1442,6 @@
       redraw();
     };
 
-      }
-    };
-
     if (scaleInput) {
       scaleInput.addEventListener('input', (e) => {
         pixelsPerFoot = Math.max(0.0001, Number(e.target.value));
