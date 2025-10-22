@@ -489,14 +489,12 @@
 
     function scrollListBy(multiplier){
       if (!itemsListEl) return;
-      const viewport = getListViewportHeight();
-      const effectiveViewport = viewport > 0 ? viewport : (itemsListEl.clientHeight || itemsListEl.scrollHeight || 0);
-      const maxScroll = Math.max(0, itemsListEl.scrollHeight - (viewport || itemsListEl.clientHeight || 0));
+      const viewport = itemsListEl.clientHeight;
+      const maxScroll = Math.max(0, itemsListEl.scrollHeight - viewport);
       if (maxScroll <= 0) return;
 
-      const direction = multiplier >= 0 ? 1 : -1;
-      const baseDistance = Math.max(60, effectiveViewport * Math.min(Math.abs(multiplier), 1));
-      const target = Math.max(0, Math.min(itemsListEl.scrollTop + (direction * baseDistance), maxScroll));
+      const delta = viewport * multiplier;
+      const target = Math.max(0, Math.min(itemsListEl.scrollTop + delta, maxScroll));
 
       if (typeof itemsListEl.scrollTo === 'function') {
         itemsListEl.scrollTo({ top: target, behavior: 'smooth' });
@@ -507,7 +505,7 @@
       }
 
       schedule(updateScrollButtons);
-      setTimeout(updateScrollButtons, 300);
+      setTimeout(updateScrollButtons, 250);
     }
 
     if (itemsListEl) {
