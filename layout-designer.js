@@ -199,7 +199,6 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
       .ldz-place-label-input{font-size:0.68rem;padding:3px 6px;border-radius:6px;border:1px solid rgba(0,0,0,0.12);outline:none;}
       .ldz-scale-input-wrap{display:none;align-items:center;gap:8px;}
       .ldz-scale-handle{position:absolute;width:14px;height:14px;background:#fff;border-radius:9999px;cursor:move;border:2px solid #10b981;box-shadow:0 2px 8px rgba(0,0,0,0.3);}
-      .ldz-fov-handle{position:absolute;width:14px;height:14px;background:#fff;border-radius:9999px;cursor:crosshair;border:2px solid #c22033;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:10;}
     `;
     document.head.appendChild(style);
   }
@@ -383,8 +382,6 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
     const scrollUpBtn = overlay.querySelector('#ldzScrollUp');
     const scrollDownBtn = overlay.querySelector('#ldzScrollDown');
     const drawWallBtn = overlay.querySelector('#ldzDrawWall');
-    const scaleInputWrap = overlay.querySelector('#ldzScaleInputWrap');
-    const scaleDistanceInput = overlay.querySelector('#ldzScaleDistanceInput');
     const setScaleBtnText = overlay.querySelector('#ldzSetScaleBtnText');
     const zoomIndicator = overlay.querySelector('#ldzZoomIndicator');
     const zoomInBtn = overlay.querySelector('#ldzZoomIn');
@@ -409,7 +406,6 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
     let showGrid = false;
     let fovHistoryTimer = null;
     let listResizeObserver = null;
-    let listMutationObserver = null;
     let scaleLine = null;
 
     // pixelsPerFoot = how many pixels equal one foot on the floorplan
@@ -671,14 +667,21 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
         fovCtx.translate(view.x, view.y); fovCtx.scale(view.scale, view.scale);
         wallCtx.translate(view.x, view.y); wallCtx.scale(view.scale, view.scale);
 
+        overlayLayer.style.width = `${img.width}px`;
+        overlayLayer.style.height = `${img.height}px`;
+        overlayLayer.style.transform = `translate(${view.x}px, ${view.y}px) scale(${view.scale})`;
+
+        renderPlacedMarkers();
+        renderInteractiveHandles();
+        updatePlacementStats();
+
         ctx.drawImage(img, 0, 0);
         drawGrid(ctx);
         drawWalls(wallCtx);
         drawFovs();
+
         if (currentMode === 'scale' && scaleLine) {
             wallCtx.save();
-            wallCtx.translate(view.x, view.y);
-            wallCtx.scale(view.scale, view.scale);
             wallCtx.strokeStyle = '#10b981';
             wallCtx.lineWidth = 3 / view.scale;
             wallCtx.setLineDash([5 / view.scale, 5 / view.scale]);
@@ -692,13 +695,6 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
 
         ctx.restore(); fovCtx.restore(); wallCtx.restore();
 
-        overlayLayer.style.width = `${img.width}px`;
-        overlayLayer.style.height = `${img.height}px`;
-        overlayLayer.style.transform = `translate(${view.x}px, ${view.y}px) scale(${view.scale})`;
-
-        renderPlacedMarkers();
-        renderInteractiveHandles();
-        updatePlacementStats();
     }
 
     function resetView() {
@@ -1030,14 +1026,6 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
         });
         el.appendChild(labelEl);
 
-        if (p.type==='fov'){
-          const rot = document.createElement('div');
-          rot.className = 'ldz-fov-handle ldz-fov-rotate';
-          const rng = document.createElement('div');
-          rng.className = 'ldz-fov-handle ldz-fov-range';
-          el.appendChild(rot); el.appendChild(rng);
-        }
-        
         if (p.type === 'camera') {
             const camRot = document.createElement('div');
             camRot.className = 'ldz-camera-rotate-handle';
@@ -1243,6 +1231,36 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
       const startX = (e.clientX - rect.left - view.x) / view.scale;
       const startY = (e.clientY - rect.top - view.y) / view.scale;
 
+      if (currentMode === 'scale') {
+          const onScaleMove = (moveEvent) => {
+              scaleLine = {
+                  x1: startX, y1: startY,
+                  x2: (moveEvent.clientX - rect.left - view.x) / view.scale,
+                  y2: (moveEvent.clientY - rect.top - view.y) / view.scale
+              };
+              redraw();
+          };
+          const onScaleUp = (upEvent) => {
+              document.removeEventListener('mousemove', onScaleMove);
+              document.removeEventListener('mouseup', onScaleUp);
+              const endX = (upEvent.clientX - rect.left - view.x) / view.scale;
+              const endY = (upEvent.clientY - rect.top - view.y) / view.scale;
+              const pixelDistance = Math.hypot(endX - startX, endY - startY);
+              if (pixelDistance > 5) {
+                  const feetDistance = parseFloat(prompt('Enter the length of this line in feet:', '10'));
+                  if (feetDistance > 0) {
+                      pixelsPerFoot = pixelDistance / feetDistance;
+                      getConfig().layoutScale = pixelsPerFoot;
+                      if (scaleValueEl) scaleValueEl.textContent = `${pixelsPerFoot.toFixed(2)} px/ft`;
+                      saveConfig();
+                      saveHistory();
+                  }
+              }
+              exitScaleMode();
+          };
+          document.addEventListener('mousemove', onScaleMove);
+          document.addEventListener('mouseup', onScaleUp);
+      } else if (currentMode === 'drawWall') {
       if (currentMode === 'drawWall') {
           const onWallMove = (moveEvent) => {
               const currentX = (moveEvent.clientX - rect.left - view.x) / view.scale;
@@ -1369,10 +1387,6 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
             try { listResizeObserver.disconnect(); } catch (e) {}
             listResizeObserver = null;
         }
-        if (listMutationObserver) {
-            try { listMutationObserver.disconnect(); } catch (e) {}
-            listMutationObserver = null;
-        }
         flushFovHistoryCommit();
     };
 
@@ -1409,43 +1423,26 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
       }
     };
 
+    function exitScaleMode() {
+        currentMode = 'place';
+        scaleLine = null;
+        setScaleBtn.classList.remove('active');
+        setScaleBtnText.textContent = 'Scale Floor Plan';
+        wrap.style.cursor = 'grab';
+        redraw();
+    }
+
     setScaleBtn.addEventListener('click', () => {
-        if (currentMode === 'scale') { // User is clicking "Set Scale"
-            const feetDistance = parseFloat(scaleDistanceInput.value);
-            if (feetDistance > 0 && scaleLine) {
-                const pixelDistance = Math.hypot(scaleLine.x2 - scaleLine.x1, scaleLine.y2 - scaleLine.y1);
-                pixelsPerFoot = pixelDistance / feetDistance;
-                getConfig().layoutScale = pixelsPerFoot;
-                if (scaleValueEl) scaleValueEl.textContent = `${pixelsPerFoot.toFixed(2)} px/ft`;
-                saveConfig();
-                saveHistory();
-                if (typeof window.showToast === 'function') showToast(`Scale set to ${pixelsPerFoot.toFixed(2)} pixels per foot.`);
-            }
-
-            // Exit scale mode
-            currentMode = 'place';
-            scaleLine = null;
-            setScaleBtn.classList.remove('active');
-            setScaleBtnText.textContent = 'Scale Floor Plan';
-            scaleInputWrap.style.display = 'none';
-            clearScaleHandles();
-            redraw();
-
-        } else { // User is clicking "Scale Floor Plan"
+        if (currentMode === 'scale') {
+            exitScaleMode();
+        } else {
             currentMode = 'scale';
             drawWallBtn.classList.remove('active');
             wrap.classList.remove('wall-mode');
-            
-            // Create a default line in the center of the image
-            const centerX = img.width / 2;
-            const centerY = img.height / 2;
-            scaleLine = { x1: centerX - 50, y1: centerY, x2: centerX + 50, y2: centerY };
-
             setScaleBtn.classList.add('active');
-            setScaleBtnText.textContent = 'Set Scale';
-            scaleInputWrap.style.display = 'flex';
-            if (typeof window.showToast === 'function') showToast('Drag the green handles to measure a known distance.');
-            redraw();
+            setScaleBtnText.textContent = 'Cancel Scaling';
+            wrap.style.cursor = 'crosshair';
+            if (typeof window.showToast === 'function') showToast('Click and drag to measure a known distance.');
         }
     });
 
