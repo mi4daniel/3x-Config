@@ -935,7 +935,7 @@
         if (lowerName.includes('bullet') || lowerName.includes('box')) {
             return `<svg viewBox="0 0 24 24" fill="currentColor" style="width:20px;height:20px;"><path d="M20 8h-7c-1.1 0-2 .9-2 2v4c0 1.1.9 2 2 2h7c1.1 0 2-.9 2-2v-4c0-1.1-.9-2-2-2zM4 12c0-2.21 1.79-4 4-4h1v8H8c-2.21 0-4-1.79-4-4z"></path></svg>`;
         }
-        return `<svg viewBox="0 0 24 24" fill="currentColor" style="width:20px;height:20px;"><path d="M17 10.5V7c0-1.66-1.34-3-3-3s-3 1.34-3 3v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5zM12 2C9.24 2 7 4.24 7 7v3.5c-1.93 0-3.5 1.57-3.5 3.5S5.07 17.5 7 17.5h10c1.93 0 3.5-1.57 3.5-3.5S19.93 10.5 18 10.5V7c0-2.76-2.24-5-5-5z"></path></svg>`;
+        return `<svg viewBox="0 0 24 24" fill="currentColor" style="width:20px;height:20px;"><path d="M17 10.5V7c0-1.66-1.34-3-3-3s-3 1.34-3 3v3.5c-1.93 0-3.5 1.57-3.5 3.5S5.07 17.5 7 17.5h10c1.93 0 3.5-1.57 3.5-3.5S19.93 10.5 18 10.5V7c0-2.76-2.24-5-5-5z"></path></svg>`;
     }
 
     function renderPlacedMarkers(){
@@ -1515,7 +1515,7 @@
     fovRotationInput.addEventListener('change', (e)=>{
       const rotation = parseInt(e.target.value,10);
       updateSelectedFov('rotation', rotation, true);
-    }
+    });
 
     fovColors.addEventListener('click', (e) => {
         const swatch = e.target.closest('.ldz-color-swatch');
