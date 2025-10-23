@@ -671,11 +671,11 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
         overlayLayer.style.height = `${img.height}px`;
         overlayLayer.style.transform = `translate(${view.x}px, ${view.y}px) scale(${view.scale})`;
 
+        ctx.drawImage(img, 0, 0);
         renderPlacedMarkers();
         renderInteractiveHandles();
         updatePlacementStats();
 
-        ctx.drawImage(img, 0, 0);
         drawGrid(ctx);
         drawWalls(wallCtx);
         drawFovs();
