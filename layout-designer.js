@@ -21,10 +21,8 @@
      ✓ Rotate a camera and its linked FOV together.
      ✓ FOV range/distance slider when a camera/FOV is selected.
      ✓ Fixed unresponsive close buttons.
-     ✓ Wall drawing tool to add obstructions to the floorplan.
-     ✓ FOV cones are now dynamically obstructed by walls, casting shadows.
-     ✓ NEW: Fixed performance bug in wall drawing feature.
-     ✓ NEW: Removed meter text from range slider UI.
+     ✓ Wall drawing tool, FOV obstruction, and performance fixes.
+     ✓ NEW: Replaced scale slider with an interactive "Set Scale by Distance" tool.
 */
 
 (function(){
@@ -183,7 +181,7 @@
       .ldz-icon-btn.ghost.active{border-color:rgba(194,32,51,0.6);background:rgba(194,32,51,0.12);color:#c22033;}
       .ldz-icon-btn:disabled{opacity:0.45;cursor:not-allowed;box-shadow:none;border-color:rgba(34,30,31,0.18);}
       .ldz-canvas-wrap{position:relative;background:radial-gradient(circle at top,#221e1f,#000000);display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:grab;}
-      .ldz-canvas-wrap.wall-mode{cursor:crosshair;}
+      .ldz-canvas-wrap.wall-mode, .ldz-canvas-wrap.scale-mode{cursor:crosshair;}
       .ldz-canvas-toolbar{position:absolute;top:88px;right:24px;display:flex;gap:10px;flex-wrap:wrap;background:rgba(34,30,31,0.75);backdrop-filter:blur(10px);padding:10px 12px;border-radius:16px;border:1px solid rgba(34,30,31,0.3);box-shadow:0 24px 40px -28px rgba(34,30,31,0.8);z-index:5;}
       .ldz-toolbar-group{display:flex;align-items:center;gap:8px;}
       .ldz-toolbar-btn{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;border:1px solid rgba(34,30,31,0.35);background:rgba(34,30,31,0.65);color:#f6f7fb;cursor:pointer;transition:all .2s;}
@@ -350,9 +348,14 @@
                         </div><input id="ldzFovRotation" class="ldz-range" type="range" min="0" max="360" value="0">
                     </div>
                 </div>
-                <div class="ldz-card" id="ldzScaleCard" style="display:flex;flex-direction:column;">
-                    <div class="ldz-card-title">Floorplan scale</div>
-                    <div class="ldz-field"><div class="ldz-field-header"><span class="ldz-label">Pixels per foot <strong id="ldzScaleValue">1</strong></span></div><input id="ldzScaleInput" class="ldz-range" type="range" min="0.1" max="20" step="0.1" value="${cfg.layoutScale || 1}"></div>
+                <div class="ldz-card" id="ldzScaleCard">
+                    <div class="ldz-card-title">Floorplan Scale</div>
+                    <div class="ldz-field">
+                        <div class="ldz-field-header">
+                            <span class="ldz-label">Current: <strong id="ldzScaleValue">1.00 px/ft</strong></span>
+                        </div>
+                        <button id="ldzSetScaleBtn" class="ldz-icon-btn ghost active"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width:18px;height:18px;"><path d="M2 5a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm3.5 1a.5.5 0 00-.5.5v2a.5.5 0 001 0v-2a.5.5 0 00-.5-.5zM6 13.5a.5.5 0 01.5-.5h8a.5.5 0 010 1H6.5a.5.5 0 01-.5-.5z" clip-rule="evenodd"/></svg><span>Set Scale by Distance</span></button>
+                    </div>
                 </div>
             </div>
             <div class="ldz-sidebar-footer">
@@ -414,8 +417,8 @@
     const zoomResetBtn = overlay.querySelector('#ldzZoomReset');
     const fitViewBtn = overlay.querySelector('#ldzFitView');
     const gridToggleBtn = overlay.querySelector('#ldzGridToggle');
-    const scaleInput = overlay.querySelector('#ldzScaleInput');
     const scaleValueEl = overlay.querySelector('#ldzScaleValue');
+    const setScaleBtn = overlay.querySelector('#ldzSetScaleBtn');
     const ctx = bg.getContext('2d');
     const fovCtx = fovCanvas.getContext('2d');
     const wallCtx = wallCanvas.getContext('2d');
@@ -426,7 +429,7 @@
     let history = [];
     let historyIndex = -1;
     let selectedId = null;
-    let currentMode = 'place'; // 'place', 'drawWall', or 'linkFov'
+    let currentMode = 'place'; // 'place', 'drawWall', 'linkFov', 'scale'
     let showGrid = false;
     let fovHistoryTimer = null;
     let listResizeObserver = null;
@@ -1426,15 +1429,6 @@
       redraw();
     };
 
-    if (scaleInput) {
-      scaleInput.addEventListener('input', (e) => {
-        pixelsPerFoot = Math.max(0.0001, Number(e.target.value));
-        if (scaleValueEl) scaleValueEl.textContent = pixelsPerFoot.toFixed(2);
-        getConfig().layoutScale = pixelsPerFoot;
-        saveConfig();
-        redraw();
-      });
-    }
     overlay.querySelector('#ldzDownload').onclick = async ()=>{
       const data = await window.getLayoutCanvasAsImage();
       if (data){
@@ -1444,6 +1438,51 @@
         a.click();
       }
     };
+
+    setScaleBtn.addEventListener('click', () => {
+        currentMode = 'scale';
+        setScaleBtn.classList.add('active');
+        drawWallBtn.classList.remove('active');
+        wrap.classList.add('scale-mode');
+        if (typeof window.showToast === 'function') showToast('Click a start point on the floorplan.');
+
+        let firstPoint = null;
+
+        const onScaleClick = (e) => {
+            const rect = bg.getBoundingClientRect();
+            const x = (e.clientX - rect.left - view.x) / view.scale;
+            const y = (e.clientY - rect.top - view.y) / view.scale;
+
+            if (!firstPoint) {
+                firstPoint = { x, y };
+                if (typeof window.showToast === 'function') showToast('Click an end point.');
+            } else {
+                const pixelDistance = Math.hypot(x - firstPoint.x, y - firstPoint.y);
+                const feetDistanceStr = prompt(`The selected line is ${pixelDistance.toFixed(2)} pixels long.\n\nEnter the real-world distance in feet:`, '10');
+                const feetDistance = parseFloat(feetDistanceStr);
+
+                if (feetDistance > 0) {
+                    pixelsPerFoot = pixelDistance / feetDistance;
+                    getConfig().layoutScale = pixelsPerFoot;
+                    if (scaleValueEl) scaleValueEl.textContent = `${pixelsPerFoot.toFixed(2)} px/ft`;
+                    saveConfig();
+                    saveHistory();
+                    redraw();
+                    if (typeof window.showToast === 'function') showToast(`Scale set to ${pixelsPerFoot.toFixed(2)} pixels per foot.`);
+                } else {
+                    if (typeof window.showToast === 'function') showToast('Scale update cancelled.');
+                }
+
+                // Cleanup and exit scale mode
+                wrap.removeEventListener('click', onScaleClick);
+                currentMode = 'place';
+                setScaleBtn.classList.remove('active');
+                wrap.classList.remove('scale-mode');
+                redraw(); // To remove any temporary line
+            }
+        };
+        wrap.addEventListener('click', onScaleClick, { once: false }); // Keep listening for the second click
+    });
 
     function queueFovHistoryCommit() {
         if (fovHistoryTimer) clearTimeout(fovHistoryTimer);
@@ -1788,8 +1827,7 @@
     
     renderItemsList();
     updatePlacementStats();
-    if (scaleValueEl) scaleValueEl.textContent = pixelsPerFoot.toFixed(2);
-    if (scaleInput) scaleInput.value = pixelsPerFoot;
+    if (scaleValueEl) scaleValueEl.textContent = `${pixelsPerFoot.toFixed(2)} px/ft`;
 
 
     const onResize = ()=>{ if (img.width) resetView(); };
