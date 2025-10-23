@@ -21,8 +21,8 @@
      ✓ Rotate a camera and its linked FOV together.
      ✓ FOV range/distance slider when a camera/FOV is selected.
      ✓ Fixed unresponsive close buttons.
-     ✓ Wall drawing tool and FOV obstruction.
-     ✓ NEW: Interactive line-based tool for scaling the floorplan.
+     ✓ Wall drawing tool, FOV obstruction, and interactive scaling.
+     ✓ NEW: Interactive FOV handles for range, angle, and rotation, simplifying the UI.
 */
 
 (function(){
@@ -198,11 +198,7 @@
       .ldz-placed.selected{box-shadow:0 0 0 4px rgba(194,32,51,0.55);}
       .ldz-placed-label{position:absolute;top:100%;left:50%;transform:translateX(-50%);background:rgba(34,30,31,0.9);color:#f6f7fb;font-size:0.68rem;padding:4px 8px;border-radius:8px;white-space:nowrap;margin-top:6px;font-weight:500;pointer-events:auto;}
       .ldz-camera-rotate-handle{display:none;position:absolute;top:-18px;left:50%;transform:translateX(-50%);width:12px;height:12px;background:#c22033;border:2px solid #fff;border-radius:9999px;cursor:crosshair;}
-      .ldz-scale-handle{position:absolute;width:14px;height:14px;background:#fff;border-radius:9999px;cursor:move;border:2px solid #10b981;box-shadow:0 2px 8px rgba(0,0,0,0.3);}
       .ldz-placed.selected .ldz-camera-rotate-handle{display:block;}
-      .ldz-fov-handle{position:absolute;width:12px;height:12px;background:#fff;border-radius:9999px;cursor:crosshair;border:2px solid rgba(194,32,51,0.6);}
-      .ldz-fov-rotate{top:-16px;left:50%;transform:translateX(-50%);}
-      .ldz-fov-range{bottom:-16px;left:50%;transform:translateX(-50%);}
       .ldz-close{position:absolute;top:18px;right:18px;background:rgba(246,247,251,0.9);border:1px solid rgba(34,30,31,0.3);border-radius:12px;padding:8px;cursor:pointer;z-index:10;display:flex;align-items:center;justify-content:center;transition:all .2s;}
       .ldz-close:hover{border-color:rgba(194,32,51,0.6);background:rgba(194,32,51,0.15);}
       .ldz-close img{width:24px;height:24px;}
@@ -211,6 +207,8 @@
       .ldz-placed-badge{position:absolute;right:-8px;bottom:-8px;background:#fff;color:#c22033;width:18px;height:18px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;font-size:0.68rem;font-weight:700;border:2px solid rgba(34,30,31,0.12);transform-origin:center;}
       .ldz-place-label-input{font-size:0.68rem;padding:3px 6px;border-radius:6px;border:1px solid rgba(0,0,0,0.12);outline:none;}
       .ldz-scale-input-wrap{display:none;align-items:center;gap:8px;}
+      .ldz-scale-handle{position:absolute;width:14px;height:14px;background:#fff;border-radius:9999px;cursor:move;border:2px solid #10b981;box-shadow:0 2px 8px rgba(0,0,0,0.3);}
+      .ldz-fov-handle{position:absolute;width:14px;height:14px;background:#fff;border-radius:9999px;cursor:crosshair;border:2px solid #c22033;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:10;}
     `;
     document.head.appendChild(style);
   }
@@ -333,17 +331,9 @@
                 <div id="ldzFovControls" class="ldz-card" style="display:none;">
                     <div class="ldz-card-title">Coverage settings</div>
                     <div class="ldz-field"><span class="ldz-label">FOV Angle <strong id="ldzFovAngleValue">90°</strong></span><input id="ldzFovAngle" class="ldz-range" type="range" min="5" max="360" value="90"></div>
-                    <div class="ldz-field">
-                        <div class="ldz-field-header"><span class="ldz-label">FOV Range<strong id="ldzFovRangeValue">—</strong></span>
-                            <div class="ldz-stepper"><button type="button" class="ldz-step-btn" id="ldzRangeDecrease" aria-label="Decrease range" disabled>&minus;</button><button type="button" class="ldz-step-btn" id="ldzRangeIncrease" aria-label="Increase range" disabled>+</button></div>
-                        </div><input id="ldzFovRange" class="ldz-range" type="range" min="1" max="2000" value="60">
-                    </div>
+                    <div class="ldz-field"><div class="ldz-field-header"><span class="ldz-label">FOV Range<strong id="ldzFovRangeValue">—</strong></span></div><input id="ldzFovRange" class="ldz-range" type="range" min="1" max="2000" value="60"></div>
                     <div class="ldz-colors" id="ldzFovColors"><button class="ldz-color-swatch selected" style="background:rgba(234,179,8,0.5)" data-color="rgba(234,179,8,0.5)"></button><button class="ldz-color-swatch" style="background:rgba(239,68,68,0.4)" data-color="rgba(239,68,68,0.4)"></button><button class="ldz-color-swatch" style="background:rgba(34,197,94,0.4)" data-color="rgba(34,197,94,0.4)"></button><button class="ldz-color-swatch" style="background:rgba(139,92,246,0.4)" data-color="rgba(139,92,246,0.4)"></button></div>
-                    <div class="ldz-field">
-                        <div class="ldz-field-header"><span class="ldz-label">FOV Rotation<strong id="ldzFovRotationValue">—</strong></span>
-                            <div class="ldz-stepper"><button type="button" class="ldz-step-btn" id="ldzRotateLeft" aria-label="Rotate counter-clockwise" disabled>&#8630;</button><button type="button" class="ldz-step-btn" id="ldzRotateRight" aria-label="Rotate clockwise" disabled>&#8631;</button></div>
-                        </div><input id="ldzFovRotation" class="ldz-range" type="range" min="0" max="360" value="0">
-                    </div>
+                    <div class="ldz-field"><div class="ldz-field-header"><span class="ldz-label">FOV Rotation<strong id="ldzFovRotationValue">—</strong></span></div><input id="ldzFovRotation" class="ldz-range" type="range" min="0" max="360" value="0"></div>
                 </div>
                 <div class="ldz-card" id="ldzScaleCard">
                     <div class="ldz-card-title">Floorplan Scale</div>
@@ -386,14 +376,9 @@
     const fovAngleValue = overlay.querySelector('#ldzFovAngleValue');
     const fovRangeInput = overlay.querySelector('#ldzFovRange');
     const fovRangeValue = overlay.querySelector('#ldzFovRangeValue');
-    const fovControls = overlay.querySelector('#ldzFovControls');
     const fovColors = overlay.querySelector('#ldzFovColors');
     const fovRotationInput = overlay.querySelector('#ldzFovRotation');
     const fovRotationValue = overlay.querySelector('#ldzFovRotationValue');
-    const rangeDecreaseBtn = overlay.querySelector('#ldzRangeDecrease');
-    const rangeIncreaseBtn = overlay.querySelector('#ldzRangeIncrease');
-    const rotateLeftBtn = overlay.querySelector('#ldzRotateLeft');
-    const rotateRightBtn = overlay.querySelector('#ldzRotateRight');
     const selectionControls = overlay.querySelector('#ldzSelectionControls');
     const cameraRangeControl = overlay.querySelector('#ldzCameraRangeControl');
     const cameraRangeInput = overlay.querySelector('#ldzCameraRange');
@@ -417,6 +402,7 @@
     const scaleValueEl = overlay.querySelector('#ldzScaleValue');
     const setScaleBtn = overlay.querySelector('#ldzSetScaleBtn');
     const ctx = bg.getContext('2d');
+    const fovControls = overlay.querySelector('#ldzFovControls');
     const fovCtx = fovCanvas.getContext('2d');
     const wallCtx = wallCanvas.getContext('2d');
     const img = new Image();
@@ -555,6 +541,7 @@
           const uid = `${cam.instanceId}-${i}`;
           if (placed.has(uid)) continue;
           items.push({
+          index: i,
             type:'camera',
             uniqueId:uid,
             name:cam.name||cam.id||`Camera ${cam.instanceId}`,
@@ -704,7 +691,7 @@
         overlayLayer.style.transform = `translate(${view.x}px, ${view.y}px) scale(${view.scale})`;
 
         renderPlacedMarkers();
-        if (currentMode === 'scale') renderScaleHandles();
+        renderInteractiveHandles();
         updatePlacementStats();
     }
 
@@ -1097,9 +1084,6 @@
           const hasLinkedFov = isCamera && !!fovPlacement;
           const fovControlsEnabled = !!fovPlacement;
           const cameraRangeEnabled = isCamera && !!fovPlacement;
-          [rangeDecreaseBtn, rangeIncreaseBtn, rotateLeftBtn, rotateRightBtn].forEach(btn => {
-              if (btn) btn.disabled = !fovControlsEnabled;
-          });
           if (cameraRangeControl) {
               cameraRangeControl.style.display = cameraRangeEnabled ? 'flex' : 'none';
           }
@@ -1139,11 +1123,13 @@
               if (cameraRangeInput) cameraRangeInput.disabled = true;
           }
 
-          const isRotateFov = e.target.classList.contains('ldz-fov-rotate');
           const isRotateCam = e.target.classList.contains('ldz-camera-rotate-handle');
-          const isRange  = e.target.classList.contains('ldz-fov-range');
-          let mode = isRotateCam ? 'rotateCam' : isRotateFov ? 'rotateFov' : isRange ? 'range' : 'move';
+          const isFovBody = e.target.classList.contains('ldz-fov-body');
+          let mode = 'move';
+          if (isRotateCam) mode = 'rotateCam';
+          else if (isFovBody) mode = 'rotateFov';
 
+          
           const start = { mx:e.clientX, my:e.clientY, x:p.x, y:p.y };
           
           function onMove(ev){
@@ -1174,20 +1160,12 @@
                 }
                 redraw();
             } else if (mode==='rotateFov'){
-                const ang = Math.atan2(mouseY - p.y, mouseX - p.x) * 180 / Math.PI;
-                p.fov = p.fov || {angle:90, range:60, rotation:0};
-                p.fov.rotation = Math.round(ang + 90);
-                if (fovRotationInput) fovRotationInput.value = p.fov.rotation;
-                if (fovRotationValue) fovRotationValue.textContent = `${p.fov.rotation}°`;
-                redraw();
-            } else if (mode==='range'){
-                const deltaPx = Math.sqrt(Math.pow(mouseX - p.x, 2) + Math.pow(mouseY - p.y, 2));
-                p.fov = p.fov || {angle:90, rangeFt:60, rotation:0};
-                // convert px to feet using pixelsPerFoot (px per ft)
-                const rangeFt = Math.max(1, Math.min(2000, Math.round(deltaPx / Math.max(1e-6, pixelsPerFoot))));
-                p.fov.rangeFt = rangeFt;
-                if (fovRangeInput) fovRangeInput.value = p.fov.rangeFt;
-                if (fovRangeValue) fovRangeValue.textContent = `${p.fov.rangeFt} ft`;
+                const ang = Math.atan2(mouseY - fovPlacement.y, mouseX - fovPlacement.x) * 180 / Math.PI;
+                const newRotation = Math.round(ang + 90);
+                fovPlacement.fov = fovPlacement.fov || {angle:90, rangeFt:60, rotation:0};
+                fovPlacement.fov.rotation = newRotation;
+                if (fovRotationInput) fovRotationInput.value = newRotation;
+                if (fovRotationValue) fovRotationValue.textContent = `${newRotation}°`;
                 redraw();
             }
           }
@@ -1201,54 +1179,11 @@
           document.addEventListener('mouseup', onUp);
         });
 
+                });
+
         overlayLayer.appendChild(el);
       });
     }
-
-    function renderScaleHandles() {
-        if (currentMode !== 'scale' || !scaleLine) return;
-
-        ['p1', 'p2'].forEach(key => {
-            const handle = document.createElement('div');
-            handle.className = 'ldz-scale-handle';
-            handle.dataset.key = key;
-            handle.style.transform = `translate(${scaleLine[key === 'p1' ? 'x1' : 'x2'] - 7}px, ${scaleLine[key === 'p1' ? 'y1' : 'y2'] - 7}px)`;
-            
-            handle.addEventListener('mousedown', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-
-                const onMove = (moveEvent) => {
-                    const rect = overlayLayer.getBoundingClientRect();
-                    const mouseX = (moveEvent.clientX - rect.left) / view.scale;
-                    const mouseY = (moveEvent.clientY - rect.top) / view.scale;
-                    if (key === 'p1') {
-                        scaleLine.x1 = mouseX;
-                        scaleLine.y1 = mouseY;
-                    } else {
-                        scaleLine.x2 = mouseX;
-                        scaleLine.y2 = mouseY;
-                    }
-                    redraw();
-                };
-
-                const onUp = () => {
-                    document.removeEventListener('mousemove', onMove);
-                    document.removeEventListener('mouseup', onUp);
-                };
-
-                document.addEventListener('mousemove', onMove);
-                document.addEventListener('mouseup', onUp);
-            });
-
-            overlayLayer.appendChild(handle);
-        });
-    }
-
-    function clearScaleHandles() {
-        overlayLayer.querySelectorAll('.ldz-scale-handle').forEach(h => h.remove());
-    }
-
 
     wrap.addEventListener('dragover', (e)=>{ e.preventDefault(); });
     wrap.addEventListener('drop', (e)=>{
@@ -1351,9 +1286,6 @@
           if (cameraRangeValue) cameraRangeValue.textContent = '—';
           if (cameraRangeInput) cameraRangeInput.disabled = true;
           [cameraRangeDecreaseBtn, cameraRangeIncreaseBtn].forEach(btn => {
-              if (btn) btn.disabled = true;
-          });
-
           const panStartX = e.clientX - view.x;
           const panStartY = e.clientY - view.y;
           wrap.style.cursor = 'grabbing';
@@ -1553,42 +1485,6 @@
         }
     }
 
-    function setFovControlValue(prop, value, finalize = false) {
-        const inputs = prop === 'rotation'
-            ? [fovRotationInput].filter(Boolean)
-            : [fovRangeInput, cameraRangeInput].filter(Boolean);
-        if (!inputs.length) return;
-        const baseInput = inputs[0];
-        const min = baseInput.min !== '' ? parseInt(baseInput.min, 10) : Number.NEGATIVE_INFINITY;
-        const max = baseInput.max !== '' ? parseInt(baseInput.max, 10) : Number.POSITIVE_INFINITY;
-        const clamped = Math.max(min, Math.min(max, value));
-        if (prop === 'rotation') {
-            if (fovRotationValue) {
-                fovRotationValue.textContent = `${clamped}°`;
-            }
-        } else if (prop === 'range') {
-            if (fovRangeValue) {
-                fovRangeValue.textContent = `${clamped} ft`;
-            }
-            if (cameraRangeValue) {
-                cameraRangeValue.textContent = `${clamped} ft`;
-            }
-        }
-        inputs.forEach((inputEl) => {
-            inputEl.value = clamped;
-        });
-        updateSelectedFov(prop, clamped, finalize);
-    }
-
-    function adjustFovValue(prop, delta) {
-        const inputs = prop === 'rotation'
-            ? [fovRotationInput].filter(Boolean)
-            : [fovRangeInput, cameraRangeInput].filter(Boolean);
-        if (!inputs.length) return;
-        const current = parseInt(inputs[0].value, 10) || 0;
-        setFovControlValue(prop, current + delta, false);
-    }
-
     fovAngleInput.addEventListener('input', (e)=>{
       const angle = parseInt(e.target.value,10);
       fovAngleValue.textContent = `${angle}°`;
@@ -1601,11 +1497,11 @@
     
     fovRangeInput.addEventListener('input', (e)=>{
       const range = parseInt(e.target.value,10);
-      setFovControlValue('rangeFt', range);
+      updateSelectedFov('rangeFt', range);
     });
     fovRangeInput.addEventListener('change', (e)=>{
       const range = parseInt(e.target.value,10);
-      setFovControlValue('rangeFt', range, true);
+      updateSelectedFov('rangeFt', range, true);
     });
 
     if (cameraRangeInput) {
@@ -1621,66 +1517,11 @@
 
     fovRotationInput.addEventListener('input', (e)=>{
       const rotation = parseInt(e.target.value,10);
-      setFovControlValue('rotation', rotation);
+      updateSelectedFov('rotation', rotation);
     });
     fovRotationInput.addEventListener('change', (e)=>{
       const rotation = parseInt(e.target.value,10);
-      setFovControlValue('rotation', rotation, true);
-    });
-
-    if (rangeDecreaseBtn) {
-      rangeDecreaseBtn.addEventListener('click', (e) => {
-        const step = e.shiftKey ? RANGE_STEP * 3 : RANGE_STEP;
-        adjustFovValue('rangeFt', -step);
-      });
-    }
-    if (rangeIncreaseBtn) {
-      rangeIncreaseBtn.addEventListener('click', (e) => {
-        const step = e.shiftKey ? RANGE_STEP * 3 : RANGE_STEP;
-        adjustFovValue('rangeFt', step);
-      });
-    }
-    if (cameraRangeDecreaseBtn) {
-      cameraRangeDecreaseBtn.addEventListener('click', (e) => {
-        const step = e.shiftKey ? RANGE_STEP * 3 : RANGE_STEP;
-        adjustFovValue('rangeFt', -step);
-      });
-    }
-    if (cameraRangeIncreaseBtn) {
-      cameraRangeIncreaseBtn.addEventListener('click', (e) => {
-        const step = e.shiftKey ? RANGE_STEP * 3 : RANGE_STEP;
-        adjustFovValue('range', step);
-      });
-    }
-    if (rotateLeftBtn) {
-      rotateLeftBtn.addEventListener('click', (e) => {
-        const step = e.shiftKey ? ROTATION_STEP * 3 : ROTATION_STEP;
-        adjustFovValue('rotation', -step);
-      });
-    }
-    if (rotateRightBtn) {
-      rotateRightBtn.addEventListener('click', (e) => {
-        const step = e.shiftKey ? ROTATION_STEP * 3 : ROTATION_STEP;
-        adjustFovValue('rotation', step);
-      });
-    }
-
-    if (fovRangeInput) {
-      fovRangeInput.addEventListener('wheel', (event) => {
-        if (fovControls && fovControls.style.display === 'none') return;
-        event.preventDefault();
-        const step = event.shiftKey ? RANGE_STEP * 3 : RANGE_STEP;
-        adjustFovValue('rangeFt', event.deltaY < 0 ? step : -step);
-      }, { passive: false });
-    }
-
-    if (fovRotationInput) {
-      fovRotationInput.addEventListener('wheel', (event) => {
-        if (fovControls && fovControls.style.display === 'none') return;
-        event.preventDefault();
-        const step = event.shiftKey ? ROTATION_STEP * 3 : ROTATION_STEP;
-        adjustFovValue('rotation', event.deltaY < 0 ? step : -step);
-      }, { passive: false });
+      updateSelectedFov('rotation', rotation, true);
     }
 
     fovColors.addEventListener('click', (e) => {
@@ -1735,9 +1576,6 @@
         if (cameraRangeValue) cameraRangeValue.textContent = '—';
         if (cameraRangeInput) cameraRangeInput.disabled = true;
         [cameraRangeDecreaseBtn, cameraRangeIncreaseBtn].forEach(btn => {
-            if (btn) btn.disabled = true;
-        });
-        [rangeDecreaseBtn, rangeIncreaseBtn, rotateLeftBtn, rotateRightBtn].forEach(btn => {
             if (btn) btn.disabled = true;
         });
         if (fovRangeValue) fovRangeValue.textContent = '—';
@@ -1797,15 +1635,6 @@
       if (linkedFov) {
           if (key === 'q' || key === 'e') {
               e.preventDefault();
-              const step = (e.shiftKey ? 3 : 1) * ROTATION_STEP;
-              adjustFovValue('rotation', key === 'q' ? -step : step, true);
-              return;
-          }
-          if (key === 'w' || key === 's') {
-              e.preventDefault();
-              const step = (e.shiftKey ? 3 : 1) * RANGE_STEP;
-              adjustFovValue('rangeFt', key === 'w' ? step : -step, true);
-              return;
           }
       }
 
