@@ -1294,7 +1294,6 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
           document.addEventListener('mousemove', onScaleMove);
           document.addEventListener('mouseup', onScaleUp);
       } else if (currentMode === 'drawWall') {
-      if (currentMode === 'drawWall') {
           const onWallMove = (moveEvent) => {
               const currentX = (moveEvent.clientX - rect.left - view.x) / view.scale;
               const currentY = (moveEvent.clientY - rect.top - view.y) / view.scale;
