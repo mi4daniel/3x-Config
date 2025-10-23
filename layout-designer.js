@@ -26,36 +26,12 @@
 */
 
 //(function(){ // Removed IIFE to make functions globally accessible
-  // ---- Safe globals & helpers ----
-  const STORAGE_KEY = '3xlogicConfig';
-
   function getConfig() {
-    if (!window.configuration) window.configuration = {};
-    const cfg = window.configuration;
-    // Ensure essential properties are arrays.
-    cfg.racks = Array.isArray(cfg.racks) ? cfg.racks : [];
-    cfg.cloudCameras = Array.isArray(cfg.cloudCameras) ? cfg.cloudCameras : [];
-    cfg.allInOneCameras = Array.isArray(cfg.allInOneCameras) ? cfg.allInOneCameras : [];
-    cfg.layoutPlacements = Array.isArray(cfg.layoutPlacements) ? cfg.layoutPlacements : [];
-    cfg.layoutWalls = Array.isArray(cfg.layoutWalls) ? cfg.layoutWalls : [];
-    // layoutScale stores pixelsPerFoot
-    if (typeof cfg.layoutScale === 'undefined' || cfg.layoutScale === null) cfg.layoutScale = 1; 
-    return cfg;
+    return window.configuration;
   }
 
   function saveConfig() {
-    const cfg = getConfig();
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      const bucket = raw ? JSON.parse(raw) : {};
-      bucket.layoutPlacements = cfg.layoutPlacements || [];
-      bucket.layoutWalls = cfg.layoutWalls || [];
-      bucket.cameraLayout = cfg.cameraLayout || null;
-      bucket.layoutScale = cfg.layoutScale || 1;
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(bucket));
-    } catch(e){
-      console.error("Failed to save layout config:", e);
-    }
+    if (window.AppState) window.AppState.persistConfiguration(getConfig());
   }
   
   (function bootstrapFromStorage(){
@@ -63,7 +39,7 @@
     try{
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return;
-      const parsed = JSON.parse(raw);
+      const parsed = JSON.parse(raw); // This is for initial load, can be kept for now.
       if (parsed && typeof parsed === 'object') {
         if (Array.isArray(parsed.layoutPlacements)) cfg.layoutPlacements = parsed.layoutPlacements;
         if (Array.isArray(parsed.layoutWalls)) cfg.layoutWalls = parsed.layoutWalls;
@@ -224,23 +200,23 @@
     if (typeof window.showToast === 'function') window.showToast('Camera layout removed.');
   };
 
-// ---- Public: Upload / Remove ----
-window.handleLayoutUpload = function handleLayoutUpload(event){
-  const file = event?.target?.files?.[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (e)=>{
-    const cfg = window.configuration;
-    cfg.cameraLayout = e.target.result;
-    cfg.layoutPlacements = [];
-    cfg.layoutWalls = [];
-    if (window.AppState) window.AppState.persistConfiguration(cfg);
-    if (typeof window.renderAll === 'function') window.renderAll();
-    if (typeof window.showToast === 'function') window.showToast('Camera layout uploaded.');
+  // ---- Public: Upload / Remove ----
+  window.handleLayoutUpload = function handleLayoutUpload(event){
+    const file = event?.target?.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e)=>{
+      const cfg = getConfig();
+      cfg.cameraLayout = e.target.result;
+      cfg.layoutPlacements = [];
+      cfg.layoutWalls = [];
+      saveConfig();
+      if (typeof window.renderAll === 'function') window.renderAll();
+      if (typeof window.showToast === 'function') window.showToast('Camera layout uploaded.');
+    };
+    reader.readAsDataURL(file);
+    if (event?.target) event.target.value = '';
   };
-  reader.readAsDataURL(file);
-  if (event?.target) event.target.value = '';
-};
 
   // ---- Main UI ----
   window.openLayoutDesigner = function openLayoutDesigner(){
@@ -1175,14 +1151,14 @@ window.handleLayoutUpload = function handleLayoutUpload(event){
             saveConfig();
             saveHistory();
           }
-          document.addEventListener('mousemove', onMove);
-          document.addEventListener('mouseup', onUp);
-        });
-
-                });
+          document.addEventListener('mousemove', onPanMove);
+          document.addEventListener('mouseup', onPanUp);
+      }
+    }); // This is the end of the mousedown listener
 
         overlayLayer.appendChild(el);
       });
+
     }
 
     wrap.addEventListener('dragover', (e)=>{ e.preventDefault(); });
