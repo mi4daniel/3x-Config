@@ -389,6 +389,8 @@ window.handleLayoutUpload = function handleLayoutUpload(event){
     const linkBtn = overlay.querySelector('#ldzLinkBtn');
     const unlinkBtn = overlay.querySelector('#ldzUnlinkBtn');
     const itemsListEl = overlay.querySelector('#ldzItems');
+    const scrollUpBtn = overlay.querySelector('#ldzScrollUp');
+    const scrollDownBtn = overlay.querySelector('#ldzScrollDown');
     const drawWallBtn = overlay.querySelector('#ldzDrawWall');
     const scaleInputWrap = overlay.querySelector('#ldzScaleInputWrap');
     const scaleDistanceInput = overlay.querySelector('#ldzScaleDistanceInput');
@@ -516,6 +518,19 @@ window.handleLayoutUpload = function handleLayoutUpload(event){
 
       schedule(updateScrollButtons);
       setTimeout(updateScrollButtons, 250);
+    }
+
+    if (scrollUpBtn) {
+      scrollUpBtn.addEventListener('click', () => scrollListBy(-1));
+    }
+
+    if (scrollDownBtn) {
+      scrollDownBtn.addEventListener('click', () => scrollListBy(1));
+    }
+
+    if (itemsListEl) {
+      listScrollListener = () => schedule(updateScrollButtons);
+      itemsListEl.addEventListener('scroll', listScrollListener);
     }
 
     function renderItemsList(){
