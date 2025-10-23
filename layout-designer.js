@@ -223,7 +223,6 @@
     if (typeof window.renderAll === 'function') window.renderAll();
     if (typeof window.showToast === 'function') window.showToast('Camera layout removed.');
   };
-//})(); // Removed IIFE
 
 // ---- Public: Upload / Remove ----
 window.handleLayoutUpload = function handleLayoutUpload(event){
@@ -1289,7 +1288,6 @@ window.handleLayoutUpload = function handleLayoutUpload(event){
           [cameraRangeDecreaseBtn, cameraRangeIncreaseBtn].forEach(btn => {
               if (btn) btn.disabled = true;
           });
-
           const panStartX = e.clientX - view.x;
           const panStartY = e.clientY - view.y;
           wrap.style.cursor = 'grabbing';
