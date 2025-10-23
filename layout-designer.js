@@ -21,8 +21,8 @@
      ✓ Rotate a camera and its linked FOV together.
      ✓ FOV range/distance slider when a camera/FOV is selected.
      ✓ Fixed unresponsive close buttons.
-     ✓ Wall drawing tool, FOV obstruction, and performance fixes.
-     ✓ NEW: Replaced scale slider with an interactive "Set Scale by Distance" tool.
+     ✓ Wall drawing tool and FOV obstruction.
+     ✓ NEW: Interactive line-based tool for scaling the floorplan.
 */
 
 (function(){
@@ -116,7 +116,7 @@
       .ldz-sidebar{background:rgba(248,250,252,0.95);backdrop-filter:blur(12px);display:flex;flex-direction:column;}
       .ldz-sidebar-header{padding:28px 28px 20px;border-bottom:1px solid rgba(148,163,184,0.18);display:flex;flex-direction:column;gap:14px;}
       .ldz-title{font-size:1.25rem;font-weight:700;letter-spacing:-0.01em;color:#0f172a;}
-      .ldz-subtitle{font-size:0.8rem;color:rgba(15,23,42,0.68);line-height:1.4;}
+      .ldz-subtitle{font-size:0.8rem;color:rgba(15,23,42,0.68);line-height:1.4;margin-bottom:14px;}
       .ldz-stat-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
       .ldz-chip{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:14px;background:rgba(194,32,51,0.08);border:1px solid rgba(194,32,51,0.18);font-size:0.72rem;color:#c22033;font-weight:600;}
       .ldz-chip span{font-weight:500;color:rgba(34,30,31,0.55);font-size:0.68rem;}
@@ -181,7 +181,7 @@
       .ldz-icon-btn.ghost.active{border-color:rgba(194,32,51,0.6);background:rgba(194,32,51,0.12);color:#c22033;}
       .ldz-icon-btn:disabled{opacity:0.45;cursor:not-allowed;box-shadow:none;border-color:rgba(34,30,31,0.18);}
       .ldz-canvas-wrap{position:relative;background:radial-gradient(circle at top,#221e1f,#000000);display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:grab;}
-      .ldz-canvas-wrap.wall-mode, .ldz-canvas-wrap.scale-mode{cursor:crosshair;}
+      .ldz-canvas-wrap.wall-mode{cursor:crosshair;}
       .ldz-canvas-toolbar{position:absolute;top:88px;right:24px;display:flex;gap:10px;flex-wrap:wrap;background:rgba(34,30,31,0.75);backdrop-filter:blur(10px);padding:10px 12px;border-radius:16px;border:1px solid rgba(34,30,31,0.3);box-shadow:0 24px 40px -28px rgba(34,30,31,0.8);z-index:5;}
       .ldz-toolbar-group{display:flex;align-items:center;gap:8px;}
       .ldz-toolbar-btn{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;border:1px solid rgba(34,30,31,0.35);background:rgba(34,30,31,0.65);color:#f6f7fb;cursor:pointer;transition:all .2s;}
@@ -198,6 +198,7 @@
       .ldz-placed.selected{box-shadow:0 0 0 4px rgba(194,32,51,0.55);}
       .ldz-placed-label{position:absolute;top:100%;left:50%;transform:translateX(-50%);background:rgba(34,30,31,0.9);color:#f6f7fb;font-size:0.68rem;padding:4px 8px;border-radius:8px;white-space:nowrap;margin-top:6px;font-weight:500;pointer-events:auto;}
       .ldz-camera-rotate-handle{display:none;position:absolute;top:-18px;left:50%;transform:translateX(-50%);width:12px;height:12px;background:#c22033;border:2px solid #fff;border-radius:9999px;cursor:crosshair;}
+      .ldz-scale-handle{position:absolute;width:14px;height:14px;background:#fff;border-radius:9999px;cursor:move;border:2px solid #10b981;box-shadow:0 2px 8px rgba(0,0,0,0.3);}
       .ldz-placed.selected .ldz-camera-rotate-handle{display:block;}
       .ldz-fov-handle{position:absolute;width:12px;height:12px;background:#fff;border-radius:9999px;cursor:crosshair;border:2px solid rgba(194,32,51,0.6);}
       .ldz-fov-rotate{top:-16px;left:50%;transform:translateX(-50%);}
@@ -209,6 +210,7 @@
       .ldz-item-badge{position:absolute;left:8px;top:8px;background:#c22033;color:#fff;width:18px;height:18px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:700;}
       .ldz-placed-badge{position:absolute;right:-8px;bottom:-8px;background:#fff;color:#c22033;width:18px;height:18px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;font-size:0.68rem;font-weight:700;border:2px solid rgba(34,30,31,0.12);transform-origin:center;}
       .ldz-place-label-input{font-size:0.68rem;padding:3px 6px;border-radius:6px;border:1px solid rgba(0,0,0,0.12);outline:none;}
+      .ldz-scale-input-wrap{display:none;align-items:center;gap:8px;}
     `;
     document.head.appendChild(style);
   }
@@ -299,12 +301,7 @@
         <!-- Right Sidebar for Tools & Controls -->
         <aside class="ldz-sidebar" style="border-left: 1px solid rgba(148,163,184,0.18);">
             <header class="ldz-sidebar-header">
-                <div class="ldz-stat-grid">
-                    <div class="ldz-chip"><span>Placed cameras</span><strong id="ldzPlacedCameraCount">0</strong></div>
-                    <div class="ldz-chip alt"><span>Coverage zones</span><strong id="ldzPlacedFovCount">0</strong></div>
-                    <div class="ldz-chip neutral"><span>Recorders</span><strong id="ldzPlacedNvrCount">0</strong></div>
-                    <div class="ldz-chip neutral"><span>Walls</span><strong id="ldzPlacedWallCount">0</strong></div>
-                </div>
+                <p class="ldz-subtitle">Select an item on the floorplan to see its properties, or use the tools below to manage the layout.</p>
             </header>
             <div class="ldz-sidebar-body">
                 <div class="ldz-card">
@@ -351,10 +348,14 @@
                 <div class="ldz-card" id="ldzScaleCard">
                     <div class="ldz-card-title">Floorplan Scale</div>
                     <div class="ldz-field">
-                        <div class="ldz-field-header">
-                            <span class="ldz-label">Current: <strong id="ldzScaleValue">1.00 px/ft</strong></span>
+                        <div class="ldz-scale-input-wrap" id="ldzScaleInputWrap">
+                            <input type="number" id="ldzScaleDistanceInput" value="10" class="ldz-place-label-input" style="width:60px; text-align:right;">
+                            <span class="ldz-label">feet</span>
                         </div>
-                        <button id="ldzSetScaleBtn" class="ldz-icon-btn ghost active"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width:18px;height:18px;"><path d="M2 5a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm3.5 1a.5.5 0 00-.5.5v2a.5.5 0 001 0v-2a.5.5 0 00-.5-.5zM6 13.5a.5.5 0 01.5-.5h8a.5.5 0 010 1H6.5a.5.5 0 01-.5-.5z" clip-rule="evenodd"/></svg><span>Set Scale by Distance</span></button>
+                        <button id="ldzSetScaleBtn" class="ldz-icon-btn ghost"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width:18px;height:18px;"><path d="M2 5a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm3.5 1a.5.5 0 00-.5.5v2a.5.5 0 001 0v-2a.5.5 0 00-.5-.5zM6 13.5a.5.5 0 01.5-.5h8a.5.5 0 010 1H6.5a.5.5 0 01-.5-.5z" clip-rule="evenodd"/></svg><span id="ldzSetScaleBtnText">Scale Floor Plan</span></button>
+                    </div>
+                     <div class="ldz-field-header">
+                        <span class="ldz-label">Current: <strong id="ldzScaleValue">1.00 px/ft</strong></span>
                     </div>
                 </div>
             </div>
@@ -403,14 +404,10 @@
     const linkBtn = overlay.querySelector('#ldzLinkBtn');
     const unlinkBtn = overlay.querySelector('#ldzUnlinkBtn');
     const itemsListEl = overlay.querySelector('#ldzItems');
-    const scrollUpBtn = overlay.querySelector('#ldzScrollUp');
-    const scrollDownBtn = overlay.querySelector('#ldzScrollDown');
     const drawWallBtn = overlay.querySelector('#ldzDrawWall');
-    const availableCountEl = overlay.querySelector('#ldzAvailableTotal');
-    const placedCameraCountEl = overlay.querySelector('#ldzPlacedCameraCount');
-    const placedFovCountEl = overlay.querySelector('#ldzPlacedFovCount');
-    const placedNvrCountEl = overlay.querySelector('#ldzPlacedNvrCount');
-    const placedWallCountEl = overlay.querySelector('#ldzPlacedWallCount');
+    const scaleInputWrap = overlay.querySelector('#ldzScaleInputWrap');
+    const scaleDistanceInput = overlay.querySelector('#ldzScaleDistanceInput');
+    const setScaleBtnText = overlay.querySelector('#ldzSetScaleBtnText');
     const zoomIndicator = overlay.querySelector('#ldzZoomIndicator');
     const zoomInBtn = overlay.querySelector('#ldzZoomIn');
     const zoomOutBtn = overlay.querySelector('#ldzZoomOut');
@@ -434,6 +431,7 @@
     let fovHistoryTimer = null;
     let listResizeObserver = null;
     let listMutationObserver = null;
+    let scaleLine = null;
 
     // pixelsPerFoot = how many pixels equal one foot on the floorplan
     let pixelsPerFoot = Math.max(0.0001, Number(cfg.layoutScale || 1));
@@ -534,29 +532,6 @@
       setTimeout(updateScrollButtons, 250);
     }
 
-    const listScrollListener = () => schedule(updateScrollButtons);
-
-    if (itemsListEl) {
-      itemsListEl.addEventListener('scroll', listScrollListener, { passive: true });
-      if (typeof ResizeObserver !== 'undefined') {
-        listResizeObserver = new ResizeObserver(listScrollListener);
-        listResizeObserver.observe(itemsListEl);
-      }
-      if (typeof MutationObserver !== 'undefined') {
-        listMutationObserver = new MutationObserver(listScrollListener);
-        listMutationObserver.observe(itemsListEl, { childList: true, subtree: true });
-      }
-    }
-    if (scrollUpBtn) {
-      scrollUpBtn.addEventListener('click', () => scrollListBy(-0.85));
-    }
-    if (scrollDownBtn) {
-      scrollDownBtn.addEventListener('click', () => scrollListBy(0.85));
-    }
-
-    schedule(updateScrollButtons);
-    setTimeout(updateScrollButtons, 120);
-
     function renderItemsList(){
       const list = itemsListEl;
       if (!list) return;
@@ -602,8 +577,6 @@
         });
       });
 
-      if (availableCountEl) availableCountEl.textContent = items.length;
-
       if (!items.length){
         list.innerHTML = '<div class="ldz-empty-state">No items available to place.</div>';
         schedule(updateScrollButtons);
@@ -646,10 +619,6 @@
       const cfg = getConfig();
       const placements = cfg.layoutPlacements || [];
       const countType = (type) => placements.filter(p => p.type === type).length;
-      if (placedCameraCountEl) placedCameraCountEl.textContent = countType('camera');
-      if (placedFovCountEl) placedFovCountEl.textContent = countType('fov');
-      if (placedNvrCountEl) placedNvrCountEl.textContent = countType('nvr');
-      if (placedWallCountEl) placedWallCountEl.textContent = (cfg.layoutWalls || []).length;
     }
 
     function updateZoomDisplay(){
@@ -713,6 +682,20 @@
         drawGrid(ctx);
         drawWalls(wallCtx);
         drawFovs();
+        if (currentMode === 'scale' && scaleLine) {
+            wallCtx.save();
+            wallCtx.translate(view.x, view.y);
+            wallCtx.scale(view.scale, view.scale);
+            wallCtx.strokeStyle = '#10b981';
+            wallCtx.lineWidth = 3 / view.scale;
+            wallCtx.setLineDash([5 / view.scale, 5 / view.scale]);
+            wallCtx.lineCap = 'round';
+            wallCtx.beginPath();
+            wallCtx.moveTo(scaleLine.x1, scaleLine.y1);
+            wallCtx.lineTo(scaleLine.x2, scaleLine.y2);
+            wallCtx.stroke();
+            wallCtx.restore();
+        }
 
         ctx.restore(); fovCtx.restore(); wallCtx.restore();
 
@@ -721,6 +704,7 @@
         overlayLayer.style.transform = `translate(${view.x}px, ${view.y}px) scale(${view.scale})`;
 
         renderPlacedMarkers();
+        if (currentMode === 'scale') renderScaleHandles();
         updatePlacementStats();
     }
 
@@ -1221,6 +1205,51 @@
       });
     }
 
+    function renderScaleHandles() {
+        if (currentMode !== 'scale' || !scaleLine) return;
+
+        ['p1', 'p2'].forEach(key => {
+            const handle = document.createElement('div');
+            handle.className = 'ldz-scale-handle';
+            handle.dataset.key = key;
+            handle.style.transform = `translate(${scaleLine[key === 'p1' ? 'x1' : 'x2'] - 7}px, ${scaleLine[key === 'p1' ? 'y1' : 'y2'] - 7}px)`;
+            
+            handle.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const onMove = (moveEvent) => {
+                    const rect = overlayLayer.getBoundingClientRect();
+                    const mouseX = (moveEvent.clientX - rect.left) / view.scale;
+                    const mouseY = (moveEvent.clientY - rect.top) / view.scale;
+                    if (key === 'p1') {
+                        scaleLine.x1 = mouseX;
+                        scaleLine.y1 = mouseY;
+                    } else {
+                        scaleLine.x2 = mouseX;
+                        scaleLine.y2 = mouseY;
+                    }
+                    redraw();
+                };
+
+                const onUp = () => {
+                    document.removeEventListener('mousemove', onMove);
+                    document.removeEventListener('mouseup', onUp);
+                };
+
+                document.addEventListener('mousemove', onMove);
+                document.addEventListener('mouseup', onUp);
+            });
+
+            overlayLayer.appendChild(handle);
+        });
+    }
+
+    function clearScaleHandles() {
+        overlayLayer.querySelectorAll('.ldz-scale-handle').forEach(h => h.remove());
+    }
+
+
     wrap.addEventListener('dragover', (e)=>{ e.preventDefault(); });
     wrap.addEventListener('drop', (e)=>{
       e.preventDefault();
@@ -1440,48 +1469,43 @@
     };
 
     setScaleBtn.addEventListener('click', () => {
-        currentMode = 'scale';
-        setScaleBtn.classList.add('active');
-        drawWallBtn.classList.remove('active');
-        wrap.classList.add('scale-mode');
-        if (typeof window.showToast === 'function') showToast('Click a start point on the floorplan.');
-
-        let firstPoint = null;
-
-        const onScaleClick = (e) => {
-            const rect = bg.getBoundingClientRect();
-            const x = (e.clientX - rect.left - view.x) / view.scale;
-            const y = (e.clientY - rect.top - view.y) / view.scale;
-
-            if (!firstPoint) {
-                firstPoint = { x, y };
-                if (typeof window.showToast === 'function') showToast('Click an end point.');
-            } else {
-                const pixelDistance = Math.hypot(x - firstPoint.x, y - firstPoint.y);
-                const feetDistanceStr = prompt(`The selected line is ${pixelDistance.toFixed(2)} pixels long.\n\nEnter the real-world distance in feet:`, '10');
-                const feetDistance = parseFloat(feetDistanceStr);
-
-                if (feetDistance > 0) {
-                    pixelsPerFoot = pixelDistance / feetDistance;
-                    getConfig().layoutScale = pixelsPerFoot;
-                    if (scaleValueEl) scaleValueEl.textContent = `${pixelsPerFoot.toFixed(2)} px/ft`;
-                    saveConfig();
-                    saveHistory();
-                    redraw();
-                    if (typeof window.showToast === 'function') showToast(`Scale set to ${pixelsPerFoot.toFixed(2)} pixels per foot.`);
-                } else {
-                    if (typeof window.showToast === 'function') showToast('Scale update cancelled.');
-                }
-
-                // Cleanup and exit scale mode
-                wrap.removeEventListener('click', onScaleClick);
-                currentMode = 'place';
-                setScaleBtn.classList.remove('active');
-                wrap.classList.remove('scale-mode');
-                redraw(); // To remove any temporary line
+        if (currentMode === 'scale') { // User is clicking "Set Scale"
+            const feetDistance = parseFloat(scaleDistanceInput.value);
+            if (feetDistance > 0 && scaleLine) {
+                const pixelDistance = Math.hypot(scaleLine.x2 - scaleLine.x1, scaleLine.y2 - scaleLine.y1);
+                pixelsPerFoot = pixelDistance / feetDistance;
+                getConfig().layoutScale = pixelsPerFoot;
+                if (scaleValueEl) scaleValueEl.textContent = `${pixelsPerFoot.toFixed(2)} px/ft`;
+                saveConfig();
+                saveHistory();
+                if (typeof window.showToast === 'function') showToast(`Scale set to ${pixelsPerFoot.toFixed(2)} pixels per foot.`);
             }
-        };
-        wrap.addEventListener('click', onScaleClick, { once: false }); // Keep listening for the second click
+
+            // Exit scale mode
+            currentMode = 'place';
+            scaleLine = null;
+            setScaleBtn.classList.remove('active');
+            setScaleBtnText.textContent = 'Scale Floor Plan';
+            scaleInputWrap.style.display = 'none';
+            clearScaleHandles();
+            redraw();
+
+        } else { // User is clicking "Scale Floor Plan"
+            currentMode = 'scale';
+            drawWallBtn.classList.remove('active');
+            wrap.classList.remove('wall-mode');
+            
+            // Create a default line in the center of the image
+            const centerX = img.width / 2;
+            const centerY = img.height / 2;
+            scaleLine = { x1: centerX - 50, y1: centerY, x2: centerX + 50, y2: centerY };
+
+            setScaleBtn.classList.add('active');
+            setScaleBtnText.textContent = 'Set Scale';
+            scaleInputWrap.style.display = 'flex';
+            if (typeof window.showToast === 'function') showToast('Drag the green handles to measure a known distance.');
+            redraw();
+        }
     });
 
     function queueFovHistoryCommit() {
@@ -1828,7 +1852,6 @@
     renderItemsList();
     updatePlacementStats();
     if (scaleValueEl) scaleValueEl.textContent = `${pixelsPerFoot.toFixed(2)} px/ft`;
-
 
     const onResize = ()=>{ if (img.width) resetView(); };
     window.addEventListener('resize', onResize);
