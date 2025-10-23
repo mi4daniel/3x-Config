@@ -672,13 +672,12 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
         overlayLayer.style.transform = `translate(${view.x}px, ${view.y}px) scale(${view.scale})`;
 
         ctx.drawImage(img, 0, 0);
-        renderPlacedMarkers();
-        renderInteractiveHandles();
-        updatePlacementStats();
-
         drawGrid(ctx);
         drawWalls(wallCtx);
         drawFovs();
+        renderPlacedMarkers();
+        renderInteractiveHandles();
+        updatePlacementStats();
 
         if (currentMode === 'scale' && scaleLine) {
             wallCtx.save();
