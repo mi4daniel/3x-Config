@@ -1186,6 +1186,7 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
       }
     }); // This is the end of the mousedown listener
 
+
         overlayLayer.appendChild(el);
       });
 
