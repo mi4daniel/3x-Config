@@ -25,9 +25,7 @@
      ✓ NEW: Interactive FOV handles for range, angle, and rotation, simplifying the UI.
 */
 
-  const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogicConfig';
-
-//(function(){ // Removed IIFE to make functions globally accessible
+const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogicConfig';
   function getConfig() {
     return window.configuration;
   }
@@ -1183,8 +1181,8 @@
             saveConfig();
             saveHistory();
           }
-          document.addEventListener('mousemove', onPanMove);
-          document.addEventListener('mouseup', onPanUp);
+          document.addEventListener('mousemove', onMove);
+          document.addEventListener('mouseup', onUp);
       }
     }); // This is the end of the mousedown listener
 
