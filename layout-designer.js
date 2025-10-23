@@ -213,24 +213,6 @@
     document.head.appendChild(style);
   }
 
-  // ---- Public: Upload / Remove ----
-  window.handleLayoutUpload = function(event){
-    const file = event?.target?.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e)=>{
-      const cfg = getConfig();
-      cfg.cameraLayout = e.target.result;
-      cfg.layoutPlacements = [];
-      cfg.layoutWalls = [];
-      saveConfig();
-      if (typeof window.renderAll === 'function') window.renderAll();
-      if (typeof window.showToast === 'function') window.showToast('Camera layout uploaded.');
-    };
-    reader.readAsDataURL(file);
-    if (event?.target) event.target.value = '';
-  };
-
   window.removeCameraLayout = function(){
     if (!confirm('Remove the layout image and all placed items and walls?')) return;
     const cfg = getConfig();
@@ -241,6 +223,25 @@
     if (typeof window.renderAll === 'function') window.renderAll();
     if (typeof window.showToast === 'function') window.showToast('Camera layout removed.');
   };
+})();
+
+// ---- Public: Upload / Remove ----
+window.handleLayoutUpload = function(event){
+  const file = event?.target?.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e)=>{
+    const cfg = window.configuration;
+    cfg.cameraLayout = e.target.result;
+    cfg.layoutPlacements = [];
+    cfg.layoutWalls = [];
+    if (window.AppState) window.AppState.persistConfiguration(cfg);
+    if (typeof window.renderAll === 'function') window.renderAll();
+    if (typeof window.showToast === 'function') window.showToast('Camera layout uploaded.');
+  };
+  reader.readAsDataURL(file);
+  if (event?.target) event.target.value = '';
+};
 
   // ---- Main UI ----
   window.openLayoutDesigner = function(){
@@ -1685,4 +1686,3 @@
     const onResize = ()=>{ if (img.width) resetView(); };
     window.addEventListener('resize', onResize);
   };
-})();

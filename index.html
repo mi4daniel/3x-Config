@@ -3150,7 +3150,7 @@
         addRackButton.addEventListener('click', addRack);
         storageCalcButton.addEventListener('click', openStorageCalculator);
         uploadLayoutButton.addEventListener('click', () => layoutFileEl.click());
-        layoutFileEl.addEventListener('change', handleLayoutUpload);
+        layoutFileEl.addEventListener('change', (e) => window.handleLayoutUpload(e));
         layoutDesignerButton.addEventListener('click', openLayoutDesigner);
 
         if (addCameraButton) {
