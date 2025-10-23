@@ -1032,151 +1032,184 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
             el.appendChild(camRot);
         }
 
-        el.addEventListener('mousedown', (e)=>{
-          e.preventDefault();
-          e.stopPropagation();
+          el.addEventListener('mousedown', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
 
-          if (currentMode === 'linkFov') {
             const cfg = getConfig();
-            const fovToLink = cfg.layoutPlacements.find(item => item.uniqueId === selectedId);
-            const targetCamera = p; // `p` is the placement for the clicked element `el`
-    
-            if (fovToLink && targetCamera && targetCamera.type === 'camera') {
+
+            if (currentMode === 'linkFov') {
+              const fovToLink = cfg.layoutPlacements.find(item => item.uniqueId === selectedId);
+              const targetCamera = p; // `p` is the placement for the clicked element `el`
+
+              if (fovToLink && targetCamera && targetCamera.type === 'camera') {
                 fovToLink.linkedTo = targetCamera.uniqueId;
                 fovToLink.x = targetCamera.x;
                 fovToLink.y = targetCamera.y;
                 fovToLink.fov.rotation = targetCamera.rotation || 0;
-                
+
                 currentMode = 'place';
                 linkBtn.classList.remove('active');
                 wrap.style.cursor = 'grab';
-                overlay.querySelectorAll('.ldz-placed.camera').forEach(c => c.style.outline = 'none');
-                
+                overlay.querySelectorAll('.ldz-placed.camera').forEach(cam => {
+                  cam.style.outline = 'none';
+                });
+
                 redraw();
                 saveConfig();
                 saveHistory();
+              }
+
+              return;
             }
-            return;
-          }
 
-          overlayLayer.querySelectorAll('.ldz-placed').forEach(n=>n.classList.remove('selected'));
-          el.classList.add('selected');
-          selectedId = p.uniqueId;
-          deleteBtn.style.display = 'flex';
+            overlayLayer.querySelectorAll('.ldz-placed').forEach(node => node.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedId = p.uniqueId;
+            deleteBtn.style.display = 'flex';
 
-          let fovPlacement = null;
-          const isCamera = p.type === 'camera';
-          const isFov = p.type === 'fov';
-          const isUnlinkedFov = isFov && !p.linkedTo;
+            const isCamera = p.type === 'camera';
+            const isFov = p.type === 'fov';
+            const isUnlinkedFov = isFov && !p.linkedTo;
 
-          if (isFov) {
+            let fovPlacement = null;
+            if (isFov) {
               fovPlacement = p;
-          } else if (isCamera) {
-              fovPlacement = cfg.layoutPlacements.find(fp => fp.linkedTo === p.uniqueId);
-          }
-          fovControls.style.display = fovPlacement ? 'flex' : 'none';
-          const hasLinkedFov = isCamera && !!fovPlacement;
-          const fovControlsEnabled = !!fovPlacement;
-          const cameraRangeEnabled = isCamera && !!fovPlacement;
-          if (cameraRangeControl) {
+            } else if (isCamera) {
+              fovPlacement = cfg.layoutPlacements.find(fp => fp.linkedTo === p.uniqueId) || null;
+            }
+
+            const hasLinkedFov = Boolean(isCamera && fovPlacement);
+            const cameraRangeEnabled = Boolean(isCamera && fovPlacement);
+
+            fovControls.style.display = fovPlacement ? 'flex' : 'none';
+            selectionControls.style.display = 'flex';
+            unlinkBtn.style.display = hasLinkedFov ? 'flex' : 'none';
+            linkBtn.style.display = isUnlinkedFov ? 'flex' : 'none';
+
+            if (cameraRangeControl) {
               cameraRangeControl.style.display = cameraRangeEnabled ? 'flex' : 'none';
-          }
-          if (cameraRangeInput) {
+            }
+            if (cameraRangeInput) {
               cameraRangeInput.disabled = !cameraRangeEnabled;
-          }
-          [cameraRangeDecreaseBtn, cameraRangeIncreaseBtn].forEach(btn => {
-              if (btn) btn.disabled = !cameraRangeEnabled;
-          });
-          selectionControls.style.display = 'flex';
-          unlinkBtn.style.display = hasLinkedFov ? 'flex' : 'none';
-          linkBtn.style.display = isUnlinkedFov ? 'flex' : 'none';
+            }
+            [cameraRangeDecreaseBtn, cameraRangeIncreaseBtn].forEach(btn => {
+              if (btn) {
+                btn.disabled = !cameraRangeEnabled;
+              }
+            });
 
-          if (fovPlacement) {
-              const a = (fovPlacement.fov?.angle ?? 90);
-              fovAngleInput.value = a;
-              fovAngleValue.textContent = `${a}°`;
+            if (fovPlacement) {
+              const fovData = fovPlacement.fov || {};
+              const angle = typeof fovData.angle === 'number' ? fovData.angle : 90;
+              const rangeFeet = typeof fovData.rangeFt === 'number'
+                ? fovData.rangeFt
+                : (typeof fovData.range === 'number' ? fovData.range : 60);
+              const rotation = typeof fovData.rotation === 'number' ? fovData.rotation : 0;
+              const color = fovData.color || 'rgba(234,179,8,0.5)';
 
-              // Range in feet: prefer stored rangeFt
-              const rFt = (typeof fovPlacement.fov?.rangeFt === 'number') ? fovPlacement.fov.rangeFt : (fovPlacement.fov?.range ?? 60);
-              fovRangeInput.value = rFt;
-              if (fovRangeValue) fovRangeValue.textContent = `${rFt} ft`;
-              if (cameraRangeInput) cameraRangeInput.value = rFt;
-              if (cameraRangeValue) cameraRangeValue.textContent = `${rFt} ft`;
+              if (fovAngleInput) fovAngleInput.value = angle;
+              if (fovAngleValue) fovAngleValue.textContent = `${angle}°`;
 
-              const rot = (fovPlacement.fov?.rotation ?? 0);
-              fovRotationInput.value = rot;
-              fovRotationValue.textContent = `${rot}°`;
+              if (fovRangeInput) fovRangeInput.value = rangeFeet;
+              if (fovRangeValue) fovRangeValue.textContent = `${rangeFeet} ft`;
+              if (cameraRangeInput) cameraRangeInput.value = rangeFeet;
+              if (cameraRangeValue) cameraRangeValue.textContent = `${rangeFeet} ft`;
 
-              fovColors.querySelectorAll('.ldz-color-swatch').forEach(sw => {
-                  sw.classList.toggle('selected', sw.dataset.color === (fovPlacement.fov?.color || 'rgba(234,179,8,0.5)'));
-              });
-          } else {
+              if (fovRotationInput) fovRotationInput.value = rotation;
+              if (fovRotationValue) fovRotationValue.textContent = `${rotation}°`;
+
+              if (fovColors) {
+                fovColors.querySelectorAll('.ldz-color-swatch').forEach(sw => {
+                  sw.classList.toggle('selected', sw.dataset.color === color);
+                });
+              }
+            } else {
               if (fovRangeValue) fovRangeValue.textContent = '—';
               if (fovRotationValue) fovRotationValue.textContent = '—';
               if (cameraRangeValue) cameraRangeValue.textContent = '—';
               if (cameraRangeInput) cameraRangeInput.disabled = true;
-          }
+            }
 
-          const isRotateCam = e.target.classList.contains('ldz-camera-rotate-handle');
-          const isFovBody = e.target.classList.contains('ldz-fov-body');
-          let mode = 'move';
-          if (isRotateCam) mode = 'rotateCam';
-          else if (isFovBody) mode = 'rotateFov';
+            const isRotateCamHandle = event.target.classList.contains('ldz-camera-rotate-handle');
+            const isFovBody = event.target.classList.contains('ldz-fov-body');
+            let mode = 'move';
+            if (isRotateCamHandle) {
+              mode = 'rotateCam';
+            } else if (isFovBody) {
+              mode = 'rotateFov';
+            }
 
-          
-          const start = { mx:e.clientX, my:e.clientY, x:p.x, y:p.y };
-          
-          function onMove(ev){
-            const rect = overlayLayer.getBoundingClientRect();
-            const mouseX = (ev.clientX - rect.left) / view.scale;
-            const mouseY = (ev.clientY - rect.top) / view.scale;
+            const dragStart = {
+              mouseX: event.clientX,
+              mouseY: event.clientY,
+              x: p.x,
+              y: p.y
+            };
 
-            if (mode==='move'){
-              const dx = (ev.clientX - start.mx) / view.scale;
-              const dy = (ev.clientY - start.my) / view.scale;
-              p.x = Math.max(0, Math.min(img.width, start.x + dx));
-              p.y = Math.max(0, Math.min(img.height, start.y + dy));
-              
-              if (p.type === 'camera') {
-                  const linkedFov = cfg.layoutPlacements.find(fp => fp.linkedTo === p.uniqueId);
-                  if (linkedFov) { linkedFov.x = p.x; linkedFov.y = p.y; }
-              }
-              redraw();
-            } else if (mode === 'rotateCam') {
-                const ang = Math.atan2(mouseY - p.y, mouseX - p.x) * 180 / Math.PI;
-                const newRotation = Math.round(ang + 90);
-                p.rotation = newRotation;
-                const linkedFov = cfg.layoutPlacements.find(fp => fp.linkedTo === p.uniqueId);
-                if (linkedFov) {
-                    linkedFov.fov.rotation = newRotation;
-                    fovRotationInput.value = newRotation;
-                    fovRotationValue.textContent = `${newRotation}°`;
+            const handleMove = (moveEvent) => {
+              const rect = overlayLayer.getBoundingClientRect();
+              const pointerX = (moveEvent.clientX - rect.left) / view.scale;
+              const pointerY = (moveEvent.clientY - rect.top) / view.scale;
+
+              if (mode === 'move') {
+                const dx = (moveEvent.clientX - dragStart.mouseX) / view.scale;
+                const dy = (moveEvent.clientY - dragStart.mouseY) / view.scale;
+                p.x = Math.max(0, Math.min(img.width, dragStart.x + dx));
+                p.y = Math.max(0, Math.min(img.height, dragStart.y + dy));
+
+                if (isCamera && fovPlacement) {
+                  fovPlacement.x = p.x;
+                  fovPlacement.y = p.y;
                 }
+
                 redraw();
-            } else if (mode==='rotateFov'){
-                const ang = Math.atan2(mouseY - fovPlacement.y, mouseX - fovPlacement.x) * 180 / Math.PI;
-                const newRotation = Math.round(ang + 90);
-                fovPlacement.fov = fovPlacement.fov || {angle:90, rangeFt:60, rotation:0};
+                return;
+              }
+
+              if (mode === 'rotateCam') {
+                const angle = Math.atan2(pointerY - p.y, pointerX - p.x) * 180 / Math.PI;
+                const newRotation = Math.round(angle + 90);
+                p.rotation = newRotation;
+
+                if (isCamera && fovPlacement) {
+                  fovPlacement.fov = fovPlacement.fov || {};
+                  fovPlacement.fov.rotation = newRotation;
+                  if (fovRotationInput) fovRotationInput.value = newRotation;
+                  if (fovRotationValue) fovRotationValue.textContent = `${newRotation}°`;
+                }
+
+                redraw();
+                return;
+              }
+
+              if (mode === 'rotateFov' && fovPlacement) {
+                const angle = Math.atan2(pointerY - fovPlacement.y, pointerX - fovPlacement.x) * 180 / Math.PI;
+                const newRotation = Math.round(angle + 90);
+                fovPlacement.fov = fovPlacement.fov || { angle: 90, rangeFt: 60, rotation: 0 };
                 fovPlacement.fov.rotation = newRotation;
+
                 if (fovRotationInput) fovRotationInput.value = newRotation;
                 if (fovRotationValue) fovRotationValue.textContent = `${newRotation}°`;
+
                 redraw();
-            }
-          }
-          function onUp(){
-            document.removeEventListener('mousemove', onMove);
-            document.removeEventListener('mouseup', onUp);
-            saveConfig();
-            saveHistory();
-          }
-          document.addEventListener('mousemove', onMove);
-          document.addEventListener('mouseup', onUp);
-      }
-    }); // This is the end of the mousedown listener
+              }
+            };
+
+            const handleUp = () => {
+              document.removeEventListener('mousemove', handleMove);
+              document.removeEventListener('mouseup', handleUp);
+              saveConfig();
+              saveHistory();
+            };
+
+            document.addEventListener('mousemove', handleMove);
+            document.addEventListener('mouseup', handleUp);
+          }); // This is the end of the mousedown listener
 
 
-        overlayLayer.appendChild(el);
-      });
+          overlayLayer.appendChild(el);
+        });
 
     }
 
