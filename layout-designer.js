@@ -25,6 +25,8 @@
      ✓ NEW: Interactive FOV handles for range, angle, and rotation, simplifying the UI.
 */
 
+  const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogicConfig';
+
 //(function(){ // Removed IIFE to make functions globally accessible
   function getConfig() {
     return window.configuration;
@@ -33,9 +35,15 @@
   function saveConfig() {
     if (window.AppState) window.AppState.persistConfiguration(getConfig());
   }
-  
-  (function bootstrapFromStorage(){
+
+  let layoutBootstrapped = false;
+
+  function bootstrapFromStorage(){
+    if (layoutBootstrapped) return;
     const cfg = getConfig();
+    if (!cfg) {
+      return;
+    }
     try{
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return;
@@ -46,10 +54,19 @@
         if (parsed.cameraLayout) cfg.cameraLayout = parsed.cameraLayout;
         if (parsed.layoutScale) cfg.layoutScale = parsed.layoutScale;
       }
+      layoutBootstrapped = true;
     }catch(e){
         console.error("Failed to bootstrap layout from storage:", e);
     }
-  })();
+  }
+
+  bootstrapFromStorage();
+
+  document.addEventListener('ldz:configuration-ready', () => {
+    if (!layoutBootstrapped) {
+      bootstrapFromStorage();
+    }
+  });
 
   // ---- Geometry Helper Functions ---- // This is now global
   function getRayCircleIntersection(origin, direction, radius) {
