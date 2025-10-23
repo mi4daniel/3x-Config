@@ -25,7 +25,7 @@
      ✓ NEW: Interactive FOV handles for range, angle, and rotation, simplifying the UI.
 */
 
-(function(){
+//(function(){ // Removed IIFE to make functions globally accessible
   // ---- Safe globals & helpers ----
   const STORAGE_KEY = '3xlogicConfig';
 
@@ -75,7 +75,7 @@
     }
   })();
 
-  // ---- Geometry Helper Functions ----
+  // ---- Geometry Helper Functions ---- // This is now global
   function getRayCircleIntersection(origin, direction, radius) {
       const dx = direction.x - origin.x, dy = direction.y - origin.y;
       const a = dx*dx + dy*dy;
@@ -213,7 +213,7 @@
     document.head.appendChild(style);
   }
 
-  window.removeCameraLayout = function(){
+  window.removeCameraLayout = function removeCameraLayout(){
     if (!confirm('Remove the layout image and all placed items and walls?')) return;
     const cfg = getConfig();
     cfg.cameraLayout = null;
@@ -223,10 +223,10 @@
     if (typeof window.renderAll === 'function') window.renderAll();
     if (typeof window.showToast === 'function') window.showToast('Camera layout removed.');
   };
-})();
+//})(); // Removed IIFE
 
 // ---- Public: Upload / Remove ----
-window.handleLayoutUpload = function(event){
+window.handleLayoutUpload = function handleLayoutUpload(event){
   const file = event?.target?.files?.[0];
   if (!file) return;
   const reader = new FileReader();
@@ -244,7 +244,7 @@ window.handleLayoutUpload = function(event){
 };
 
   // ---- Main UI ----
-  window.openLayoutDesigner = function(){
+  window.openLayoutDesigner = function openLayoutDesigner(){
     const cfg = getConfig();
     if (!cfg.cameraLayout){
       alert('Please upload a site layout image first (Tools → Upload Layout).');
@@ -1289,6 +1289,7 @@ window.handleLayoutUpload = function(event){
           [cameraRangeDecreaseBtn, cameraRangeIncreaseBtn].forEach(btn => {
               if (btn) btn.disabled = true;
           });
+
           const panStartX = e.clientX - view.x;
           const panStartY = e.clientY - view.y;
           wrap.style.cursor = 'grabbing';
@@ -1687,4 +1688,4 @@ window.handleLayoutUpload = function(event){
 
     const onResize = ()=>{ if (img.width) resetView(); };
     window.addEventListener('resize', onResize);
-  };
+  }; // end of openLayoutDesigner

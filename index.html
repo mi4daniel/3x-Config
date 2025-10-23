@@ -3151,7 +3151,7 @@
         storageCalcButton.addEventListener('click', openStorageCalculator);
         uploadLayoutButton.addEventListener('click', () => layoutFileEl.click());
         layoutFileEl.addEventListener('change', (e) => window.handleLayoutUpload(e));
-        layoutDesignerButton.addEventListener('click', openLayoutDesigner);
+        layoutDesignerButton.addEventListener('click', window.openLayoutDesigner);
 
         if (addCameraButton) {
             addCameraButton.addEventListener('click', () => {
