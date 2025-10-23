@@ -1286,6 +1286,8 @@
           if (cameraRangeValue) cameraRangeValue.textContent = '—';
           if (cameraRangeInput) cameraRangeInput.disabled = true;
           [cameraRangeDecreaseBtn, cameraRangeIncreaseBtn].forEach(btn => {
+              if (btn) btn.disabled = true;
+          });
           const panStartX = e.clientX - view.x;
           const panStartY = e.clientY - view.y;
           wrap.style.cursor = 'grabbing';
@@ -1295,7 +1297,7 @@
               redraw();
           };
           const onPanUp = () => {
-          wrap.style.cursor = 'grab';
+              wrap.style.cursor = 'grab';
               document.removeEventListener('mousemove', onPanMove);
               document.removeEventListener('mouseup', onPanUp);
           };
