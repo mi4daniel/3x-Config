@@ -728,6 +728,7 @@
     <script>
         // --- DATA ---
         window.configuration = window.AppState.createInitialConfiguration(window.configuration);
+        document.dispatchEvent(new Event('ldz:configuration-ready'));
         const configuration = window.configuration;
 
         let autoAddLicenses = true;
