@@ -3236,6 +3236,10 @@
             workflowActions.forEach(action => {
                 action.addEventListener('click', () => {
                     closeWorkflowMenus();
+                    const parentGroup = action.closest('.workflow-group');
+                    if (parentGroup) {
+                        parentGroup.querySelector('.workflow-trigger')?.focus();
+                    }
                 });
             });
         }
