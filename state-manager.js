@@ -1,5 +1,30 @@
 (function(global) {
   const STORAGE_KEY = '3xlogicConfig';
+  const DB_NAME = '3xlogicLayoutDB';
+  const DB_VERSION = 1;
+  const LAYOUT_STORE_NAME = 'layouts';
+  const LAYOUT_KEY = 'cameraLayout';
+
+  let dbPromise = new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result);
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains(LAYOUT_STORE_NAME)) {
+        db.createObjectStore(LAYOUT_STORE_NAME);
+      }
+    };
+  });
+
+  async function getFromDB(key) {
+    const db = await dbPromise;
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(LAYOUT_STORE_NAME, 'readonly').objectStore(LAYOUT_STORE_NAME).get(key);
+      transaction.onsuccess = () => resolve(transaction.result);
+      transaction.onerror = () => reject(transaction.error);
+    });
+  }
 
   const DEFAULT_CONFIGURATION = {
     projectName: '',
@@ -105,15 +130,31 @@
     return configuration;
   }
 
-  function persistConfiguration(configuration, storageKey = STORAGE_KEY) {
-    try {
-      const configString = JSON.stringify(configuration);
-      localStorage.setItem(storageKey, configString);
-      return true;
-    } catch (error) {
-      console.error('Failed to save to localStorage', error);
-      return false;
     }
+
+  function persistConfiguration(configuration, storageKey = STORAGE_KEY) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const db = await dbPromise;
+        const configToStore = { ...configuration };
+        const layoutData = configToStore.cameraLayout;
+        delete configToStore.cameraLayout;
+
+        const tx = db.transaction(LAYOUT_STORE_NAME, 'readwrite');
+        const store = tx.objectStore(LAYOUT_STORE_NAME);
+        if (layoutData) {
+          store.put(layoutData, LAYOUT_KEY);
+        } else {
+          store.delete(LAYOUT_KEY);
+        }
+
+        localStorage.setItem(storageKey, JSON.stringify(configToStore));
+        resolve(true);
+      } catch (error) {
+        console.error('Failed to save to localStorage/IndexedDB', error);
+        reject(false);
+      }
+    });
   }
 
   function restoreConfiguration(configuration, {
@@ -122,31 +163,40 @@
     onSuccess,
     onError
   } = {}) {
-    try {
-      const configString = localStorage.getItem(storageKey);
-      if (!configString) return false;
+    const promise = new Promise(async (resolve, reject) => {
+      try {
+        const configString = localStorage.getItem(storageKey);
+        if (!configString) return resolve(false);
 
-      const parsedConfig = JSON.parse(configString);
-      if (!parsedConfig || typeof parsedConfig !== 'object') return false;
+        const parsedConfig = JSON.parse(configString);
+        if (!parsedConfig || typeof parsedConfig !== 'object') return resolve(false);
 
-      applyDefaults(configuration);
-      Object.assign(configuration, parsedConfig);
-      normalizeConfiguration(configuration, { syncNvrLicenses });
+        const layoutData = await getFromDB(LAYOUT_KEY);
 
-      if (typeof onSuccess === 'function') {
-        onSuccess(configuration);
+        applyDefaults(configuration);
+        Object.assign(configuration, parsedConfig);
+        if (layoutData) {
+          configuration.cameraLayout = layoutData;
+        }
+
+        normalizeConfiguration(configuration, { syncNvrLicenses });
+
+        if (typeof onSuccess === 'function') {
+          onSuccess(configuration);
+        }
+
+        resolve(true);
+      } catch (error) {
+        localStorage.removeItem(storageKey);
+        if (typeof onError === 'function') {
+          onError(error);
+        } else {
+          console.error('Failed to load from localStorage/IndexedDB', error);
+        }
+        reject(error);
       }
-
-      return true;
-    } catch (error) {
-      localStorage.removeItem(storageKey);
-      if (typeof onError === 'function') {
-        onError(error);
-      } else {
-        console.error('Failed to load from localStorage', error);
-      }
-      return false;
-    }
+    });
+    return promise;
   }
 
   global.AppState = {
@@ -160,3 +210,6 @@
     applyDefaults
   };
 })(window);
+
+
+

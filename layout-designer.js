@@ -31,7 +31,7 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
   }
 
   function saveConfig() {
-    if (window.AppState) window.AppState.persistConfiguration(getConfig());
+    if (window.AppState) window.AppState.persistConfiguration(getConfig()).catch(err => console.error("Layout designer save failed:", err));
   }
 
   let layoutBootstrapped = false;
@@ -43,15 +43,20 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
       return;
     }
     try{
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return;
-      const parsed = JSON.parse(raw); // This is for initial load, can be kept for now.
-      if (parsed && typeof parsed === 'object') {
-        if (Array.isArray(parsed.layoutPlacements)) cfg.layoutPlacements = parsed.layoutPlacements;
-        if (Array.isArray(parsed.layoutWalls)) cfg.layoutWalls = parsed.layoutWalls;
-        if (parsed.cameraLayout) cfg.cameraLayout = parsed.cameraLayout;
-        if (parsed.layoutScale) cfg.layoutScale = parsed.layoutScale;
+      // Data is now loaded asynchronously via state-manager,
+      // but we can check for legacy data on first load.
+      if (window.AppState && !layoutBootstrapped) {
+        window.AppState.restoreConfiguration(cfg, {
+          onSuccess: () => {
+            console.log("Layout bootstrapped from storage.");
+            layoutBootstrapped = true;
+          },
+          onError: (e) => {
+            console.error("Failed to bootstrap layout from storage:", e);
+          }
+        });
       }
+
       layoutBootstrapped = true;
     }catch(e){
         console.error("Failed to bootstrap layout from storage:", e);
@@ -314,6 +319,10 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
                         <button id="ldzRedo" class="ldz-icon-btn ghost"><img src="/icons/redo.png" alt="Redo"><span>Redo</span></button>
                         <button id="ldzDrawWall" class="ldz-icon-btn ghost"><img src="/icons/wall_.png" alt="Draw Walls"><span>Wall mode</span></button>
                     </div>
+                </div>
+                <div id="ldzWallControls" class="ldz-card" style="display:none;">
+                    <div class="ldz-card-title">Wall Selection</div>
+                    <button id="ldzDeleteWallBtn" class="ldz-icon-btn danger"><img src="/icons/delete_.png" alt="Delete"><span>Delete Wall</span></button>
                 </div>
                 <div id="ldzSelectionControls" class="ldz-card" style="display:none;">
                     <div class="ldz-card-title">Selection</div>
