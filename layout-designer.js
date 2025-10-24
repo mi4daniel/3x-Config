@@ -202,6 +202,13 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
       #ldzBg,#ldzFov,#ldzWalls{position:absolute;top:0;left:0;}
       #ldzOverlay{position:absolute;top:0;left:0;transform-origin:top left;}
       .ldz-placed{position:absolute;width:36px;height:36px;border-radius:12px;border:2px solid rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;color:#fff;font:600 14px/1 'Inter',sans-serif;cursor:grab;user-select:none;box-shadow:0 14px 32px -24px rgba(34,30,31,0.85);pointer-events:auto;}
+      .ldz-fov-handle{position:absolute;width:14px;height:14px;border-radius:50%;background:#fff;border:2px solid #c22033;box-shadow:0 2px 4px rgba(0,0,0,0.3);opacity:0;transition:opacity .2s;pointer-events:none;z-index:10;}
+      .ldz-placed.selected .ldz-fov-handle{opacity:1;pointer-events:auto;}
+      .ldz-fov-handle.range{cursor:n-resize;}
+      .ldz-fov-handle.angle-left, .ldz-fov-handle.angle-right{cursor:ew-resize;}
+      .ldz-quick-actions{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);display:flex;gap:6px;background:rgba(34,30,31,0.85);padding:6px;border-radius:10px;border:1px solid rgba(34,30,31,0.4);box-shadow:0 8px 16px rgba(0,0,0,0.3);z-index:20;}
+      .ldz-quick-actions button{width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,0.1);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;}
+      .ldz-quick-actions button:hover{background:rgba(255,255,255,0.2);}
       .ldz-placed.camera{background:linear-gradient(160deg,rgba(194,32,51,0.9),rgba(194,32,51,0.85));border-radius:18px;}
       .ldz-placed.nvr{background:linear-gradient(160deg,rgba(100,116,139,0.95),rgba(71,85,105,0.92));font-size:12px;font-weight:700;}
       .ldz-placed.fov{background:rgba(234,179,8,0.75);border-radius:18px;}
@@ -720,6 +727,26 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
         overlayLayer.style.height = `${img.height}px`;
         overlayLayer.style.transform = `translate(${view.x}px, ${view.y}px) scale(${view.scale})`;
 
+        // Position FOV handles
+        if (selectedId) {
+            const p = (cfg.layoutPlacements || []).find(item => item.uniqueId === selectedId);
+            const fovData = p && (p.type === 'camera' ? (cfg.layoutPlacements || []).find(fp => fp.linkedTo === p.uniqueId)?.fov : p.fov);
+            const placedEl = overlayLayer.querySelector(`.ldz-placed[data-uid="${selectedId}"]`);
+
+            if (fovData && placedEl) {
+                const rangePx = (fovData.rangeFt || 60) * pixelsPerFoot;
+                const angleRad = (fovData.angle || 90) * Math.PI / 180;
+                const rotationRad = (fovData.rotation || 0) * Math.PI / 180;
+
+                const handleSize = 14; // from CSS
+                const setHandlePos = (handleClass, r, a) => {
+                    const handle = placedEl.querySelector(`.ldz-fov-handle.${handleClass}`);
+                    if (handle) {
+                        handle.style.transform = `translate(${r * Math.sin(a) - handleSize/2}px, ${-r * Math.cos(a) - handleSize/2}px)`;
+                    }
+                };
+            }
+        }
         ctx.drawImage(img, 0, 0);
         drawGrid(ctx);
         if (showWalls) drawWalls(wallCtx);
@@ -1035,6 +1062,22 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
         }
         el.innerHTML = `${iconHtml}`;
 
+
+        // Add interactive handles for cameras with FOVs or standalone FOVs
+        const fovData = (p.type === 'camera')
+          ? (cfg.layoutPlacements || []).find(fp => fp.linkedTo === p.uniqueId)?.fov
+          : p.fov;
+
+        if (fovData) {
+            const rangeHandle = document.createElement('div');
+            rangeHandle.className = 'ldz-fov-handle range';
+            const angleHandleLeft = document.createElement('div');
+            angleHandleLeft.className = 'ldz-fov-handle angle-left';
+            const angleHandleRight = document.createElement('div');
+            angleHandleRight.className = 'ldz-fov-handle angle-right';
+            el.append(rangeHandle, angleHandleLeft, angleHandleRight);
+        }
+
         // badge for camera numbering (pull last segment)
         if (p.type === 'camera') {
           const idx = String(p.uniqueId).split('-').slice(-1)[0];
@@ -1087,6 +1130,23 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
             const camRot = document.createElement('div');
             camRot.className = 'ldz-camera-rotate-handle';
             el.appendChild(camRot);
+        }
+
+        // Add Quick-Action Toolbar
+        if (p.uniqueId === selectedId) {
+            const quickActions = document.createElement('div');
+            quickActions.className = 'ldz-quick-actions';
+            quickActions.innerHTML = `
+                <button data-action="duplicate" title="Duplicate"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"></path></svg></button>
+                <button data-action="delete" title="Delete"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg></button>
+            `;
+            quickActions.addEventListener('click', (e) => {
+                const actionBtn = e.target.closest('button');
+                if (!actionBtn) return;
+                e.stopPropagation();
+                handleQuickAction(actionBtn.dataset.action, p.uniqueId);
+            });
+            el.appendChild(quickActions);
         }
 
           el.addEventListener('mousedown', (event) => {
@@ -1194,12 +1254,24 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
 
             const isRotateCamHandle = event.target.classList.contains('ldz-camera-rotate-handle');
             const isFovBody = event.target.classList.contains('ldz-fov-body');
+            const isRangeHandle = event.target.classList.contains('range');
+            const isAngleLeftHandle = event.target.classList.contains('angle-left');
+            const isAngleRightHandle = event.target.classList.contains('angle-right');
+
             let mode = 'move';
             if (isRotateCamHandle) {
               mode = 'rotateCam';
             } else if (isFovBody) {
               mode = 'rotateFov';
             }
+
+            if (isRangeHandle) mode = 'range';
+            if (isAngleLeftHandle) mode = 'angle-left';
+            if (isAngleRightHandle) mode = 'angle-right';
+
+            const fovToUpdate = (p.type === 'camera')
+                ? cfg.layoutPlacements.find(fp => fp.linkedTo === p.uniqueId)
+                : p;
 
             const dragStart = {
               mouseX: event.clientX,
@@ -1212,6 +1284,45 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
               const rect = overlayLayer.getBoundingClientRect();
               const pointerX = (moveEvent.clientX - rect.left) / view.scale;
               const pointerY = (moveEvent.clientY - rect.top) / view.scale;
+
+              if (mode === 'range' && fovToUpdate) {
+                  const distPx = Math.hypot(pointerX - fovToUpdate.x, pointerY - fovToUpdate.y);
+                  const newRangeFt = Math.round(distPx / pixelsPerFoot);
+                  setFovControlValue('range', newRangeFt);
+                  redraw();
+                  return;
+              }
+
+              if ((mode === 'angle-left' || mode === 'angle-right') && fovToUpdate) {
+                  const currentRotationRad = (fovToUpdate.fov.rotation || 0) * Math.PI / 180;
+                  const angleToMouse = Math.atan2(pointerY - fovToUpdate.y, pointerX - fovToUpdate.x);
+                  
+                  // Adjust angle relative to the FOV's current rotation
+                  let relativeAngle = angleToMouse - currentRotationRad;
+                  
+                  // Normalize to be within [-PI, PI]
+                  while (relativeAngle > Math.PI) relativeAngle -= 2 * Math.PI;
+                  while (relativeAngle < -Math.PI) relativeAngle += 2 * Math.PI;
+
+                  // We want the half-angle, so multiply by 2.
+                  // We take the absolute value because we're setting the full cone width.
+                  let newAngle = Math.abs(relativeAngle * 180 / Math.PI) * 2;
+                  newAngle = Math.round(Math.max(5, Math.min(360, newAngle)));
+
+                  setFovControlValue('angle', newAngle);
+                  redraw();
+                  return;
+              }
+
+              if (mode === 'rotateFov' && fovToUpdate) {
+                  const angle = Math.atan2(pointerY - fovToUpdate.y, pointerX - fovToUpdate.x) * 180 / Math.PI;
+                  const newRotation = Math.round((angle + 90 + 360) % 360);
+                  fovToUpdate.fov.rotation = newRotation;
+                  setFovControlValue('rotation', newRotation);
+                  redraw();
+                  return;
+              }
+
 
               if (mode === 'move') {
                 const dx = (moveEvent.clientX - dragStart.mouseX) / view.scale;
@@ -1272,6 +1383,29 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
           overlayLayer.appendChild(el);
         });
 
+    }
+
+    function handleQuickAction(action, uid) {
+        if (!uid) return;
+        const cfg = getConfig();
+        const item = cfg.layoutPlacements.find(p => p.uniqueId === uid);
+        if (!item) return;
+
+        switch (action) {
+            case 'duplicate':
+                const newItem = JSON.parse(JSON.stringify(item));
+                newItem.uniqueId = `${item.type}-${Date.now()}`;
+                newItem.x += 20 / view.scale;
+                newItem.y += 20 / view.scale;
+                delete newItem.linkedTo; // Duplicates are never linked initially
+                cfg.layoutPlacements.push(newItem);
+                selectedId = newItem.uniqueId;
+                break;
+            case 'delete':
+                deleteSelectedItem();
+                break;
+        }
+        saveConfig(); saveHistory(); redraw();
     }
 
     // Render small interactive DOM handles for FOVs so event.target checks in the
