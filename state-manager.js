@@ -129,9 +129,6 @@
     normalizeConfiguration(configuration);
     return configuration;
   }
-
-    }
-
   function persistConfiguration(configuration, storageKey = STORAGE_KEY) {
     return new Promise(async (resolve, reject) => {
       try {
