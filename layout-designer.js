@@ -403,10 +403,6 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
     const wallControls = overlay.querySelector('#ldzWallControls');
     const deleteWallBtn = overlay.querySelector('#ldzDeleteWallBtn');
     const unlinkBtn = overlay.querySelector('#ldzUnlinkBtn');
-    const itemsListEl = overlay.querySelector('#ldzItems');
-    const drawWallBtn = overlay.querySelector('#ldzDrawWall');
-    const setScaleBtnText = overlay.querySelector('#ldzSetScaleBtnText');
-    const zoomIndicator = overlay.querySelector('#ldzZoomIndicator');
     const zoomInBtn = overlay.querySelector('#ldzZoomIn');
     const zoomOutBtn = overlay.querySelector('#ldzZoomOut');
     const zoomResetBtn = overlay.querySelector('#ldzZoomReset');
@@ -415,6 +411,10 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
     const toggleFovsBtn = overlay.querySelector('#ldzToggleFovs');
     const toggleWallsBtn = overlay.querySelector('#ldzToggleWalls');
     const toggleLabelsBtn = overlay.querySelector('#ldzToggleLabels');
+    const itemsListEl = overlay.querySelector('#ldzItems');
+    const drawWallBtn = overlay.querySelector('#ldzDrawWall');
+    const setScaleBtnText = overlay.querySelector('#ldzSetScaleBtnText');
+    const zoomIndicator = overlay.querySelector('#ldzZoomIndicator');
     const scaleValueEl = overlay.querySelector('#ldzScaleValue');
     const setScaleBtn = overlay.querySelector('#ldzSetScaleBtn');
     const ctx = bg.getContext('2d');
@@ -506,49 +506,6 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
       return 0;
     }
 
-    function updateScrollButtons(){
-      if (!itemsListEl || !scrollUpBtn || !scrollDownBtn) return;
-      const viewport = getListViewportHeight();
-      const maxScroll = Math.max(0, itemsListEl.scrollHeight - viewport);
-      const epsilon = 2;
-      scrollUpBtn.disabled = itemsListEl.scrollTop <= epsilon;
-      scrollDownBtn.disabled = maxScroll <= epsilon || itemsListEl.scrollTop >= (maxScroll - epsilon);
-    }
-
-    function scrollListBy(multiplier){
-      if (!itemsListEl) return;
-      const viewport = itemsListEl.clientHeight;
-      const maxScroll = Math.max(0, itemsListEl.scrollHeight - viewport);
-      if (maxScroll <= 0) return;
-
-      const delta = viewport * multiplier;
-      const target = Math.max(0, Math.min(itemsListEl.scrollTop + delta, maxScroll));
-
-      if (typeof itemsListEl.scrollTo === 'function') {
-        itemsListEl.scrollTo({ top: target, behavior: 'smooth' });
-      } else if (typeof itemsListEl.scrollBy === 'function') {
-        itemsListEl.scrollBy({ top: target - itemsListEl.scrollTop });
-      } else {
-        itemsListEl.scrollTop = target;
-      }
-
-      schedule(updateScrollButtons);
-      setTimeout(updateScrollButtons, 250);
-    }
-
-    if (scrollUpBtn) {
-      scrollUpBtn.addEventListener('click', () => scrollListBy(-1));
-    }
-
-    if (scrollDownBtn) {
-      scrollDownBtn.addEventListener('click', () => scrollListBy(1));
-    }
-
-    if (itemsListEl) {
-      listScrollListener = () => schedule(updateScrollButtons);
-      itemsListEl.addEventListener('scroll', listScrollListener);
-    }
-
     function renderItemsList(){
       const list = itemsListEl;
       if (!list) return;
@@ -624,7 +581,6 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
 
       list.innerHTML = rows.join('');
       list.scrollTop = 0;
-      schedule(updateScrollButtons);
 
       list.querySelectorAll('.ldz-item').forEach(el=>{
         el.addEventListener('dragstart', (e)=>{
@@ -1181,8 +1137,6 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
             unlinkBtn.style.display = hasLinkedFov ? 'flex' : 'none';
             linkBtn.style.display = isUnlinkedFov ? 'flex' : 'none';
             wallControls.style.display = 'none';
-
-            if (labelInput) labelInput.value = p.label || '';
 
             if (cameraRangeControl) {
               cameraRangeControl.style.display = cameraRangeEnabled ? 'flex' : 'none';
