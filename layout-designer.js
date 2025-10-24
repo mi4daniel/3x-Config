@@ -92,6 +92,21 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
       if (o4 === 0 && onSegment(p2, q1, q2)) return true;
       return false;
   }
+  function distSq(p, q) { return (p.x - q.x)**2 + (p.y - q.y)**2; }
+  function distToSegmentSquared(p, v, w) {
+      const l2 = distSq(v, w);
+      if (l2 === 0) return distSq(p, v);
+      let t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
+      t = Math.max(0, Math.min(1, t));
+      return distSq(p, { x: v.x + t * (w.x - v.x), y: v.y + t * (w.y - v.y) });
+  }
+  function distToSegment(p, v, w) {
+      return Math.sqrt(distToSegmentSquared(p, v, w));
+  }
+
+  function deselectAll() {
+      selectedId = null; selectedWallId = null;
+  }
 
   // ---- Style injection (scoped) ----
   const STYLE_ID = 'layout-designer-css';
@@ -302,6 +317,13 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
                 </div>
                 <div id="ldzSelectionControls" class="ldz-card" style="display:none;">
                     <div class="ldz-card-title">Selection</div>
+                    <div class="ldz-field">
+                        <div class="ldz-field-header">
+                            <span class="ldz-label">Label</span>
+                        </div>
+                        <input type="text" id="ldzLabelInput" class="ldz-place-label-input" style="width: 100%; font-size: 0.8rem; padding: 8px 12px; border-radius: 12px;" placeholder="Enter item label...">
+                    </div>
+
                     <div class="ldz-card-actions">
                         <button id="ldzLinkBtn" class="ldz-chip-btn" style="display:none;">Link FOV</button>
                         <button id="ldzUnlinkBtn" class="ldz-chip-btn" style="display:none;">Unlink FOV</button>
@@ -324,6 +346,14 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
                     <div class="ldz-field"><div class="ldz-field-header"><span class="ldz-label">FOV Range<strong id="ldzFovRangeValue">—</strong></span></div><input id="ldzFovRange" class="ldz-range" type="range" min="1" max="2000" value="60"></div>
                     <div class="ldz-colors" id="ldzFovColors"><button class="ldz-color-swatch selected" style="background:rgba(234,179,8,0.5)" data-color="rgba(234,179,8,0.5)"></button><button class="ldz-color-swatch" style="background:rgba(239,68,68,0.4)" data-color="rgba(239,68,68,0.4)"></button><button class="ldz-color-swatch" style="background:rgba(34,197,94,0.4)" data-color="rgba(34,197,94,0.4)"></button><button class="ldz-color-swatch" style="background:rgba(139,92,246,0.4)" data-color="rgba(139,92,246,0.4)"></button></div>
                     <div class="ldz-field"><div class="ldz-field-header"><span class="ldz-label">FOV Rotation<strong id="ldzFovRotationValue">—</strong></span></div><input id="ldzFovRotation" class="ldz-range" type="range" min="0" max="360" value="0"></div>
+                </div>
+                <div class="ldz-card" id="ldzScaleCard">
+                    <div class="ldz-card-title">Layers</div>
+                    <div class="ldz-action-row">
+                        <button id="ldzToggleFovs" class="ldz-icon-btn ghost active"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width:18px;height:18px;"><path d="M10 12.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z"/><path fill-rule="evenodd" d="M.664 10.59a1.651 1.651 0 010-1.18l.879-.879a1.65 1.65 0 012.332 0l.879.879a1.65 1.65 0 010 2.332l-.879.879a1.65 1.65 0 01-2.332 0l-.879-.879zM10 19a1.651 1.651 0 01-1.18 0l-.879-.879a1.65 1.65 0 010-2.332l.879-.879a1.65 1.65 0 012.332 0l.879.879a1.65 1.65 0 010 2.332l-.879.879A1.651 1.651 0 0110 19zM19.336 10.59a1.651 1.651 0 010-1.18l-.879-.879a1.65 1.65 0 00-2.332 0l-.879.879a1.65 1.65 0 000 2.332l.879.879a1.65 1.65 0 002.332 0l.879-.879zM10 5a1.651 1.651 0 011.18 0l.879.879a1.65 1.65 0 010 2.332l-.879.879a1.65 1.65 0 01-2.332 0l-.879-.879a1.65 1.65 0 010-2.332L8.82 5A1.651 1.651 0 0110 5z" clip-rule="evenodd"/></svg><span>FOVs</span></button>
+                        <button id="ldzToggleWalls" class="ldz-icon-btn ghost active"><img src="/icons/wall_.png" alt="Walls"><span>Walls</span></button>
+                        <button id="ldzToggleLabels" class="ldz-icon-btn ghost active"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width:18px;height:18px;"><path fill-rule="evenodd" d="M5.5 3A2.5 2.5 0 003 5.5v2.879a.5.5 0 00.293.445l5.5 2.75a.5.5 0 00.414 0l5.5-2.75A.5.5 0 0017 8.379V5.5A2.5 2.5 0 0014.5 3h-9zM3.5 13.5a.5.5 0 01.5-.5h12a.5.5 0 010 1h-12a.5.5 0 01-.5-.5z" clip-rule="evenodd"/></svg><span>Labels</span></button>
+                    </div>
                 </div>
                 <div class="ldz-card" id="ldzScaleCard">
                     <div class="ldz-card-title">Floorplan Scale</div>
@@ -377,9 +407,12 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
     const cameraRangeIncreaseBtn = overlay.querySelector('#ldzCameraRangeIncrease');
     const deleteBtn = overlay.querySelector('#ldzDeleteBtn');
     const linkBtn = overlay.querySelector('#ldzLinkBtn');
+    const wallControls = overlay.querySelector('#ldzWallControls');
+    const deleteWallBtn = overlay.querySelector('#ldzDeleteWallBtn');
     const unlinkBtn = overlay.querySelector('#ldzUnlinkBtn');
     const itemsListEl = overlay.querySelector('#ldzItems');
     const scrollUpBtn = overlay.querySelector('#ldzScrollUp');
+    const labelInput = overlay.querySelector('#ldzLabelInput');
     const scrollDownBtn = overlay.querySelector('#ldzScrollDown');
     const drawWallBtn = overlay.querySelector('#ldzDrawWall');
     const setScaleBtnText = overlay.querySelector('#ldzSetScaleBtnText');
@@ -389,6 +422,9 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
     const zoomResetBtn = overlay.querySelector('#ldzZoomReset');
     const fitViewBtn = overlay.querySelector('#ldzFitView');
     const gridToggleBtn = overlay.querySelector('#ldzGridToggle');
+    const toggleFovsBtn = overlay.querySelector('#ldzToggleFovs');
+    const toggleWallsBtn = overlay.querySelector('#ldzToggleWalls');
+    const toggleLabelsBtn = overlay.querySelector('#ldzToggleLabels');
     const scaleValueEl = overlay.querySelector('#ldzScaleValue');
     const setScaleBtn = overlay.querySelector('#ldzSetScaleBtn');
     const ctx = bg.getContext('2d');
@@ -402,8 +438,12 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
     let history = [];
     let historyIndex = -1;
     let selectedId = null;
+    let selectedWallId = null;
     let currentMode = 'place'; // 'place', 'drawWall', 'linkFov', 'scale'
     let showGrid = false;
+    let showFovs = true;
+    let showWalls = true;
+    let showLabels = true;
     let fovHistoryTimer = null;
     let listResizeObserver = null;
     let scaleLine = null;
@@ -673,9 +713,9 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
 
         ctx.drawImage(img, 0, 0);
         drawGrid(ctx);
-        drawWalls(wallCtx);
-        drawFovs();
-        renderPlacedMarkers();
+        if (showWalls) drawWalls(wallCtx);
+        if (showFovs) drawFovs();
+        renderPlacedMarkers(showLabels);
         renderInteractiveHandles();
         updatePlacementStats();
 
@@ -713,17 +753,24 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
 
     function drawWalls(targetCtx) {
         const cfg = getConfig();
-        if (!cfg.layoutWalls) return;
-
-        targetCtx.strokeStyle = '#ff3b30';
-        targetCtx.lineWidth = 3 / view.scale;
-        targetCtx.lineCap = 'round';
-        targetCtx.beginPath();
-        cfg.layoutWalls.forEach(wall => {
+        (cfg.layoutWalls || []).forEach(wall => {
+            const isSelected = wall.id === selectedWallId;
+            targetCtx.strokeStyle = isSelected ? '#0ea5e9' : '#ff3b30';
+            targetCtx.lineWidth = (isSelected ? 5 : 3) / view.scale;
+            targetCtx.lineCap = 'round';
+            targetCtx.beginPath();
             targetCtx.moveTo(wall.x1, wall.y1);
             targetCtx.lineTo(wall.x2, wall.y2);
+            targetCtx.stroke();
         });
-        targetCtx.stroke();
+    }
+    
+    function deleteSelectedWall() {
+        if (!selectedWallId) return;
+        getConfig().layoutWalls = getConfig().layoutWalls.filter(w => w.id !== selectedWallId);
+        selectedWallId = null;
+        wallControls.style.display = 'none';
+        saveConfig(); saveHistory(); redraw();
     }
     
     function drawFovs(){
@@ -948,7 +995,7 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
         return `<svg viewBox="0 0 24 24" fill="currentColor" style="width:20px;height:20px;"><path d="M17 10.5V7c0-1.66-1.34-3-3-3s-3 1.34-3 3v3.5c-1.93 0-3.5 1.57-3.5 3.5S5.07 17.5 7 17.5h10c1.93 0 3.5-1.57 3.5-3.5S19.93 10.5 18 10.5V7c0-2.76-2.24-5-5-5z"></path></svg>`;
     }
 
-    function renderPlacedMarkers(){
+    function renderPlacedMarkers(labelsVisible = true){
       
       const cfg = getConfig();
       const { allCams, allNvrs } = collectItems();
@@ -991,39 +1038,41 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
         }
 
         // label
-        const labelEl = document.createElement('div');
-        labelEl.className = 'ldz-placed-label';
-        labelEl.textContent = itemName;
-        // counter-rotate label so it stays readable
-        labelEl.style.transform = `translateX(-50%) rotate(${-(p.rotation || 0)}deg)`;
-        labelEl.addEventListener('dblclick', (ev) => {
-          ev.stopPropagation();
-          // replace with input
-          const input = document.createElement('input');
-          input.className = 'ldz-place-label-input';
-          input.value = p.label || '';
-          labelEl.replaceWith(input);
-          input.focus();
-          input.select();
-          function commit() {
-            const val = (input.value || '').trim();
-            if (val) p.label = val;
-            else delete p.label;
-            saveConfig();
-            saveHistory();
-            redraw();
-          }
-          input.addEventListener('blur', commit, { once: true });
-          input.addEventListener('keydown', (ke) => {
-            if (ke.key === 'Enter') {
-              input.blur();
-            } else if (ke.key === 'Escape') {
-              // cancel
-              input.replaceWith(labelEl);
-            }
-          });
-        });
-        el.appendChild(labelEl);
+        if (labelsVisible) {
+            const labelEl = document.createElement('div');
+            labelEl.className = 'ldz-placed-label';
+            labelEl.textContent = itemName;
+            // counter-rotate label so it stays readable
+            labelEl.style.transform = `translateX(-50%) rotate(${-(p.rotation || 0)}deg)`;
+            labelEl.addEventListener('dblclick', (ev) => {
+              ev.stopPropagation();
+              // replace with input
+              const input = document.createElement('input');
+              input.className = 'ldz-place-label-input';
+              input.value = p.label || '';
+              labelEl.replaceWith(input);
+              input.focus();
+              input.select();
+              function commit() {
+                const val = (input.value || '').trim();
+                if (val) p.label = val;
+                else delete p.label;
+                saveConfig();
+                saveHistory();
+                redraw();
+              }
+              input.addEventListener('blur', commit, { once: true });
+              input.addEventListener('keydown', (ke) => {
+                if (ke.key === 'Enter') {
+                  input.blur();
+                } else if (ke.key === 'Escape') {
+                  // cancel
+                  input.replaceWith(labelEl);
+                }
+              });
+            });
+            el.appendChild(labelEl);
+        }
 
         if (p.type === 'camera') {
             const camRot = document.createElement('div');
@@ -1065,6 +1114,7 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
             overlayLayer.querySelectorAll('.ldz-placed').forEach(node => node.classList.remove('selected'));
             el.classList.add('selected');
             selectedId = p.uniqueId;
+            selectedWallId = null;
             deleteBtn.style.display = 'flex';
 
             const isCamera = p.type === 'camera';
@@ -1085,6 +1135,9 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
             selectionControls.style.display = 'flex';
             unlinkBtn.style.display = hasLinkedFov ? 'flex' : 'none';
             linkBtn.style.display = isUnlinkedFov ? 'flex' : 'none';
+            wallControls.style.display = 'none';
+
+            if (labelInput) labelInput.value = p.label || '';
 
             if (cameraRangeControl) {
               cameraRangeControl.style.display = cameraRangeEnabled ? 'flex' : 'none';
@@ -1263,6 +1316,7 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
       const startX = (e.clientX - rect.left - view.x) / view.scale;
       const startY = (e.clientY - rect.top - view.y) / view.scale;
 
+
       if (currentMode === 'scale') {
           const onScaleMove = (moveEvent) => {
               scaleLine = {
@@ -1293,6 +1347,27 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
           document.addEventListener('mousemove', onScaleMove);
           document.addEventListener('mouseup', onScaleUp);
       } else if (currentMode === 'drawWall') {
+          // Wall selection logic
+          const clickPoint = { x: startX, y: startY };
+          const walls = getConfig().layoutWalls || [];
+          let closestWall = null;
+          let minDistance = Infinity;
+          const selectionThreshold = 10 / view.scale;
+
+          walls.forEach(wall => {
+              const distance = distToSegment(clickPoint, {x: wall.x1, y: wall.y1}, {x: wall.x2, y: wall.y2});
+              if (distance < minDistance) {
+                  minDistance = distance;
+                  closestWall = wall;
+              }
+          });
+
+          if (closestWall && minDistance < selectionThreshold) {
+              selectedWallId = closestWall.id;
+              selectedId = null;
+              updateWallSelectionUI();
+              return; // Don't start drawing a new wall
+          }
           const onWallMove = (moveEvent) => {
               const currentX = (moveEvent.clientX - rect.left - view.x) / view.scale;
               const currentY = (moveEvent.clientY - rect.top - view.y) / view.scale;
@@ -1322,7 +1397,7 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
               const endY = (upEvent.clientY - rect.top - view.y) / view.scale;
               
               if (Math.hypot(endX - startX, endY - startY) > 5) {
-                  getConfig().layoutWalls.push({x1: startX, y1: startY, x2: endX, y2: endY});
+                  getConfig().layoutWalls.push({id: Date.now(), x1: startX, y1: startY, x2: endX, y2: endY});
                   saveConfig();
                   saveHistory();
               }
@@ -1332,11 +1407,12 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
           document.addEventListener('mouseup', onWallUp);
 
       } else { // 'place' mode (panning)
-          overlayLayer.querySelectorAll('.ldz-placed').forEach(n => n.classList.remove('selected'));
-          selectedId = null;
+          deselectAll();
+          updateWallSelectionUI();
           deleteBtn.style.display = 'none';
           selectionControls.style.display = 'none';
           fovControls.style.display = 'none';
+          wallControls.style.display = 'none';
           unlinkBtn.style.display = 'none';
           if (cameraRangeControl) cameraRangeControl.style.display = 'none';
           if (cameraRangeValue) cameraRangeValue.textContent = '—';
@@ -1432,6 +1508,38 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
         wrap.classList.toggle('wall-mode', currentMode === 'drawWall');
         if (currentMode === 'place') wrap.style.cursor = 'grab';
     });
+
+    function updateWallSelectionUI() {
+        wallControls.style.display = selectedWallId ? 'flex' : 'none';
+        if (selectedWallId) selectionControls.style.display = 'none';
+        redraw();
+    }
+
+    toggleFovsBtn.addEventListener('click', () => {
+        showFovs = !showFovs;
+        toggleFovsBtn.classList.toggle('active', showFovs);
+        redraw();
+    });
+    toggleWallsBtn.addEventListener('click', () => {
+        showWalls = !showWalls;
+        toggleWallsBtn.classList.toggle('active', showWalls);
+        redraw();
+    });
+    toggleLabelsBtn.addEventListener('click', () => {
+        showLabels = !showLabels;
+        toggleLabelsBtn.classList.toggle('active', showLabels);
+        redraw();
+    });
+
+    labelInput.addEventListener('input', (e) => {
+        if (!selectedId) return;
+        const placement = getConfig().layoutPlacements.find(p => p.uniqueId === selectedId);
+        if (placement) {
+            placement.label = e.target.value;
+            redraw();
+        }
+    });
+    labelInput.addEventListener('change', () => { saveConfig(); saveHistory(); });
 
     overlay.querySelector('#ldzReset').onclick = () => {
       if (!confirm('Remove ALL placed items AND walls from this layout?')) return;
@@ -1643,6 +1751,8 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
         }
     };
 
+    deleteWallBtn.onclick = deleteSelectedWall;
+
     function handleKeyDown(e) {
       if (e.key === 'Escape') {
         if (currentMode === 'drawWall' || currentMode === 'linkFov') {
@@ -1660,6 +1770,13 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
       const activeElement = document.activeElement;
       const isEditable = activeElement && (activeElement.isContentEditable || activeElement.tagName === 'TEXTAREA' || (activeElement.tagName === 'INPUT' && activeElement.type !== 'range' && activeElement.type !== 'checkbox'));
       if (isEditable) return;
+
+      if (selectedWallId && (e.key === 'Delete' || e.key === 'Backspace')) {
+          e.preventDefault();
+          deleteSelectedWall();
+          return;
+      }
+
       if (!selectedId) return;
       const cfg = getConfig();
       const placement = (cfg.layoutPlacements || []).find(p => p.uniqueId === selectedId);
