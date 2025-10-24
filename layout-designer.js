@@ -332,14 +332,6 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
                     <button id="ldzDeleteWallBtn" class="ldz-icon-btn danger"><img src="/icons/delete_.png" alt="Delete"><span>Delete Wall</span></button>
                 </div>
                 <div id="ldzSelectionControls" class="ldz-card" style="display:none;">
-                    <div class="ldz-card-title">Selection</div>
-                    <div class="ldz-field">
-                        <div class="ldz-field-header">
-                            <span class="ldz-label">Label</span>
-                        </div>
-                        <input type="text" id="ldzLabelInput" class="ldz-place-label-input" style="width: 100%; font-size: 0.8rem; padding: 8px 12px; border-radius: 12px;" placeholder="Enter item label...">
-                    </div>
-
                     <div class="ldz-card-actions">
                         <button id="ldzLinkBtn" class="ldz-chip-btn" style="display:none;">Link FOV</button>
                         <button id="ldzUnlinkBtn" class="ldz-chip-btn" style="display:none;">Unlink FOV</button>
@@ -355,13 +347,6 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
                         <input id="ldzCameraRange" class="ldz-range" type="range" min="1" max="2000" value="60">
                     </div>
                     <button id="ldzDeleteBtn" class="ldz-icon-btn danger"><img src="/icons/delete_.png" alt="Delete"><span>Remove from layout</span></button>
-                </div>
-                <div id="ldzFovControls" class="ldz-card" style="display:none;">
-                    <div class="ldz-card-title">Coverage settings</div>
-                    <div class="ldz-field"><span class="ldz-label">FOV Angle <strong id="ldzFovAngleValue">90°</strong></span><input id="ldzFovAngle" class="ldz-range" type="range" min="5" max="360" value="90"></div>
-                    <div class="ldz-field"><div class="ldz-field-header"><span class="ldz-label">FOV Range<strong id="ldzFovRangeValue">—</strong></span></div><input id="ldzFovRange" class="ldz-range" type="range" min="1" max="2000" value="60"></div>
-                    <div class="ldz-colors" id="ldzFovColors"><button class="ldz-color-swatch selected" style="background:rgba(234,179,8,0.5)" data-color="rgba(234,179,8,0.5)"></button><button class="ldz-color-swatch" style="background:rgba(239,68,68,0.4)" data-color="rgba(239,68,68,0.4)"></button><button class="ldz-color-swatch" style="background:rgba(34,197,94,0.4)" data-color="rgba(34,197,94,0.4)"></button><button class="ldz-color-swatch" style="background:rgba(139,92,246,0.4)" data-color="rgba(139,92,246,0.4)"></button></div>
-                    <div class="ldz-field"><div class="ldz-field-header"><span class="ldz-label">FOV Rotation<strong id="ldzFovRotationValue">—</strong></span></div><input id="ldzFovRotation" class="ldz-range" type="range" min="0" max="360" value="0"></div>
                 </div>
                 <div class="ldz-card" id="ldzScaleCard">
                     <div class="ldz-card-title">Layers</div>
@@ -407,14 +392,6 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
     const bg = overlay.querySelector('#ldzBg');
     const fovCanvas = overlay.querySelector('#ldzFov');
     const wallCanvas = overlay.querySelector('#ldzWalls');
-    const overlayLayer = overlay.querySelector('#ldzOverlay');
-    const fovAngleInput = overlay.querySelector('#ldzFovAngle');
-    const fovAngleValue = overlay.querySelector('#ldzFovAngleValue');
-    const fovRangeInput = overlay.querySelector('#ldzFovRange');
-    const fovRangeValue = overlay.querySelector('#ldzFovRangeValue');
-    const fovColors = overlay.querySelector('#ldzFovColors');
-    const fovRotationInput = overlay.querySelector('#ldzFovRotation');
-    const fovRotationValue = overlay.querySelector('#ldzFovRotationValue');
     const selectionControls = overlay.querySelector('#ldzSelectionControls');
     const cameraRangeControl = overlay.querySelector('#ldzCameraRangeControl');
     const cameraRangeInput = overlay.querySelector('#ldzCameraRange');
@@ -427,9 +404,6 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
     const deleteWallBtn = overlay.querySelector('#ldzDeleteWallBtn');
     const unlinkBtn = overlay.querySelector('#ldzUnlinkBtn');
     const itemsListEl = overlay.querySelector('#ldzItems');
-    const scrollUpBtn = overlay.querySelector('#ldzScrollUp');
-    const labelInput = overlay.querySelector('#ldzLabelInput');
-    const scrollDownBtn = overlay.querySelector('#ldzScrollDown');
     const drawWallBtn = overlay.querySelector('#ldzDrawWall');
     const setScaleBtnText = overlay.querySelector('#ldzSetScaleBtnText');
     const zoomIndicator = overlay.querySelector('#ldzZoomIndicator');
@@ -444,7 +418,6 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
     const scaleValueEl = overlay.querySelector('#ldzScaleValue');
     const setScaleBtn = overlay.querySelector('#ldzSetScaleBtn');
     const ctx = bg.getContext('2d');
-    const fovControls = overlay.querySelector('#ldzFovControls');
     const fovCtx = fovCanvas.getContext('2d');
     const wallCtx = wallCanvas.getContext('2d');
     const img = new Image();
@@ -745,6 +718,11 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
                         handle.style.transform = `translate(${r * Math.sin(a) - handleSize/2}px, ${-r * Math.cos(a) - handleSize/2}px)`;
                     }
                 };
+                const halfAngleRad = angleRad / 2;
+                setHandlePos('range', rangePx, rotationRad);
+                setHandlePos('angle-left', rangePx, rotationRad - halfAngleRad);
+                setHandlePos('angle-right', rangePx, rotationRad + halfAngleRad);
+
             }
         }
         ctx.drawImage(img, 0, 0);
@@ -1137,7 +1115,6 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
             const quickActions = document.createElement('div');
             quickActions.className = 'ldz-quick-actions';
             quickActions.innerHTML = `
-                <button data-action="duplicate" title="Duplicate"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"></path></svg></button>
                 <button data-action="delete" title="Delete"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg></button>
             `;
             quickActions.addEventListener('click', (e) => {
@@ -1200,7 +1177,6 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
             const hasLinkedFov = Boolean(isCamera && fovPlacement);
             const cameraRangeEnabled = Boolean(isCamera && fovPlacement);
 
-            fovControls.style.display = fovPlacement ? 'flex' : 'none';
             selectionControls.style.display = 'flex';
             unlinkBtn.style.display = hasLinkedFov ? 'flex' : 'none';
             linkBtn.style.display = isUnlinkedFov ? 'flex' : 'none';
@@ -1228,26 +1204,10 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
                 : (typeof fovData.range === 'number' ? fovData.range : 60);
               const rotation = typeof fovData.rotation === 'number' ? fovData.rotation : 0;
               const color = fovData.color || 'rgba(234,179,8,0.5)';
-
-              if (fovAngleInput) fovAngleInput.value = angle;
-              if (fovAngleValue) fovAngleValue.textContent = `${angle}°`;
-
-              if (fovRangeInput) fovRangeInput.value = rangeFeet;
-              if (fovRangeValue) fovRangeValue.textContent = `${rangeFeet} ft`;
               if (cameraRangeInput) cameraRangeInput.value = rangeFeet;
               if (cameraRangeValue) cameraRangeValue.textContent = `${rangeFeet} ft`;
 
-              if (fovRotationInput) fovRotationInput.value = rotation;
-              if (fovRotationValue) fovRotationValue.textContent = `${rotation}°`;
-
-              if (fovColors) {
-                fovColors.querySelectorAll('.ldz-color-swatch').forEach(sw => {
-                  sw.classList.toggle('selected', sw.dataset.color === color);
-                });
-              }
             } else {
-              if (fovRangeValue) fovRangeValue.textContent = '—';
-              if (fovRotationValue) fovRotationValue.textContent = '—';
               if (cameraRangeValue) cameraRangeValue.textContent = '—';
               if (cameraRangeInput) cameraRangeInput.disabled = true;
             }
@@ -1584,8 +1544,6 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
           deselectAll();
           updateWallSelectionUI();
           deleteBtn.style.display = 'none';
-          selectionControls.style.display = 'none';
-          fovControls.style.display = 'none';
           wallControls.style.display = 'none';
           unlinkBtn.style.display = 'none';
           if (cameraRangeControl) cameraRangeControl.style.display = 'none';
@@ -1594,8 +1552,6 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
           [cameraRangeDecreaseBtn, cameraRangeIncreaseBtn].forEach(btn => {
               if (btn) btn.disabled = true;
           });
-          const panStartX = e.clientX - view.x;
-          const panStartY = e.clientY - view.y;
           wrap.style.cursor = 'grabbing';
           const onPanMove = (moveEvent) => {
               view.x = moveEvent.clientX - panStartX;
@@ -1705,16 +1661,6 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
         redraw();
     });
 
-    labelInput.addEventListener('input', (e) => {
-        if (!selectedId) return;
-        const placement = getConfig().layoutPlacements.find(p => p.uniqueId === selectedId);
-        if (placement) {
-            placement.label = e.target.value;
-            redraw();
-        }
-    });
-    labelInput.addEventListener('change', () => { saveConfig(); saveHistory(); });
-
     overlay.querySelector('#ldzReset').onclick = () => {
       if (!confirm('Remove ALL placed items AND walls from this layout?')) return;
       const cfg = getConfig();
@@ -1804,25 +1750,6 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
         }
     }
 
-    fovAngleInput.addEventListener('input', (e)=>{
-      const angle = parseInt(e.target.value,10);
-      fovAngleValue.textContent = `${angle}°`;
-      updateSelectedFov('angle', angle);
-    });
-    fovAngleInput.addEventListener('change', (e)=>{
-      const angle = parseInt(e.target.value,10);
-      updateSelectedFov('angle', angle, true);
-    });
-    
-    fovRangeInput.addEventListener('input', (e)=>{
-      const range = parseInt(e.target.value,10);
-      updateSelectedFov('rangeFt', range);
-    });
-    fovRangeInput.addEventListener('change', (e)=>{
-      const range = parseInt(e.target.value,10);
-      updateSelectedFov('rangeFt', range, true);
-    });
-
     if (cameraRangeInput) {
       cameraRangeInput.addEventListener('input', (e) => {
         const range = parseInt(e.target.value, 10);
@@ -1833,25 +1760,6 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
         setFovControlValue('range', range, true);
       });
     }
-
-    fovRotationInput.addEventListener('input', (e)=>{
-      const rotation = parseInt(e.target.value,10);
-      updateSelectedFov('rotation', rotation);
-    });
-    fovRotationInput.addEventListener('change', (e)=>{
-      const rotation = parseInt(e.target.value,10);
-      updateSelectedFov('rotation', rotation, true);
-    });
-
-    fovColors.addEventListener('click', (e) => {
-        const swatch = e.target.closest('.ldz-color-swatch');
-        if (swatch) {
-            const color = swatch.dataset.color;
-            fovColors.querySelectorAll('.ldz-color-swatch').forEach(sw => sw.classList.remove('selected'));
-            swatch.classList.add('selected');
-            updateSelectedFov('color', color, true);
-        }
-    });
 
     linkBtn.onclick = () => {
         if (currentMode === 'linkFov') { // Toggle off
@@ -1888,7 +1796,6 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
         selectedId = null;
         deleteBtn.style.display = 'none';
         selectionControls.style.display = 'none';
-        fovControls.style.display = 'none';
         unlinkBtn.style.display = 'none';
         linkBtn.style.display = 'none';
         if (cameraRangeControl) cameraRangeControl.style.display = 'none';
@@ -1897,8 +1804,6 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
         [cameraRangeDecreaseBtn, cameraRangeIncreaseBtn].forEach(btn => {
             if (btn) btn.disabled = true;
         });
-        if (fovRangeValue) fovRangeValue.textContent = '—';
-        if (fovRotationValue) fovRotationValue.textContent = '—';
         saveConfig();
         saveHistory();
         renderItemsList();
