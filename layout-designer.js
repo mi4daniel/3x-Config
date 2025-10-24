@@ -1274,6 +1274,37 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
 
     }
 
+    // Render small interactive DOM handles for FOVs so event.target checks in the
+    // placed-element mousedown handler work (e.g. detect '.ldz-fov-body').
+    // This is intentionally lightweight: it attaches a transparent, pointer-enabled
+    // element inside each placement element for FOV placements. More advanced
+    // handle visuals/drag logic can be added later.
+    function renderInteractiveHandles() {
+      if (!overlayLayer) return;
+      // Remove any previously-inserted fov body nodes so we don't duplicate
+      overlayLayer.querySelectorAll('.ldz-fov-body').forEach(n => n.remove());
+
+      const cfg = getConfig();
+      (cfg.layoutPlacements || []).forEach(p => {
+        const placedEl = overlayLayer.querySelector(`.ldz-placed[data-uid="${p.uniqueId}"]`);
+        if (!placedEl) return;
+
+        if (p.type === 'fov') {
+          const body = document.createElement('div');
+          body.className = 'ldz-fov-body';
+          // fill the placed marker so clicks on the marker can be recognized as fov-body
+          body.style.position = 'absolute';
+          body.style.left = '0';
+          body.style.top = '0';
+          body.style.width = '100%';
+          body.style.height = '100%';
+          body.style.pointerEvents = 'auto';
+          body.style.background = 'transparent';
+          placedEl.appendChild(body);
+        }
+      });
+    }
+
     wrap.addEventListener('dragover', (e)=>{ e.preventDefault(); });
     wrap.addEventListener('drop', (e)=>{
       e.preventDefault();
