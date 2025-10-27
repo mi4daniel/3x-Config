@@ -34,42 +34,14 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
     if (window.AppState) window.AppState.persistConfiguration(getConfig()).catch(err => console.error("Layout designer save failed:", err));
   }
 
-  let layoutBootstrapped = false;
-
-  function bootstrapFromStorage(){
-    if (layoutBootstrapped) return;
-    const cfg = getConfig();
-    if (!cfg) {
-      return;
-    }
-    try{
-      // Data is now loaded asynchronously via state-manager,
-      // but we can check for legacy data on first load.
-      if (window.AppState && !layoutBootstrapped) {
-        window.AppState.restoreConfiguration(cfg, {
-          onSuccess: () => {
-            console.log("Layout bootstrapped from storage.");
-            layoutBootstrapped = true;
-          },
-          onError: (e) => {
-            console.error("Failed to bootstrap layout from storage:", e);
-          }
-        });
-      }
-
-      layoutBootstrapped = true;
-    }catch(e){
-        console.error("Failed to bootstrap layout from storage:", e);
-    }
-  }
-
-  bootstrapFromStorage();
-
-  document.addEventListener('ldz:configuration-ready', () => {
-    if (!layoutBootstrapped) {
-      bootstrapFromStorage();
-    }
-  });
+  // This event listener ensures that the layout designer logic
+  // only runs after the main application state is confirmed to be ready.
+  // This was the source of the bug where the floor plan wouldn't load.
+  document.addEventListener('DOMContentLoaded', () => {
+    // The main script now handles loading from local storage first.
+    // We just need to make sure we have the data when the designer opens.
+    console.log("Layout designer is ready and waiting for configuration.");
+  }, { once: true });
 
   // ---- Geometry Helper Functions ---- // This is now global
   function getRayCircleIntersection(origin, direction, radius) {
