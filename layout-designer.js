@@ -366,7 +366,11 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
     const overlayLayer = overlay.querySelector('#ldzOverlay'); // Moved up for scope
     const selectionControls = overlay.querySelector('#ldzSelectionControls'); // Moved up for scope
 
-    // Removed: cameraRangeControl, cameraRangeInput, cameraRangeValue, cameraRangeDecreaseBtn, cameraRangeIncreaseBtn
+  const cameraRangeControl = overlay.querySelector('#ldzCameraRangeControl');
+  const cameraRangeInput = overlay.querySelector('#ldzCameraRange');
+  const cameraRangeValue = overlay.querySelector('#ldzCameraRangeValue');
+  const cameraRangeDecreaseBtn = overlay.querySelector('#ldzCameraRangeDecrease');
+  const cameraRangeIncreaseBtn = overlay.querySelector('#ldzCameraRangeIncrease');
     const setScaleBtn = overlay.querySelector('#ldzSetScaleBtn');
     const ctx = bg.getContext('2d');
     const fovCtx = fovCanvas.getContext('2d');
