@@ -171,9 +171,10 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
       #ldzBg,#ldzFov,#ldzWalls{position:absolute;top:0;left:0;}
       #ldzOverlay{position:absolute;top:0;left:0;transform-origin:top left;}
       .ldz-placed{position:absolute;width:36px;height:36px;border-radius:12px;border:2px solid rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;color:#fff;font:600 14px/1 'Inter',sans-serif;cursor:grab;user-select:none;box-shadow:0 14px 32px -24px rgba(34,30,31,0.85);pointer-events:auto;}
-      .ldz-fov-handle{position:absolute;width:14px;height:14px;border-radius:50%;background:#fff;border:2px solid #c22033;box-shadow:0 2px 4px rgba(0,0,0,0.3);opacity:0;transition:opacity .2s;pointer-events:none;z-index:10;}
+      .ldz-fov-handle{position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;border:2px solid #c22033;box-shadow:0 2px 4px rgba(0,0,0,0.35);opacity:0;transition:opacity .2s;pointer-events:none;z-index:10;display:flex;align-items:center;justify-content:center;}
       .ldz-placed.selected .ldz-fov-handle{opacity:1;pointer-events:auto;}
-      .ldz-fov-handle.range{cursor:n-resize;}
+      .ldz-fov-handle.range{cursor:grab;background:rgba(255,255,255,0.95);}
+      .ldz-fov-handle.range:active,.ldz-fov-handle.range.dragging{cursor:grabbing;}
       .ldz-fov-handle.angle-left, .ldz-fov-handle.angle-right{cursor:ew-resize;}
       .ldz-quick-actions{position:absolute;bottom:calc(100% + 16px);left:50%;transform:translateX(-50%);display:flex;gap:4px;background:rgba(15,23,42,0.92);padding:4px 6px;border-radius:12px;border:1px solid rgba(15,23,42,0.55);box-shadow:0 12px 24px -12px rgba(15,23,42,0.55);z-index:20;}
       .ldz-quick-actions button{width:26px;height:26px;border-radius:6px;background:rgba(255,255,255,0.08);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s,transform .2s;}
@@ -812,19 +813,33 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
             if (fovData && placedEl) {
                 const rangePx = (fovData.rangeFt || 60) * pixelsPerFoot;
                 const angleRad = (fovData.angle || 90) * Math.PI / 180;
-                const rotationRad = (fovData.rotation || 0) * Math.PI / 180;
+                const placementRotationRad = (p.rotation || 0) * Math.PI / 180;
+                const fovRotationRad = (typeof fovData.rotation === 'number' ? fovData.rotation : (p.rotation || 0)) * Math.PI / 180;
+                const relativeRotation = fovRotationRad - placementRotationRad;
 
-                const handleSize = 14; // from CSS
-                const setHandlePos = (handleClass, r, a) => {
+                const handleSize = 18; // from CSS
+                const setHandlePos = (handleClass, radius, angleOffset = 0) => {
                     const handle = placedEl.querySelector(`.ldz-fov-handle.${handleClass}`);
-                    if (handle) {
-                        handle.style.transform = `translate(${r * Math.sin(a) - handleSize/2}px, ${-r * Math.cos(a) - handleSize/2}px)`;
+                    if (!handle) return;
+                    const localAngle = relativeRotation + angleOffset;
+                    const offsetX = radius * Math.sin(localAngle) - handleSize / 2;
+                    const offsetY = -radius * Math.cos(localAngle) - handleSize / 2;
+                    handle.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+
+                    if (handleClass === 'range') {
+                        const readout = handle.querySelector('.ldz-fov-range-readout');
+                        if (readout) {
+                            const rangeFt = getFovRangeFeet(fovData);
+                            readout.textContent = formatRangeLabel(rangeFt ?? radius / pixelsPerFoot);
+                            const placementRotationDeg = p.rotation || 0;
+                            readout.style.transform = `translate(-50%, 6px) rotate(${-(placementRotationDeg)}deg)`;
+                        }
                     }
                 };
                 const halfAngleRad = angleRad / 2;
-                setHandlePos('range', rangePx, rotationRad);
-                setHandlePos('angle-left', rangePx, rotationRad - halfAngleRad);
-                setHandlePos('angle-right', rangePx, rotationRad + halfAngleRad);
+                setHandlePos('range', rangePx, 0);
+                setHandlePos('angle-left', rangePx, -halfAngleRad);
+                setHandlePos('angle-right', rangePx, halfAngleRad);
 
             }
         }
@@ -1131,6 +1146,11 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
         if (fovData) {
             const rangeHandle = document.createElement('div');
             rangeHandle.className = 'ldz-fov-handle range';
+            const rangeReadout = document.createElement('div');
+            rangeReadout.className = 'ldz-fov-range-readout';
+            const initialRange = getFovRangeFeet(fovData);
+            rangeReadout.textContent = initialRange !== null ? formatRangeLabel(initialRange) : '—';
+            rangeHandle.appendChild(rangeReadout);
             const angleHandleLeft = document.createElement('div');
             angleHandleLeft.className = 'ldz-fov-handle angle-left';
             const angleHandleRight = document.createElement('div');
@@ -1221,11 +1241,16 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
             const cameraRangeEnabled = isCamera && !!ensureFovDefaults(p);
             selectionControls.style.display = 'flex';
             wallControls.style.display = 'none';
+            const rangeHandleTarget = event.target.closest('.ldz-fov-handle.range');
+            const angleLeftHandleTarget = event.target.closest('.ldz-fov-handle.angle-left');
+            const angleRightHandleTarget = event.target.closest('.ldz-fov-handle.angle-right');
             const isRotateCamHandle = event.target.classList.contains('ldz-camera-rotate-handle');
             const isFovBody = event.target.classList.contains('ldz-fov-body');
-            const isRangeHandle = event.target.classList.contains('range');
-            const isAngleLeftHandle = event.target.classList.contains('angle-left');
-            const isAngleRightHandle = event.target.classList.contains('angle-right');
+            const isRangeHandle = !!rangeHandleTarget;
+            const isAngleLeftHandle = !!angleLeftHandleTarget;
+            const isAngleRightHandle = !!angleRightHandleTarget;
+
+            const dragHandleEl = rangeHandleTarget || angleLeftHandleTarget || angleRightHandleTarget;
 
             let mode = 'move';
             if (isRotateCamHandle) {
@@ -1237,6 +1262,10 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
             if (isRangeHandle) mode = 'range';
             if (isAngleLeftHandle) mode = 'angle-left';
             if (isAngleRightHandle) mode = 'angle-right';
+
+            if (mode === 'range' && dragHandleEl) {
+                dragHandleEl.classList.add('dragging');
+            }
 
             const itemToUpdate = p;
 
@@ -1312,6 +1341,9 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
             const handleUp = () => {
               document.removeEventListener('mousemove', handleMove);
               document.removeEventListener('mouseup', handleUp);
+              if (dragHandleEl) {
+                  dragHandleEl.classList.remove('dragging');
+              }
               saveConfig();
               flushFovHistoryCommit();
               saveHistory();
