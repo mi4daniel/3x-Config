@@ -77,7 +77,9 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
   }
 
   function deselectAll() {
-      selectedId = null; selectedWallId = null;
+      selectedId = null;
+      selectedWallId = null;
+      syncFovControlsForPlacement(null);
   }
 
   // ---- Style injection (scoped) ----
@@ -397,6 +399,192 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
 
     const RANGE_STEP = 10;
     const ROTATION_STEP = 5;
+
+    function getSelectedPlacement(type) {
+        if (!selectedId) return null;
+        const placements = getConfig().layoutPlacements || [];
+        const placement = placements.find(p => p.uniqueId === selectedId) || null;
+        if (!placement) return null;
+        if (type && placement.type !== type) return null;
+        return placement;
+    }
+
+    function ensureFovDefaults(placement) {
+        if (!placement || placement.type !== 'camera') return null;
+        if (!placement.fov) {
+            placement.fov = {
+                angle: 90,
+                rangeFt: 60,
+                rotation: placement.rotation || 0,
+                color: 'rgba(234,179,8,0.5)'
+            };
+        }
+        const fov = placement.fov;
+        if (typeof fov.angle !== 'number' || Number.isNaN(fov.angle)) {
+            fov.angle = 90;
+        }
+        if (typeof fov.rotation !== 'number' || Number.isNaN(fov.rotation)) {
+            fov.rotation = placement.rotation || 0;
+        }
+        if (typeof fov.rangeFt !== 'number' || Number.isNaN(fov.rangeFt)) {
+            if (typeof fov.range === 'number' && !Number.isNaN(fov.range)) {
+                fov.rangeFt = fov.range / pixelsPerFoot;
+            } else {
+                fov.rangeFt = 60;
+            }
+        }
+        if (typeof fov.color !== 'string') {
+            fov.color = 'rgba(234,179,8,0.5)';
+        }
+        delete fov.range;
+        return fov;
+    }
+
+    function getFovRangeFeet(fov) {
+        if (!fov) return null;
+        if (typeof fov.rangeFt === 'number' && !Number.isNaN(fov.rangeFt)) {
+            return fov.rangeFt;
+        }
+        if (typeof fov.range === 'number' && !Number.isNaN(fov.range)) {
+            return fov.range / pixelsPerFoot;
+        }
+        return null;
+    }
+
+    function formatRangeLabel(rangeFt) {
+        if (typeof rangeFt !== 'number' || Number.isNaN(rangeFt)) return '—';
+        const precision = rangeFt >= 100 ? 0 : rangeFt >= 10 ? 1 : 2;
+        return `${rangeFt.toFixed(precision)} ft`;
+    }
+
+    function syncFovControlsForPlacement(placement) {
+        const fov = ensureFovDefaults(placement);
+        const hasVisibleFov = !!fov;
+        if (cameraRangeControl) {
+            cameraRangeControl.style.display = hasVisibleFov ? 'flex' : 'none';
+        }
+        const rangeFt = hasVisibleFov ? getFovRangeFeet(fov) : null;
+        if (cameraRangeInput) {
+            cameraRangeInput.disabled = !hasVisibleFov;
+            if (hasVisibleFov && rangeFt !== null) {
+                cameraRangeInput.value = Math.round(rangeFt);
+            } else if (!hasVisibleFov) {
+                cameraRangeInput.value = '';
+            }
+        }
+        if (cameraRangeValue) {
+            cameraRangeValue.textContent = hasVisibleFov && rangeFt !== null ? formatRangeLabel(rangeFt) : '—';
+        }
+        [cameraRangeDecreaseBtn, cameraRangeIncreaseBtn].forEach(btn => {
+            if (btn) btn.disabled = !hasVisibleFov;
+        });
+    }
+
+    syncFovControlsForPlacement(null);
+
+    function adjustSelectedFovCone(adjustment = {}, options = {}) {
+        const { finalize = false, skipUiSync = false } = options;
+        const placement = getSelectedPlacement('camera');
+        if (!placement) return false;
+        const fov = ensureFovDefaults(placement);
+        if (!fov) return false;
+
+        const originalRange = getFovRangeFeet(fov) ?? 60;
+        const originalAngle = (typeof fov.angle === 'number' && !Number.isNaN(fov.angle)) ? fov.angle : 90;
+        const originalRotation = (typeof fov.rotation === 'number' && !Number.isNaN(fov.rotation)) ? fov.rotation : (placement.rotation || 0);
+
+        let nextRange = originalRange;
+        let nextAngle = originalAngle;
+        let nextRotation = originalRotation;
+        let changed = false;
+
+        if ('rangeFt' in adjustment || 'rangeDeltaFt' in adjustment || 'rangePx' in adjustment || 'rangeDeltaPx' in adjustment) {
+            if (typeof adjustment.rangeFt === 'number' && !Number.isNaN(adjustment.rangeFt)) {
+                nextRange = adjustment.rangeFt;
+            } else if (typeof adjustment.rangeDeltaFt === 'number' && !Number.isNaN(adjustment.rangeDeltaFt)) {
+                nextRange = originalRange + adjustment.rangeDeltaFt;
+            } else if (typeof adjustment.rangePx === 'number' && !Number.isNaN(adjustment.rangePx)) {
+                nextRange = adjustment.rangePx / pixelsPerFoot;
+            } else if (typeof adjustment.rangeDeltaPx === 'number' && !Number.isNaN(adjustment.rangeDeltaPx)) {
+                nextRange = originalRange + adjustment.rangeDeltaPx / pixelsPerFoot;
+            }
+            if (typeof nextRange === 'number' && !Number.isNaN(nextRange)) {
+                nextRange = Math.max(1, Math.min(1000, nextRange));
+                if (Math.abs(nextRange - originalRange) > 1e-4) {
+                    fov.rangeFt = parseFloat(nextRange.toFixed(2));
+                    delete fov.range;
+                    changed = true;
+                }
+            }
+        }
+
+        if ('angle' in adjustment || 'angleDelta' in adjustment) {
+            if (typeof adjustment.angle === 'number' && !Number.isNaN(adjustment.angle)) {
+                nextAngle = adjustment.angle;
+            } else if (typeof adjustment.angleDelta === 'number' && !Number.isNaN(adjustment.angleDelta)) {
+                nextAngle = originalAngle + adjustment.angleDelta;
+            }
+            if (typeof nextAngle === 'number' && !Number.isNaN(nextAngle)) {
+                nextAngle = Math.max(5, Math.min(360, nextAngle));
+                if (Math.abs(nextAngle - originalAngle) > 1e-4) {
+                    fov.angle = Math.round(nextAngle);
+                    changed = true;
+                }
+            }
+        }
+
+        if ('rotation' in adjustment || 'rotationDelta' in adjustment) {
+            if (typeof adjustment.rotation === 'number' && !Number.isNaN(adjustment.rotation)) {
+                nextRotation = adjustment.rotation;
+            } else if (typeof adjustment.rotationDelta === 'number' && !Number.isNaN(adjustment.rotationDelta)) {
+                nextRotation = originalRotation + adjustment.rotationDelta;
+            }
+            if (typeof nextRotation === 'number' && !Number.isNaN(nextRotation)) {
+                nextRotation = ((nextRotation % 360) + 360) % 360;
+                if (Math.abs(nextRotation - originalRotation) > 1e-4) {
+                    const roundedRotation = Math.round(nextRotation * 100) / 100;
+                    fov.rotation = roundedRotation;
+                    placement.rotation = roundedRotation;
+                    changed = true;
+                }
+            }
+        }
+
+        if (!changed) return false;
+
+        redraw();
+        if (!skipUiSync) {
+            syncFovControlsForPlacement(placement);
+        }
+        saveConfig();
+        if (finalize) {
+            flushFovHistoryCommit();
+            saveHistory();
+        } else {
+            queueFovHistoryCommit();
+        }
+        return true;
+    }
+
+    function setFovControlValue(prop, rawValue, finalize = false) {
+        if (typeof rawValue !== 'number' || Number.isNaN(rawValue)) return;
+        const adjustment = {};
+        switch (prop) {
+            case 'range':
+            case 'rangeFt':
+                adjustment.rangeFt = rawValue;
+                break;
+            case 'angle':
+                adjustment.angle = rawValue;
+                break;
+            case 'rotation':
+                adjustment.rotation = rawValue;
+                break;
+            default:
+                return;
+        }
+        adjustSelectedFovCone(adjustment, { finalize });
+    }
 
     // ---- History Management ----
     function updateHistoryButtons() {
@@ -1016,7 +1204,7 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
             selectedWallId = null;
             deleteBtn.style.display = 'flex';
             const isCamera = p.type === 'camera';
-            const cameraRangeEnabled = isCamera && p.fov;
+            const cameraRangeEnabled = isCamera && !!ensureFovDefaults(p);
             selectionControls.style.display = 'flex';
             wallControls.style.display = 'none';
             const isRotateCamHandle = event.target.classList.contains('ldz-camera-rotate-handle');
@@ -1038,6 +1226,12 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
 
             const itemToUpdate = p;
 
+            if (isCamera) {
+              syncFovControlsForPlacement(cameraRangeEnabled ? itemToUpdate : null);
+            } else {
+              syncFovControlsForPlacement(null);
+            }
+
             const dragStart = {
               mouseX: event.clientX,
               mouseY: event.clientY,
@@ -1052,9 +1246,8 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
 
               if (mode === 'range' && itemToUpdate.fov) {
                   const distPx = Math.hypot(pointerX - itemToUpdate.x, pointerY - itemToUpdate.y);
-                  const newRangeFt = Math.round(distPx / pixelsPerFoot);
+                  const newRangeFt = distPx / pixelsPerFoot;
                   setFovControlValue('range', newRangeFt);
-                  redraw();
                   return;
               }
 
@@ -1075,7 +1268,6 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
                   newAngle = Math.round(Math.max(5, Math.min(360, newAngle)));
 
                   setFovControlValue('angle', newAngle);
-                  redraw();
                   return;
               }
 
@@ -1093,9 +1285,11 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
                 const angle = Math.atan2(pointerY - p.y, pointerX - p.x) * 180 / Math.PI;
                 const newRotation = Math.round(angle + 90);
                 itemToUpdate.rotation = newRotation;
-                if (itemToUpdate.fov) itemToUpdate.fov.rotation = newRotation;
-
-                redraw();
+                if (itemToUpdate.fov) {
+                  setFovControlValue('rotation', newRotation);
+                } else {
+                  redraw();
+                }
                 return;
               }
 
@@ -1105,6 +1299,7 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
               document.removeEventListener('mousemove', handleMove);
               document.removeEventListener('mouseup', handleUp);
               saveConfig();
+              flushFovHistoryCommit();
               saveHistory();
             };
 
@@ -1230,6 +1425,7 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
           if (closestWall && minDistance < selectionThreshold) {
               selectedWallId = closestWall.id;
               selectedId = null;
+              syncFovControlsForPlacement(null);
               updateWallSelectionUI();
               return; // Don't start drawing a new wall
           }
@@ -1275,12 +1471,7 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
           deselectAll();
           updateWallSelectionUI();
           deleteBtn.style.display = 'none';
-          if (cameraRangeControl) cameraRangeControl.style.display = 'none';
-          if (cameraRangeValue) cameraRangeValue.textContent = '—';
-          if (cameraRangeInput) cameraRangeInput.disabled = true;
-          [cameraRangeDecreaseBtn, cameraRangeIncreaseBtn].forEach(btn => {
-              if (btn) btn.disabled = true;
-          });
+          syncFovControlsForPlacement(null);
           wrap.style.cursor = 'grabbing';
           const onPanMove = (moveEvent) => {
               view.x = moveEvent.clientX - panStartX;
@@ -1449,38 +1640,54 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
         }
     }
 
-    function updateSelectedFov(prop, value, finalize = false) {
-        if (!selectedId) return;
-        const cfg = getConfig();
-        const selectedItem = (cfg.layoutPlacements || []).find(p => p.uniqueId === selectedId);
-        if (!selectedItem) return;
-    
-        if (selectedItem.type === 'camera') {
-            if (!selectedItem.fov) {
-                 selectedItem.fov = { angle: 90, rangeFt: 60, rotation: 0 };
-            }
-            selectedItem.fov[prop] = value;
-            redraw();
-            saveConfig();
-            if (finalize) {
-                flushFovHistoryCommit();
-                saveHistory();
-            }
-            else {
-                queueFovHistoryCommit();
-            }
+    function updateSelectedFov(propOrAdjustment, value, finalize = false) {
+        if (typeof propOrAdjustment === 'object' && propOrAdjustment !== null) {
+            adjustSelectedFovCone(propOrAdjustment, { finalize });
+            return;
+        }
+        switch (propOrAdjustment) {
+            case 'range':
+            case 'rangeFt':
+                adjustSelectedFovCone({ rangeFt: value }, { finalize });
+                break;
+            case 'angle':
+                adjustSelectedFovCone({ angle: value }, { finalize });
+                break;
+            case 'rotation':
+                adjustSelectedFovCone({ rotation: value }, { finalize });
+                break;
+            default:
+                break;
         }
     }
 
     if (cameraRangeInput) {
       cameraRangeInput.addEventListener('input', (e) => {
-        const range = parseInt(e.target.value, 10);
-        setFovControlValue('range', range);
+        const range = parseFloat(e.target.value);
+        if (!Number.isNaN(range)) {
+          setFovControlValue('range', range);
+        }
       });
       cameraRangeInput.addEventListener('change', (e) => {
-        const range = parseInt(e.target.value, 10);
-        setFovControlValue('range', range, true);
+        const range = parseFloat(e.target.value);
+        if (!Number.isNaN(range)) {
+          setFovControlValue('range', range, true);
+        }
       });
+    }
+
+    if (cameraRangeDecreaseBtn) {
+        cameraRangeDecreaseBtn.addEventListener('click', (event) => {
+            const step = (event.shiftKey ? RANGE_STEP * 5 : RANGE_STEP) * -1;
+            adjustSelectedFovCone({ rangeDeltaFt: step }, { finalize: true });
+        });
+    }
+
+    if (cameraRangeIncreaseBtn) {
+        cameraRangeIncreaseBtn.addEventListener('click', (event) => {
+            const step = event.shiftKey ? RANGE_STEP * 5 : RANGE_STEP;
+            adjustSelectedFovCone({ rangeDeltaFt: step }, { finalize: true });
+        });
     }
 
     function deleteSelectedItem() {
@@ -1490,6 +1697,7 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
         selectedId = null;
         deleteBtn.style.display = 'none';
         selectionControls.style.display = 'none';
+        syncFovControlsForPlacement(null);
         saveConfig();
         saveHistory();
         renderItemsList();
