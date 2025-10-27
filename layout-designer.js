@@ -175,9 +175,10 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
       .ldz-placed.selected .ldz-fov-handle{opacity:1;pointer-events:auto;}
       .ldz-fov-handle.range{cursor:n-resize;}
       .ldz-fov-handle.angle-left, .ldz-fov-handle.angle-right{cursor:ew-resize;}
-      .ldz-quick-actions{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);display:flex;gap:6px;background:rgba(34,30,31,0.85);padding:6px;border-radius:10px;border:1px solid rgba(34,30,31,0.4);box-shadow:0 8px 16px rgba(0,0,0,0.3);z-index:20;}
-      .ldz-quick-actions button{width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,0.1);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;}
-      .ldz-quick-actions button:hover{background:rgba(255,255,255,0.2);}
+      .ldz-quick-actions{position:absolute;bottom:calc(100% + 16px);left:50%;transform:translateX(-50%);display:flex;gap:4px;background:rgba(15,23,42,0.92);padding:4px 6px;border-radius:12px;border:1px solid rgba(15,23,42,0.55);box-shadow:0 12px 24px -12px rgba(15,23,42,0.55);z-index:20;}
+      .ldz-quick-actions button{width:26px;height:26px;border-radius:6px;background:rgba(255,255,255,0.08);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s,transform .2s;}
+      .ldz-quick-actions button:hover{background:rgba(255,255,255,0.22);transform:translateY(-1px);}
+      .ldz-quick-actions button svg{width:14px;height:14px;}
       .ldz-placed.camera{background:linear-gradient(160deg,rgba(194,32,51,0.9),rgba(194,32,51,0.85));border-radius:18px;}
       .ldz-placed.nvr{background:linear-gradient(160deg,rgba(100,116,139,0.95),rgba(71,85,105,0.92));font-size:12px;font-weight:700;}
       .ldz-placed.fov{background:rgba(234,179,8,0.75);border-radius:18px;}
@@ -193,6 +194,9 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
       .ldz-item-badge{position:absolute;left:8px;top:8px;background:#c22033;color:#fff;width:18px;height:18px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:700;}
       .ldz-placed-badge{position:absolute;right:-8px;bottom:-8px;background:#fff;color:#c22033;width:18px;height:18px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;font-size:0.68rem;font-weight:700;border:2px solid rgba(34,30,31,0.12);transform-origin:center;}
       .ldz-place-label-input{font-size:0.68rem;padding:3px 6px;border-radius:6px;border:1px solid rgba(0,0,0,0.12);outline:none;}
+      .ldz-number-input{height:34px;padding:6px 10px;border-radius:10px;border:1px solid rgba(34,30,31,0.18);background:rgba(255,255,255,0.96);font-size:0.78rem;color:#221e1f;box-shadow:inset 0 1px 2px rgba(15,23,42,0.08);transition:border-color .2s,box-shadow .2s;}
+      .ldz-number-input:focus{border-color:rgba(194,32,51,0.55);box-shadow:0 0 0 3px rgba(194,32,51,0.15);outline:none;}
+      .ldz-field-hint{font-size:0.66rem;color:rgba(34,30,31,0.55);}
       .ldz-scale-input-wrap{display:none;align-items:center;gap:8px;}
       .ldz-scale-handle{position:absolute;width:14px;height:14px;background:#fff;border-radius:9999px;cursor:move;border:2px solid #10b981;box-shadow:0 2px 8px rgba(0,0,0,0.3);}
     `;
@@ -300,8 +304,18 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
                     <div class="ldz-card-title">Wall Selection</div>
                     <button id="ldzDeleteWallBtn" class="ldz-icon-btn danger"><img src="/icons/delete_.png" alt="Delete"><span>Delete Wall</span></button>
                 </div>
-                <div id="ldzSelectionControls" class="ldz-card" style="display:none;">
-                    <div class="ldz-card-actions">
+                <div id="ldzSelectionControls" class="ldz-card" style="display:none;flex-direction:column;gap:16px;">
+                    <div class="ldz-card-title">Selected item</div>
+                    <div id="ldzCameraRangeControl" class="ldz-field" style="display:none;">
+                        <div class="ldz-field-header">
+                            <label class="ldz-label" for="ldzCameraRange">FOV range <strong id="ldzCameraRangeValue">—</strong></label>
+                            <div class="ldz-stepper">
+                                <button type="button" class="ldz-step-btn" id="ldzCameraRangeDecrease" title="Decrease range">&minus;</button>
+                                <button type="button" class="ldz-step-btn" id="ldzCameraRangeIncrease" title="Increase range">+</button>
+                            </div>
+                        </div>
+                        <input type="number" id="ldzCameraRange" class="ldz-number-input" inputmode="decimal" min="1" max="1000" step="1" placeholder="Enter feet" />
+                        <span class="ldz-field-hint">Hold Shift while clicking to adjust by 50 ft.</span>
                     </div>
                     <button id="ldzDeleteBtn" class="ldz-icon-btn danger"><img src="/icons/delete_.png" alt="Delete"><span>Remove from layout</span></button>
                 </div>
