@@ -4,13 +4,9 @@
      - handleLayoutUpload(event)
      - removeCameraLayout()
      - getLayoutCanvasAsImage()
-
    This version includes:
-     ✓ Camera-specific icons and a new NVR icon.
-     ✓ Automatic FOV creation and linking when a camera is placed.
-     ✓ Linked FOV moves with its parent camera.
-     ✓ Option to unlink an FOV from its camera.
-     ✓ Stale reference bug fixed (just-in-time data fetching).
+   This version includes:
+     ✓ Camera and its FOV are now a single, unified object.
      ✓ Individual item deletion (button and keyboard shortcuts).
      ✓ Keyboard nudging for precise placement.
      ✓ Item labels on the canvas.
@@ -18,7 +14,6 @@
      ✓ Adjust linked FOV properties when the parent camera is selected.
      ✓ Mouse wheel zoom for the floorplan.
      ✓ Undo/Redo functionality.
-     ✓ Rotate a camera and its linked FOV together.
      ✓ FOV range/distance slider when a camera/FOV is selected.
      ✓ Fixed unresponsive close buttons.
      ✓ Wall drawing tool, FOV obstruction, and interactive scaling.
@@ -305,8 +300,6 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
                 </div>
                 <div id="ldzSelectionControls" class="ldz-card" style="display:none;">
                     <div class="ldz-card-actions">
-                        <button id="ldzLinkBtn" class="ldz-chip-btn" style="display:none;">Link FOV</button>
-                        <button id="ldzUnlinkBtn" class="ldz-chip-btn" style="display:none;">Unlink FOV</button>
                     </div>
                     <div id="ldzCameraRangeControl" class="ldz-field" style="display:none;">
                         <div class="ldz-field-header">
@@ -372,10 +365,8 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
     const cameraRangeDecreaseBtn = overlay.querySelector('#ldzCameraRangeDecrease');
     const cameraRangeIncreaseBtn = overlay.querySelector('#ldzCameraRangeIncrease');
     const deleteBtn = overlay.querySelector('#ldzDeleteBtn');
-    const linkBtn = overlay.querySelector('#ldzLinkBtn');
     const wallControls = overlay.querySelector('#ldzWallControls');
     const deleteWallBtn = overlay.querySelector('#ldzDeleteWallBtn');
-    const unlinkBtn = overlay.querySelector('#ldzUnlinkBtn');
     const zoomInBtn = overlay.querySelector('#ldzZoomIn');
     const zoomOutBtn = overlay.querySelector('#ldzZoomOut');
     const zoomResetBtn = overlay.querySelector('#ldzZoomReset');
@@ -487,15 +478,6 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
       const {allCams, allNvrs} = collectItems();
       const items = [];
 
-      const fovUid = `fov-${Date.now()}`;
-      items.push({
-        type:'fov',
-        uniqueId:fovUid,
-        name:'Adjustable FOV',
-        subtitle:'Standalone coverage zone',
-        isTemplate:true
-      });
-
       allCams.forEach(cam=>{
         const qty = Math.max(1, parseInt(cam.quantity,10) || 1);
         for (let i=0;i<qty;i++){
@@ -534,7 +516,7 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
       const rows = items.map(item=>{
         
         const typeClass = item.type === 'nvr' ? 'ldz-type-pill nvr' : item.type === 'fov' ? 'ldz-type-pill fov' : 'ldz-type-pill';
-        const typeLabel = item.isTemplate ? 'FOV template' : item.type === 'nvr' ? 'Recorder' : item.type === 'camera' ? 'Camera' : 'FOV';
+        const typeLabel = item.type === 'nvr' ? 'Recorder' : 'Camera';
         const fallbackChar = (String(item.name||'').trim().charAt(0) || '?').toUpperCase();
         const icon = item.image ? `<img src="${item.image}" alt="">` : `<span class="ldz-item-fallback">${fallbackChar}</span>`;
         const subtitle = item.subtitle || 'Drag onto the layout';
@@ -632,8 +614,7 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
         // Position FOV handles
         if (selectedId) {
             const p = (cfg.layoutPlacements || []).find(item => item.uniqueId === selectedId);
-            const fovData = p && (p.type === 'camera' ? (cfg.layoutPlacements || []).find(fp => fp.linkedTo === p.uniqueId)?.fov : p.fov);
-            const placedEl = overlayLayer.querySelector(`.ldz-placed[data-uid="${selectedId}"]`);
+            const fovData = p?.fov;            const placedEl = overlayLayer.querySelector(`.ldz-placed[data-uid="${selectedId}"]`);
 
             if (fovData && placedEl) {
                 const rangePx = (fovData.rangeFt || 60) * pixelsPerFoot;
@@ -721,18 +702,10 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
         const walls = cfg.layoutWalls || [];
 
         (cfg.layoutPlacements || []).forEach(p => {
-            if (p.type !== 'fov') return;
+            if (p.type !== 'camera' || !p.fov) return;
 
-            let fovOrigin = { x: p.x, y: p.y };
-            // If FOV is linked, always get position from the parent camera to prevent desync.
-            if (p.linkedTo) {
-                const parentCam = cfg.layoutPlacements.find(cam => cam.uniqueId === p.linkedTo);
-                if (parentCam) {
-                    fovOrigin = { x: parentCam.x, y: parentCam.y };
-                }
-            }
+            const fovOrigin = { x: p.x, y: p.y };
             const fovAngle = p.fov?.angle ?? 90;
-            // range stored in feet: rangeFt (new). If legacy 'range' exists and no rangeFt, use it as px fallback.
             const fovRangePx = (typeof p.fov?.rangeFt === 'number')
                 ? (p.fov.rangeFt * pixelsPerFoot)
                 : (p.fov?.range ?? 60);
@@ -800,13 +773,9 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
         const cfg2 = getConfig();
         const walls = cfg2.layoutWalls || [];
         (cfg2.layoutPlacements || []).forEach(p => {
-            if (p.type !== 'fov') return;
+            if (p.type !== 'camera' || !p.fov) return;
 
-            let fovOrigin = { x: p.x, y: p.y };
-            if (p.linkedTo) {
-                const parentCam = cfg2.layoutPlacements.find(cam => cam.uniqueId === p.linkedTo);
-                if (parentCam) fovOrigin = { x: parentCam.x, y: parentCam.y };
-            }
+            const fovOrigin = { x: p.x, y: p.y };
             const fovAngle = p.fov?.angle ?? 90;
             const fovRangePx = (typeof p.fov?.rangeFt === 'number') ? (p.fov.rangeFt * pixelsPerFoot) : (p.fov?.range ?? 60);
             const fovRotation = (p.fov?.rotation ?? 0) * Math.PI / 180;
@@ -947,9 +916,6 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
         const el = document.createElement('div');
         el.className = `ldz-placed ${p.type}`;
         if (p.uniqueId === selectedId) el.classList.add('selected');
-        if (p.type === 'fov' && p.linkedTo) {
-            el.classList.add('linked');
-        }
         el.dataset.uid = p.uniqueId;
         el.style.transform = `translate(${p.x - 16}px, ${p.y - 16}px) rotate(${p.rotation || 0}deg)`;
         
@@ -964,16 +930,10 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
             const nvr = allNvrs.find(n => `nvr-${n.id}` === p.uniqueId);
             itemName = p.label || nvr?.product?.name || 'NVR';
             iconHtml = 'NVR';
-        } else if (p.type === 'fov') {
-            itemName = p.label || 'Field of View';
         }
         el.innerHTML = `${iconHtml}`;
 
-
-        // Add interactive handles for cameras with FOVs or standalone FOVs
-        const fovData = (p.type === 'camera')
-          ? (cfg.layoutPlacements || []).find(fp => fp.linkedTo === p.uniqueId)?.fov
-          : p.fov;
+        const fovData = p.fov;
 
         if (fovData) {
             const rangeHandle = document.createElement('div');
@@ -1059,33 +1019,6 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
             event.preventDefault();
             event.stopPropagation();
 
-            const cfg = getConfig();
-
-            if (currentMode === 'linkFov') {
-              const fovToLink = cfg.layoutPlacements.find(item => item.uniqueId === selectedId);
-              const targetCamera = p; // `p` is the placement for the clicked element `el`
-
-              if (fovToLink && targetCamera && targetCamera.type === 'camera') {
-                fovToLink.linkedTo = targetCamera.uniqueId;
-                fovToLink.x = targetCamera.x;
-                fovToLink.y = targetCamera.y;
-                fovToLink.fov.rotation = targetCamera.rotation || 0;
-
-                currentMode = 'place';
-                linkBtn.classList.remove('active');
-                wrap.style.cursor = 'grab';
-                overlay.querySelectorAll('.ldz-placed.camera').forEach(cam => {
-                  cam.style.outline = 'none';
-                });
-
-                redraw();
-                saveConfig();
-                saveHistory();
-              }
-
-              return;
-            }
-
             overlayLayer.querySelectorAll('.ldz-placed').forEach(node => node.classList.remove('selected'));
             el.classList.add('selected');
             selectedId = p.uniqueId;
@@ -1093,22 +1026,9 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
             deleteBtn.style.display = 'flex';
 
             const isCamera = p.type === 'camera';
-            const isFov = p.type === 'fov';
-            const isUnlinkedFov = isFov && !p.linkedTo;
-
-            let fovPlacement = null;
-            if (isFov) {
-              fovPlacement = p;
-            } else if (isCamera) {
-              fovPlacement = cfg.layoutPlacements.find(fp => fp.linkedTo === p.uniqueId) || null;
-            }
-
-            const hasLinkedFov = Boolean(isCamera && fovPlacement);
-            const cameraRangeEnabled = Boolean(isCamera && fovPlacement);
+            const cameraRangeEnabled = isCamera && p.fov;
 
             selectionControls.style.display = 'flex';
-            unlinkBtn.style.display = hasLinkedFov ? 'flex' : 'none';
-            linkBtn.style.display = isUnlinkedFov ? 'flex' : 'none';
             wallControls.style.display = 'none';
 
             if (cameraRangeControl) {
@@ -1123,8 +1043,8 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
               }
             });
 
-            if (fovPlacement) {
-              const fovData = fovPlacement.fov || {};
+            if (cameraRangeEnabled) {
+              const fovData = p.fov || {};
               const angle = typeof fovData.angle === 'number' ? fovData.angle : 90;
               const rangeFeet = typeof fovData.rangeFt === 'number'
                 ? fovData.rangeFt
@@ -1156,15 +1076,13 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
             if (isAngleLeftHandle) mode = 'angle-left';
             if (isAngleRightHandle) mode = 'angle-right';
 
-            const fovToUpdate = (p.type === 'camera')
-                ? cfg.layoutPlacements.find(fp => fp.linkedTo === p.uniqueId)
-                : p;
+            const itemToUpdate = p;
 
             const dragStart = {
               mouseX: event.clientX,
               mouseY: event.clientY,
-              x: p.x,
-              y: p.y
+              x: itemToUpdate.x,
+              y: itemToUpdate.y
             };
 
             const handleMove = (moveEvent) => {
@@ -1172,17 +1090,17 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
               const pointerX = (moveEvent.clientX - rect.left) / view.scale;
               const pointerY = (moveEvent.clientY - rect.top) / view.scale;
 
-              if (mode === 'range' && fovToUpdate) {
-                  const distPx = Math.hypot(pointerX - fovToUpdate.x, pointerY - fovToUpdate.y);
+              if (mode === 'range' && itemToUpdate.fov) {
+                  const distPx = Math.hypot(pointerX - itemToUpdate.x, pointerY - itemToUpdate.y);
                   const newRangeFt = Math.round(distPx / pixelsPerFoot);
                   setFovControlValue('range', newRangeFt);
                   redraw();
                   return;
               }
 
-              if ((mode === 'angle-left' || mode === 'angle-right') && fovToUpdate) {
-                  const currentRotationRad = (fovToUpdate.fov.rotation || 0) * Math.PI / 180;
-                  const angleToMouse = Math.atan2(pointerY - fovToUpdate.y, pointerX - fovToUpdate.x);
+              if ((mode === 'angle-left' || mode === 'angle-right') && itemToUpdate.fov) {
+                  const currentRotationRad = (itemToUpdate.fov.rotation || 0) * Math.PI / 180;
+                  const angleToMouse = Math.atan2(pointerY - itemToUpdate.y, pointerX - itemToUpdate.x);
                   
                   // Adjust angle relative to the FOV's current rotation
                   let relativeAngle = angleToMouse - currentRotationRad;
@@ -1201,26 +1119,11 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
                   return;
               }
 
-              if (mode === 'rotateFov' && fovToUpdate) {
-                  const angle = Math.atan2(pointerY - fovToUpdate.y, pointerX - fovToUpdate.x) * 180 / Math.PI;
-                  const newRotation = Math.round((angle + 90 + 360) % 360);
-                  fovToUpdate.fov.rotation = newRotation;
-                  setFovControlValue('rotation', newRotation);
-                  redraw();
-                  return;
-              }
-
-
               if (mode === 'move') {
                 const dx = (moveEvent.clientX - dragStart.mouseX) / view.scale;
                 const dy = (moveEvent.clientY - dragStart.mouseY) / view.scale;
-                p.x = Math.max(0, Math.min(img.width, dragStart.x + dx));
-                p.y = Math.max(0, Math.min(img.height, dragStart.y + dy));
-
-                if (isCamera && fovPlacement) {
-                  fovPlacement.x = p.x;
-                  fovPlacement.y = p.y;
-                }
+                itemToUpdate.x = Math.max(0, Math.min(img.width, dragStart.x + dx));
+                itemToUpdate.y = Math.max(0, Math.min(img.height, dragStart.y + dy));
 
                 redraw();
                 return;
@@ -1229,30 +1132,13 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
               if (mode === 'rotateCam') {
                 const angle = Math.atan2(pointerY - p.y, pointerX - p.x) * 180 / Math.PI;
                 const newRotation = Math.round(angle + 90);
-                p.rotation = newRotation;
-
-                if (isCamera && fovPlacement) {
-                  fovPlacement.fov = fovPlacement.fov || {};
-                  fovPlacement.fov.rotation = newRotation;
-                  if (fovRotationInput) fovRotationInput.value = newRotation;
-                  if (fovRotationValue) fovRotationValue.textContent = `${newRotation}°`;
-                }
+                itemToUpdate.rotation = newRotation;
+                if (itemToUpdate.fov) itemToUpdate.fov.rotation = newRotation;
 
                 redraw();
                 return;
               }
 
-              if (mode === 'rotateFov' && fovPlacement) {
-                const angle = Math.atan2(pointerY - fovPlacement.y, pointerX - fovPlacement.x) * 180 / Math.PI;
-                const newRotation = Math.round(angle + 90);
-                fovPlacement.fov = fovPlacement.fov || { angle: 90, rangeFt: 60, rotation: 0 };
-                fovPlacement.fov.rotation = newRotation;
-
-                if (fovRotationInput) fovRotationInput.value = newRotation;
-                if (fovRotationValue) fovRotationValue.textContent = `${newRotation}°`;
-
-                redraw();
-              }
             };
 
             const handleUp = () => {
@@ -1281,10 +1167,9 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
         switch (action) {
             case 'duplicate':
                 const newItem = JSON.parse(JSON.stringify(item));
-                newItem.uniqueId = `${item.type}-${Date.now()}`;
+                newItem.uniqueId = `${item.type}-${Date.now()}`; // Ensure unique ID
                 newItem.x += 20 / view.scale;
                 newItem.y += 20 / view.scale;
-                delete newItem.linkedTo; // Duplicates are never linked initially
                 cfg.layoutPlacements.push(newItem);
                 selectedId = newItem.uniqueId;
                 break;
@@ -1293,37 +1178,6 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
                 break;
         }
         saveConfig(); saveHistory(); redraw();
-    }
-
-    // Render small interactive DOM handles for FOVs so event.target checks in the
-    // placed-element mousedown handler work (e.g. detect '.ldz-fov-body').
-    // This is intentionally lightweight: it attaches a transparent, pointer-enabled
-    // element inside each placement element for FOV placements. More advanced
-    // handle visuals/drag logic can be added later.
-    function renderInteractiveHandles() {
-      if (!overlayLayer) return;
-      // Remove any previously-inserted fov body nodes so we don't duplicate
-      overlayLayer.querySelectorAll('.ldz-fov-body').forEach(n => n.remove());
-
-      const cfg = getConfig();
-      (cfg.layoutPlacements || []).forEach(p => {
-        const placedEl = overlayLayer.querySelector(`.ldz-placed[data-uid="${p.uniqueId}"]`);
-        if (!placedEl) return;
-
-        if (p.type === 'fov') {
-          const body = document.createElement('div');
-          body.className = 'ldz-fov-body';
-          // fill the placed marker so clicks on the marker can be recognized as fov-body
-          body.style.position = 'absolute';
-          body.style.left = '0';
-          body.style.top = '0';
-          body.style.width = '100%';
-          body.style.height = '100%';
-          body.style.pointerEvents = 'auto';
-          body.style.background = 'transparent';
-          placedEl.appendChild(body);
-        }
-      });
     }
 
     wrap.addEventListener('dragover', (e)=>{ e.preventDefault(); });
@@ -1340,27 +1194,17 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
       let parsed; try { parsed = JSON.parse(data); } catch { return; }
       
       const cfg = getConfig();
-      const newPlacements = [];
       const mainItem = {
         type: parsed.type, uniqueId: parsed.uniqueId,
         x: Math.max(0, Math.min(img.width, x)), y: Math.max(0, Math.min(img.height, y)),
         rotation: 0,
-        deviceId: parsed.type==='nvr' ? parseInt(String(parsed.uniqueId).replace('nvr-',''),10) : null,
       };
       
       if (mainItem.type === 'camera') {
-          const fovItem = {
-              type: 'fov', uniqueId: `fov-${Date.now()}`, linkedTo: mainItem.uniqueId,
-              x: mainItem.x, y: mainItem.y,
-              fov: { angle: 90, rangeFt: 60, rotation: 0, color: 'rgba(234,179,8,0.5)' }
-          };
-          newPlacements.push(fovItem);
-      } else if (mainItem.type === 'fov') {
           mainItem.fov = { angle: 90, rangeFt: 60, rotation: 0, color: 'rgba(234,179,8,0.5)' };
       }
       
-      newPlacements.push(mainItem);
-      cfg.layoutPlacements.push(...newPlacements);
+      cfg.layoutPlacements.push(mainItem);
 
       saveConfig();
       saveHistory();
@@ -1471,8 +1315,6 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
           deselectAll();
           updateWallSelectionUI();
           deleteBtn.style.display = 'none';
-          wallControls.style.display = 'none';
-          unlinkBtn.style.display = 'none';
           if (cameraRangeControl) cameraRangeControl.style.display = 'none';
           if (cameraRangeValue) cameraRangeValue.textContent = '—';
           if (cameraRangeInput) cameraRangeInput.disabled = true;
@@ -1650,21 +1492,14 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
     function updateSelectedFov(prop, value, finalize = false) {
         if (!selectedId) return;
         const cfg = getConfig();
-        let placementToUpdate = null;
         const selectedItem = (cfg.layoutPlacements || []).find(p => p.uniqueId === selectedId);
         if (!selectedItem) return;
     
-        if (selectedItem.type === 'fov') {
-            placementToUpdate = selectedItem;
-        } else if (selectedItem.type === 'camera') {
-            placementToUpdate = (cfg.layoutPlacements || []).find(p => p.linkedTo === selectedId);
-        }
-        
-        if (placementToUpdate) {
-            if (!placementToUpdate.fov) {
-                 placementToUpdate.fov = { angle: 90, rangeFt: 60, rotation: 0 };
+        if (selectedItem.type === 'camera') {
+            if (!selectedItem.fov) {
+                 selectedItem.fov = { angle: 90, rangeFt: 60, rotation: 0 };
             }
-            placementToUpdate.fov[prop] = value;
+            selectedItem.fov[prop] = value;
             redraw();
             saveConfig();
             if (finalize) {
@@ -1688,43 +1523,13 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
       });
     }
 
-    linkBtn.onclick = () => {
-        if (currentMode === 'linkFov') { // Toggle off
-            currentMode = 'place';
-            linkBtn.classList.remove('active');
-            wrap.style.cursor = 'grab';
-            overlay.querySelectorAll('.ldz-placed.camera').forEach(c => c.style.outline = 'none');
-        } else {
-            if (!selectedId) return;
-            const cfg = getConfig();
-            const fov = cfg.layoutPlacements.find(p => p.uniqueId === selectedId);
-            if (!fov || fov.type !== 'fov' || fov.linkedTo) return;
-            
-            currentMode = 'linkFov';
-            linkBtn.classList.add('active');
-            wrap.style.cursor = 'pointer';
-            overlay.querySelectorAll('.ldz-placed.camera').forEach(c => {
-                c.style.outline = '2px dashed #c22033';
-                c.style.outlineOffset = '2px';
-            });
-            if (typeof window.showToast === 'function') showToast('Select a camera to link this FOV.');
-        }
-    };
-
     function deleteSelectedItem() {
         if (!selectedId) return;
         const cfg = getConfig();
-        const itemToDelete = cfg.layoutPlacements.find(p => p.uniqueId === selectedId);
-        if (itemToDelete && itemToDelete.type === 'camera') {
-            cfg.layoutPlacements = (cfg.layoutPlacements || []).filter(p => p.uniqueId !== selectedId && p.linkedTo !== selectedId);
-        } else {
-            cfg.layoutPlacements = (cfg.layoutPlacements || []).filter(p => p.uniqueId !== selectedId);
-        }
+        cfg.layoutPlacements = (cfg.layoutPlacements || []).filter(p => p.uniqueId !== selectedId);
         selectedId = null;
         deleteBtn.style.display = 'none';
         selectionControls.style.display = 'none';
-        unlinkBtn.style.display = 'none';
-        linkBtn.style.display = 'none';
         if (cameraRangeControl) cameraRangeControl.style.display = 'none';
         if (cameraRangeValue) cameraRangeValue.textContent = '—';
         if (cameraRangeInput) cameraRangeInput.disabled = true;
@@ -1738,33 +1543,13 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
     }
     deleteBtn.onclick = deleteSelectedItem;
 
-    unlinkBtn.onclick = () => {
-        if (!selectedId) return;
-        const cfg = getConfig();
-        const fov = cfg.layoutPlacements.find(p => p.linkedTo === selectedId);
-        if (fov) {
-            delete fov.linkedTo;
-            saveConfig();
-            saveHistory();
-            redraw();
-            unlinkBtn.style.display = 'none';
-            if (cameraRangeControl) cameraRangeControl.style.display = 'none';
-            if (cameraRangeValue) cameraRangeValue.textContent = '—';
-            if (cameraRangeInput) cameraRangeInput.disabled = true;
-            [cameraRangeDecreaseBtn, cameraRangeIncreaseBtn].forEach(btn => {
-                if (btn) btn.disabled = true;
-            });
-        }
-    };
-
     deleteWallBtn.onclick = deleteSelectedWall;
 
     function handleKeyDown(e) {
       if (e.key === 'Escape') {
-        if (currentMode === 'drawWall' || currentMode === 'linkFov') {
+        if (currentMode === 'drawWall') {
             currentMode = 'place';
             drawWallBtn.classList.remove('active');
-            linkBtn.classList.remove('active');
             wrap.classList.remove('wall-mode');
             wrap.style.cursor = 'grab';
             overlay.querySelectorAll('.ldz-placed.camera').forEach(c => c.style.outline = 'none');
@@ -1789,14 +1574,6 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
       if (!placement) return;
 
       const key = e.key.toLowerCase();
-      const linkedFov = placement.type === 'fov'
-          ? placement
-          : (cfg.layoutPlacements || []).find(p => p.linkedTo === placement.uniqueId);
-      if (linkedFov) {
-          if (key === 'q' || key === 'e') {
-              e.preventDefault();
-          }
-      }
 
       let needsUpdate = false;
       if (e.key === 'Delete' || e.key === 'Backspace') {
@@ -1817,14 +1594,6 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
       if (needsUpdate) {
           placement.x = Math.max(0, Math.min(img.width, placement.x));
           placement.y = Math.max(0, Math.min(img.height, placement.y));
-          
-          if (placement.type === 'camera') {
-              const linkedFov = cfg.layoutPlacements.find(fp => fp.linkedTo === placement.uniqueId);
-              if (linkedFov) {
-                  linkedFov.x = placement.x;
-                  linkedFov.y = placement.y;
-              }
-          }
           redraw();
           saveConfig();
           saveHistory();
