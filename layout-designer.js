@@ -88,8 +88,8 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
     const style = document.createElement('style');
     style.id = STYLE_ID;
     style.textContent = `
-      .ldz-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:stretch;justify-content:stretch;background:radial-gradient(circle at top,rgba(15,23,42,0.9),rgba(15,23,42,0.75));backdrop-filter:blur(12px);}
-      .ldz-modal{width:100vw;height:100vh;background:linear-gradient(145deg,#f8fafc,#fff);border-radius:0;box-shadow:none;display:grid;grid-template-columns:minmax(300px,380px) minmax(0,1fr) minmax(300px,380px);overflow:hidden;color:#0f172a;position:relative;}
+      .ldz-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:stretch;justify-content:stretch;background:radial-gradient(circle at 20% 20%,rgba(15,23,42,0.55),rgba(15,23,42,0.8));backdrop-filter:blur(14px);padding:24px;box-sizing:border-box;}
+      .ldz-modal{width:100%;height:100%;background:linear-gradient(145deg,#f8fafc,#fff);border-radius:32px;box-shadow:0 32px 80px -40px rgba(15,23,42,0.65);display:grid;grid-template-columns:minmax(300px,360px) minmax(0,1fr) minmax(300px,360px);overflow:hidden;color:#0f172a;position:relative;gap:0;}
       @media(max-width:1080px){.ldz-modal{grid-template-columns:1fr;grid-template-rows:minmax(0,420px) minmax(0,1fr);height:100vh;}}
       @media(max-width:860px){.ldz-modal{grid-template-rows:minmax(0,380px) minmax(0,1fr);}}
       .ldz-sidebar{max-width:420px;}
@@ -128,8 +128,18 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
       .ldz-type-pill.fov{background:rgba(234,179,8,0.18);color:#b45309;}
       .ldz-empty-state{padding:40px 12px;text-align:center;color:rgba(34,30,31,0.45);font-size:0.8rem;}
       .ldz-sidebar-footer{padding:20px 28px 28px;border-top:1px solid rgba(34,30,31,0.18);display:flex;flex-direction:column;gap:18px;background:rgba(246,247,251,0.9);}
-      .ldz-card{background:rgba(255,255,255,0.96);border:1px solid rgba(34,30,31,0.2);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:14px;box-shadow:0 12px 32px -28px rgba(34,30,31,0.45);}
-      .ldz-card-title{font-weight:600;font-size:0.8rem;color:#221e1f;display:flex;align-items:center;justify-content:space-between;}
+      .ldz-card{background:rgba(255,255,255,0.96);border:1px solid rgba(34,30,31,0.16);border-radius:20px;box-shadow:0 18px 40px -32px rgba(15,23,42,0.55);overflow:hidden;}
+      .ldz-card + .ldz-card{margin-top:14px;}
+      .ldz-card-header{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;background:linear-gradient(120deg,rgba(248,250,252,0.92),rgba(226,232,240,0.65));border-bottom:1px solid rgba(148,163,184,0.25);cursor:pointer;transition:background .2s ease,color .2s ease;}
+      .ldz-card-header:hover{background:linear-gradient(120deg,rgba(248,250,252,0.96),rgba(226,232,240,0.85));}
+      .ldz-card-header:focus-visible{outline:3px solid rgba(194,32,51,0.35);outline-offset:-2px;}
+      .ldz-card-heading{display:flex;align-items:center;gap:10px;font-weight:600;font-size:0.82rem;color:#111827;letter-spacing:0.01em;}
+      .ldz-card-heading svg{width:18px;height:18px;color:#c22033;}
+      .ldz-card-chevron{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:999px;background:rgba(194,32,51,0.08);color:#c22033;transition:transform .2s ease;}
+      .ldz-card.collapsed .ldz-card-chevron{transform:rotate(-90deg);}
+      .ldz-card-content{display:flex;flex-direction:column;gap:14px;padding:16px 18px;transition:max-height .25s ease,opacity .2s ease;}
+      .ldz-card-content.stack{gap:16px;}
+      .ldz-card.collapsed .ldz-card-content{display:none;}
       .ldz-card-actions{display:flex;flex-wrap:wrap;gap:10px;}
       .ldz-chip-btn{padding:8px 14px;border-radius:12px;border:1px solid rgba(34,30,31,0.2);background:rgba(246,247,251,0.9);font-weight:600;font-size:0.75rem;color:#221e1f;cursor:pointer;transition:all .2s;}
       .ldz-chip-btn:hover{border-color:rgba(194,32,51,0.45);color:#c22033;}
@@ -157,10 +167,11 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
       .ldz-icon-btn.primary:hover{box-shadow:0 16px 32px -18px rgba(194,32,51,0.4);}
       .ldz-icon-btn.danger{background:linear-gradient(135deg,#c22033,#000000);color:#fff;border-color:rgba(194,32,51,0.65);}
       .ldz-icon-btn.danger:hover{box-shadow:0 16px 32px -18px rgba(194,32,51,0.45);}
-      .ldz-icon-btn.ghost{background:rgba(246,247,251,0.85);color:#221e1f;}
-      .ldz-icon-btn.ghost.active{border-color:rgba(194,32,51,0.6);background:rgba(194,32,51,0.12);color:#c22033;}
+      .ldz-icon-btn.ghost{background:rgba(246,247,251,0.95);color:#221e1f;box-shadow:0 8px 24px -20px rgba(15,23,42,0.55);}
+      .ldz-icon-btn.ghost:hover{background:rgba(246,247,251,1);}
+      .ldz-icon-btn.ghost.active{border-color:rgba(194,32,51,0.75);background:linear-gradient(135deg,rgba(194,32,51,0.18),rgba(194,32,51,0.12));color:#9f1c2b;box-shadow:0 16px 32px -24px rgba(194,32,51,0.5);}
       .ldz-icon-btn:disabled{opacity:0.45;cursor:not-allowed;box-shadow:none;border-color:rgba(34,30,31,0.18);}
-      .ldz-canvas-wrap{position:relative;background:radial-gradient(circle at top,#221e1f,#000000);display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:grab;}
+      .ldz-canvas-wrap{position:relative;background:radial-gradient(circle at 40% 20%,#1f2937 0%,#0b1120 65%);display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:grab;margin:24px;border-radius:28px;border:1px solid rgba(148,163,184,0.25);box-shadow:0 28px 80px -32px rgba(15,23,42,0.75);}
       .ldz-canvas-wrap.wall-mode{cursor:crosshair;}
       .ldz-canvas-toolbar{position:absolute;top:88px;right:24px;display:flex;gap:10px;flex-wrap:wrap;background:rgba(34,30,31,0.75);backdrop-filter:blur(10px);padding:10px 12px;border-radius:16px;border:1px solid rgba(34,30,31,0.3);box-shadow:0 24px 40px -28px rgba(34,30,31,0.8);z-index:5;}
       .ldz-toolbar-group{display:flex;align-items:center;gap:8px;}
@@ -171,8 +182,10 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
       #ldzBg,#ldzFov,#ldzWalls{position:absolute;top:0;left:0;}
       #ldzOverlay{position:absolute;top:0;left:0;transform-origin:top left;}
       .ldz-placed{position:absolute;width:36px;height:36px;border-radius:12px;border:2px solid rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;color:#fff;font:600 14px/1 'Inter',sans-serif;cursor:grab;user-select:none;box-shadow:0 14px 32px -24px rgba(34,30,31,0.85);pointer-events:auto;}
-      .ldz-fov-handle{position:absolute;width:14px;height:14px;border-radius:50%;background:#fff;border:2px solid #c22033;box-shadow:0 2px 4px rgba(0,0,0,0.3);opacity:0;transition:opacity .2s;pointer-events:none;z-index:10;}
+      .ldz-fov-handle{position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;border:3px solid #c22033;box-shadow:0 4px 10px rgba(0,0,0,0.35);opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;z-index:10;}
+      .ldz-placed:hover .ldz-fov-handle{opacity:0.35;}
       .ldz-placed.selected .ldz-fov-handle{opacity:1;pointer-events:auto;}
+      .ldz-placed.selected .ldz-fov-handle:hover{transform:scale(1.1);}
       .ldz-fov-handle.range{cursor:n-resize;}
       .ldz-fov-handle.angle-left, .ldz-fov-handle.angle-right{cursor:ew-resize;}
       .ldz-quick-actions{position:absolute;bottom:calc(100% + 16px);left:50%;transform:translateX(-50%);display:flex;gap:4px;background:rgba(15,23,42,0.92);padding:4px 6px;border-radius:12px;border:1px solid rgba(15,23,42,0.55);box-shadow:0 12px 24px -12px rgba(15,23,42,0.55);z-index:20;}
@@ -198,6 +211,10 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
       .ldz-number-input:focus{border-color:rgba(194,32,51,0.55);box-shadow:0 0 0 3px rgba(194,32,51,0.15);outline:none;}
       .ldz-field-hint{font-size:0.66rem;color:rgba(34,30,31,0.55);}
       .ldz-scale-input-wrap{display:none;align-items:center;gap:8px;}
+      .ldz-canvas-scale{position:absolute;bottom:28px;left:32px;display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:14px;background:rgba(15,23,42,0.85);color:#f8fafc;font-size:0.78rem;font-weight:600;border:1px solid rgba(148,163,184,0.35);box-shadow:0 18px 40px -24px rgba(15,23,42,0.8);z-index:6;transition:box-shadow .2s ease,background .2s ease;}
+      .ldz-canvas-scale .ldz-scale-label{text-transform:uppercase;letter-spacing:0.08em;font-size:0.65rem;color:rgba(248,250,252,0.72);}
+      .ldz-canvas-scale strong{font-weight:700;color:#fbbf24;}
+      .ldz-canvas-wrap.scale-mode .ldz-canvas-scale{background:linear-gradient(135deg,rgba(194,32,51,0.88),rgba(76,29,149,0.85));box-shadow:0 28px 52px -26px rgba(194,32,51,0.75);}
       .ldz-scale-handle{position:absolute;width:14px;height:14px;background:#fff;border-radius:9999px;cursor:move;border:2px solid #10b981;box-shadow:0 2px 8px rgba(0,0,0,0.3);}
     `;
     document.head.appendChild(style);
@@ -284,6 +301,7 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
           <canvas id="ldzFov"></canvas>
           <canvas id="ldzWalls"></canvas>
           <div id="ldzOverlay"></div>
+          <div class="ldz-canvas-scale" id="ldzCanvasScaleIndicator"><span class="ldz-scale-label">Scale</span><strong>1.00 px/ft</strong></div>
         </div>
 
         <!-- Right Sidebar for Tools & Controls -->
@@ -292,52 +310,77 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
                 <p class="ldz-subtitle">Select an item on the floorplan to see its properties, or use the tools below to manage the layout.</p>
             </header>
             <div class="ldz-sidebar-body">
-                <div class="ldz-card">
-                    <div class="ldz-card-title">Layout tools</div>
-                    <div class="ldz-action-row">
+                <div class="ldz-card" data-card>
+                    <button class="ldz-card-header" type="button" data-card-toggle>
+                        <span class="ldz-card-heading"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M6.3 3.3a1 1 0 011.4 0l1 1a1 1 0 01.3.7V6h1V5a1 1 0 01.3-.7l1-1a1 1 0 011.4 0l1.7 1.7a1 1 0 010 1.4l-1 1a1 1 0 01-.7.3H13v1h1a1 1 0 01.7.3l1 1a1 1 0 010 1.4l-1.7 1.7a1 1 0 01-1.4 0l-1-1A1 1 0 0111 11v-1h-1v1a1 1 0 01-.3.7l-1 1a1 1 0 01-1.4 0l-1.7-1.7a1 1 0 010-1.4l1-1A1 1 0 017 9h1V8H7a1 1 0 01-.7-.3l-1-1a1 1 0 010-1.4l1.7-1.7z"/></svg><span>Layout tools</span></span>
+                        <span class="ldz-card-chevron">▾</span>
+                    </button>
+                    <div class="ldz-card-content">
+                        <div class="ldz-action-row">
                         <button id="ldzUndo" class="ldz-icon-btn ghost"><img src="/icons/undo.png" alt="Undo"><span>Undo</span></button>
                         <button id="ldzRedo" class="ldz-icon-btn ghost"><img src="/icons/redo.png" alt="Redo"><span>Redo</span></button>
                         <button id="ldzDrawWall" class="ldz-icon-btn ghost"><img src="/icons/wall_.png" alt="Draw Walls"><span>Wall mode</span></button>
-                    </div>
-                </div>
-                <div id="ldzWallControls" class="ldz-card" style="display:none;">
-                    <div class="ldz-card-title">Wall Selection</div>
-                    <button id="ldzDeleteWallBtn" class="ldz-icon-btn danger"><img src="/icons/delete_.png" alt="Delete"><span>Delete Wall</span></button>
-                </div>
-                <div id="ldzSelectionControls" class="ldz-card" style="display:none;flex-direction:column;gap:16px;">
-                    <div class="ldz-card-title">Selected item</div>
-                    <div id="ldzCameraRangeControl" class="ldz-field" style="display:none;">
-                        <div class="ldz-field-header">
-                            <label class="ldz-label" for="ldzCameraRange">FOV range <strong id="ldzCameraRangeValue">—</strong></label>
-                            <div class="ldz-stepper">
-                                <button type="button" class="ldz-step-btn" id="ldzCameraRangeDecrease" title="Decrease range">&minus;</button>
-                                <button type="button" class="ldz-step-btn" id="ldzCameraRangeIncrease" title="Increase range">+</button>
-                            </div>
                         </div>
-                        <input type="number" id="ldzCameraRange" class="ldz-number-input" inputmode="decimal" min="1" max="1000" step="1" placeholder="Enter feet" />
-                        <span class="ldz-field-hint">Hold Shift while clicking to adjust by 50 ft.</span>
                     </div>
-                    <button id="ldzDeleteBtn" class="ldz-icon-btn danger"><img src="/icons/delete_.png" alt="Delete"><span>Remove from layout</span></button>
                 </div>
-                <div class="ldz-card" id="ldzScaleCard">
-                    <div class="ldz-card-title">Layers</div>
-                    <div class="ldz-action-row">
+                <div id="ldzWallControls" class="ldz-card" style="display:none;" data-card>
+                    <button class="ldz-card-header" type="button" data-card-toggle>
+                        <span class="ldz-card-heading"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v2h2V6h2V4H4zm10 0v2h2v2h2V6a2 2 0 00-2-2h-2zM4 12H2v2a2 2 0 002 2h2v-2H4v-2zm12 0h-2v2h-2v2h2a2 2 0 002-2v-2z" clip-rule="evenodd"/><path d="M6 8h8v4H6z"/></svg><span>Wall selection</span></span>
+                        <span class="ldz-card-chevron">▾</span>
+                    </button>
+                    <div class="ldz-card-content">
+                        <button id="ldzDeleteWallBtn" class="ldz-icon-btn danger"><img src="/icons/delete_.png" alt="Delete"><span>Delete Wall</span></button>
+                    </div>
+                </div>
+                <div id="ldzSelectionControls" class="ldz-card" style="display:none;" data-card>
+                    <button class="ldz-card-header" type="button" data-card-toggle>
+                        <span class="ldz-card-heading"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 2a3 3 0 00-3 3v1.1A4.002 4.002 0 003 10v1a4 4 0 004 4h.268a2 2 0 001.894 1.316h1.676A2 2 0 0012.732 15H13a4 4 0 004-4v-1a4.002 4.002 0 00-4-3.9V5a3 3 0 00-3-3z" clip-rule="evenodd"/></svg><span>Selected item</span></span>
+                        <span class="ldz-card-chevron">▾</span>
+                    </button>
+                    <div class="ldz-card-content stack">
+                        <div id="ldzCameraRangeControl" class="ldz-field" style="display:none;">
+                            <div class="ldz-field-header">
+                                <label class="ldz-label" for="ldzCameraRange">FOV range <strong id="ldzCameraRangeValue">—</strong></label>
+                                <div class="ldz-stepper">
+                                    <button type="button" class="ldz-step-btn" id="ldzCameraRangeDecrease" title="Decrease range">&minus;</button>
+                                    <button type="button" class="ldz-step-btn" id="ldzCameraRangeIncrease" title="Increase range">+</button>
+                                </div>
+                            </div>
+                            <input type="number" id="ldzCameraRange" class="ldz-number-input" inputmode="decimal" min="1" max="1000" step="1" placeholder="Enter feet" />
+                            <span class="ldz-field-hint">Hold Shift while clicking to adjust by 50 ft.</span>
+                        </div>
+                        <button id="ldzDeleteBtn" class="ldz-icon-btn danger"><img src="/icons/delete_.png" alt="Delete"><span>Remove from layout</span></button>
+                    </div>
+                </div>
+                <div class="ldz-card" id="ldzLayersCard" data-card>
+                    <button class="ldz-card-header" type="button" data-card-toggle>
+                        <span class="ldz-card-heading"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2.5a1 1 0 01.447.105l6 3a1 1 0 010 1.79l-6 3a1 1 0 01-.894 0l-6-3a1 1 0 010-1.79l6-3A1 1 0 0110 2.5z"/><path d="M3.553 10.276l5.106 2.553a2 2 0 001.682 0l5.106-2.553 1.447.724a1 1 0 010 1.79l-6 3a1 1 0 01-.894 0l-6-3a1 1 0 010-1.79l1.447-.724z"/><path d="M3.553 13.776l5.106 2.553a2 2 0 001.682 0l5.106-2.553 1.447.724a1 1 0 010 1.79l-6 3a1 1 0 01-.894 0l-6-3a1 1 0 010-1.79l1.447-.724z"/></svg><span>Layers</span></span>
+                        <span class="ldz-card-chevron">▾</span>
+                    </button>
+                    <div class="ldz-card-content">
+                        <div class="ldz-action-row">
                         <button id="ldzToggleFovs" class="ldz-icon-btn ghost active"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width:18px;height:18px;"><path d="M10 12.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z"/><path fill-rule="evenodd" d="M.664 10.59a1.651 1.651 0 010-1.18l.879-.879a1.65 1.65 0 012.332 0l.879.879a1.65 1.65 0 010 2.332l-.879.879a1.65 1.65 0 01-2.332 0l-.879-.879zM10 19a1.651 1.651 0 01-1.18 0l-.879-.879a1.65 1.65 0 010-2.332l.879-.879a1.65 1.65 0 012.332 0l.879.879a1.65 1.65 0 010 2.332l-.879.879A1.651 1.651 0 0110 19zM19.336 10.59a1.651 1.651 0 010-1.18l-.879-.879a1.65 1.65 0 00-2.332 0l-.879.879a1.65 1.65 0 000 2.332l.879.879a1.65 1.65 0 002.332 0l.879-.879zM10 5a1.651 1.651 0 011.18 0l.879.879a1.65 1.65 0 010 2.332l-.879.879a1.65 1.65 0 01-2.332 0l-.879-.879a1.65 1.65 0 010-2.332L8.82 5A1.651 1.651 0 0110 5z" clip-rule="evenodd"/></svg><span>FOVs</span></button>
                         <button id="ldzToggleWalls" class="ldz-icon-btn ghost active"><img src="/icons/wall_.png" alt="Walls"><span>Walls</span></button>
                         <button id="ldzToggleLabels" class="ldz-icon-btn ghost active"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width:18px;height:18px;"><path fill-rule="evenodd" d="M5.5 3A2.5 2.5 0 003 5.5v2.879a.5.5 0 00.293.445l5.5 2.75a.5.5 0 00.414 0l5.5-2.75A.5.5 0 0017 8.379V5.5A2.5 2.5 0 0014.5 3h-9zM3.5 13.5a.5.5 0 01.5-.5h12a.5.5 0 010 1h-12a.5.5 0 01-.5-.5z" clip-rule="evenodd"/></svg><span>Labels</span></button>
+                        </div>
                     </div>
                 </div>
-                <div class="ldz-card" id="ldzScaleCard">
-                    <div class="ldz-card-title">Floorplan Scale</div>
-                    <div class="ldz-field">
-                        <div class="ldz-scale-input-wrap" id="ldzScaleInputWrap">
-                            <input type="number" id="ldzScaleDistanceInput" value="10" class="ldz-place-label-input" style="width:60px; text-align:right;">
-                            <span class="ldz-label">feet</span>
+                <div class="ldz-card" id="ldzScaleCard" data-card>
+                    <button class="ldz-card-header" type="button" data-card-toggle>
+                        <span class="ldz-card-heading"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M4 3a1 1 0 00-1 1v3h2V5h2V3H4zm10 0v2h2v2h2V4a1 1 0 00-1-1h-3zM3 12H1v4a1 1 0 001 1h4v-2H3v-3zm12 3h-3v2h4a1 1 0 001-1v-4h-2v3z"/><path d="M5 8a1 1 0 011-1h8a1 1 0 011 1v2.5a1 1 0 01-.553.894l-4 2a1 1 0 01-.894 0l-4-2A1 1 0 015 10.5V8z"/></svg><span>Floorplan scale</span></span>
+                        <span class="ldz-card-chevron">▾</span>
+                    </button>
+                    <div class="ldz-card-content stack">
+                        <div class="ldz-field">
+                            <div class="ldz-scale-input-wrap" id="ldzScaleInputWrap">
+                                <input type="number" id="ldzScaleDistanceInput" value="10" class="ldz-place-label-input" style="width:60px; text-align:right;">
+                                <span class="ldz-label">feet</span>
+                            </div>
+                            <button id="ldzSetScaleBtn" class="ldz-icon-btn ghost"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width:18px;height:18px;"><path d="M2 5a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm3.5 1a.5.5 0 00-.5.5v2a.5.5 0 001 0v-2a.5.5 0 00-.5-.5zM6 13.5a.5.5 0 01.5-.5h8a.5.5 0 010 1H6.5a.5.5 0 01-.5-.5z" clip-rule="evenodd"/></svg><span id="ldzSetScaleBtnText">Scale Floor Plan</span></button>
                         </div>
-                        <button id="ldzSetScaleBtn" class="ldz-icon-btn ghost"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="width:18px;height:18px;"><path d="M2 5a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm3.5 1a.5.5 0 00-.5.5v2a.5.5 0 001 0v-2a.5.5 0 00-.5-.5zM6 13.5a.5.5 0 01.5-.5h8a.5.5 0 010 1H6.5a.5.5 0 01-.5-.5z" clip-rule="evenodd"/></svg><span id="ldzSetScaleBtnText">Scale Floor Plan</span></button>
-                    </div>
-                     <div class="ldz-field-header">
-                        <span class="ldz-label">Current: <strong id="ldzScaleValue">1.00 px/ft</strong></span>
+                        <div class="ldz-field-header">
+                            <span class="ldz-label">Current: <strong id="ldzScaleValue">1.00 px/ft</strong></span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -379,6 +422,8 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
     const setScaleBtnText = overlay.querySelector('#ldzSetScaleBtnText');
     const zoomIndicator = overlay.querySelector('#ldzZoomIndicator');
     const scaleValueEl = overlay.querySelector('#ldzScaleValue');
+    const canvasScaleIndicator = overlay.querySelector('#ldzCanvasScaleIndicator');
+    const canvasScaleValueEl = canvasScaleIndicator ? canvasScaleIndicator.querySelector('strong') : null;
     const overlayLayer = overlay.querySelector('#ldzOverlay'); // Moved up for scope
     const selectionControls = overlay.querySelector('#ldzSelectionControls'); // Moved up for scope
 
@@ -408,8 +453,25 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
     let listResizeObserver = null;
     let scaleLine = null;
 
+    const cardToggles = overlay.querySelectorAll('[data-card-toggle]');
+    cardToggles.forEach((toggle) => {
+        const card = toggle.closest('.ldz-card');
+        if (!card) return;
+        toggle.addEventListener('click', () => {
+            card.classList.toggle('collapsed');
+        });
+    });
+
     // pixelsPerFoot = how many pixels equal one foot on the floorplan
     let pixelsPerFoot = Math.max(0.0001, Number(cfg.layoutScale || 1));
+
+    function refreshScaleDisplay() {
+        const formatted = `${pixelsPerFoot.toFixed(2)} px/ft`;
+        if (scaleValueEl) scaleValueEl.textContent = formatted;
+        if (canvasScaleValueEl) canvasScaleValueEl.textContent = formatted;
+    }
+
+    refreshScaleDisplay();
 
     const RANGE_STEP = 10;
     const ROTATION_STEP = 5;
@@ -1219,7 +1281,7 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
             deleteBtn.style.display = 'flex';
             const isCamera = p.type === 'camera';
             const cameraRangeEnabled = isCamera && !!ensureFovDefaults(p);
-            selectionControls.style.display = 'flex';
+            selectionControls.style.display = 'block';
             wallControls.style.display = 'none';
             const isRotateCamHandle = event.target.classList.contains('ldz-camera-rotate-handle');
             const isFovBody = event.target.classList.contains('ldz-fov-body');
@@ -1411,7 +1473,7 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
                   if (feetDistance > 0) {
                       pixelsPerFoot = pixelDistance / feetDistance;
                       getConfig().layoutScale = pixelsPerFoot;
-                      if (scaleValueEl) scaleValueEl.textContent = `${pixelsPerFoot.toFixed(2)} px/ft`;
+                      refreshScaleDisplay();
                       saveConfig();
                       saveHistory();
                   }
@@ -1567,6 +1629,9 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
     overlay.querySelector('#ldzRedo').onclick = redo;
 
     drawWallBtn.addEventListener('click', () => {
+        if (currentMode === 'scale') {
+            exitScaleMode();
+        }
         currentMode = (currentMode === 'place') ? 'drawWall' : 'place';
         drawWallBtn.classList.toggle('active', currentMode === 'drawWall');
         wrap.classList.toggle('wall-mode', currentMode === 'drawWall');
@@ -1574,7 +1639,7 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
     });
 
     function updateWallSelectionUI() {
-        wallControls.style.display = selectedWallId ? 'flex' : 'none';
+        wallControls.style.display = selectedWallId ? 'block' : 'none';
         if (selectedWallId) selectionControls.style.display = 'none';
         redraw();
     }
@@ -1621,6 +1686,7 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
         scaleLine = null;
         setScaleBtn.classList.remove('active');
         setScaleBtnText.textContent = 'Scale Floor Plan';
+        wrap.classList.remove('scale-mode');
         wrap.style.cursor = 'grab';
         redraw();
     }
@@ -1634,6 +1700,7 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
             wrap.classList.remove('wall-mode');
             setScaleBtn.classList.add('active');
             setScaleBtnText.textContent = 'Cancel Scaling';
+            wrap.classList.add('scale-mode');
             wrap.style.cursor = 'crosshair';
             if (typeof window.showToast === 'function') showToast('Click and drag to measure a known distance.');
         }
@@ -1778,7 +1845,7 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
     
     renderItemsList();
     updatePlacementStats();
-    if (scaleValueEl) scaleValueEl.textContent = `${pixelsPerFoot.toFixed(2)} px/ft`;
+    refreshScaleDisplay();
 
     const onResize = ()=>{ if (img.width) resetView(); };
     window.addEventListener('resize', onResize);
