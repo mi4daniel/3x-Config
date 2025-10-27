@@ -77,7 +77,9 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
   }
 
   function deselectAll() {
-      selectedId = null; selectedWallId = null;
+      selectedId = null;
+      selectedWallId = null;
+      syncFovControlsForPlacement(null);
   }
 
   // ---- Style injection (scoped) ----
@@ -169,13 +171,16 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
       #ldzBg,#ldzFov,#ldzWalls{position:absolute;top:0;left:0;}
       #ldzOverlay{position:absolute;top:0;left:0;transform-origin:top left;}
       .ldz-placed{position:absolute;width:36px;height:36px;border-radius:12px;border:2px solid rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;color:#fff;font:600 14px/1 'Inter',sans-serif;cursor:grab;user-select:none;box-shadow:0 14px 32px -24px rgba(34,30,31,0.85);pointer-events:auto;}
-      .ldz-fov-handle{position:absolute;width:14px;height:14px;border-radius:50%;background:#fff;border:2px solid #c22033;box-shadow:0 2px 4px rgba(0,0,0,0.3);opacity:0;transition:opacity .2s;pointer-events:none;z-index:10;}
+      .ldz-fov-handle{position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;border:2px solid #c22033;box-shadow:0 2px 4px rgba(0,0,0,0.35);opacity:0;transition:opacity .2s;pointer-events:none;z-index:10;display:flex;align-items:center;justify-content:center;}
       .ldz-placed.selected .ldz-fov-handle{opacity:1;pointer-events:auto;}
-      .ldz-fov-handle.range{cursor:n-resize;}
+      .ldz-fov-handle.range{cursor:grab;background:rgba(255,255,255,0.95);}
+      .ldz-fov-handle.range:active,.ldz-fov-handle.range.dragging{cursor:grabbing;}
       .ldz-fov-handle.angle-left, .ldz-fov-handle.angle-right{cursor:ew-resize;}
-      .ldz-quick-actions{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);display:flex;gap:6px;background:rgba(34,30,31,0.85);padding:6px;border-radius:10px;border:1px solid rgba(34,30,31,0.4);box-shadow:0 8px 16px rgba(0,0,0,0.3);z-index:20;}
-      .ldz-quick-actions button{width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,0.1);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;}
-      .ldz-quick-actions button:hover{background:rgba(255,255,255,0.2);}
+      .ldz-fov-range-readout{position:absolute;top:100%;left:50%;transform:translate(-50%,6px);background:rgba(15,23,42,0.92);color:#fff;border-radius:8px;padding:4px 8px;font-size:0.68rem;font-weight:600;white-space:nowrap;pointer-events:none;box-shadow:0 10px 18px -16px rgba(15,23,42,0.65);}
+      .ldz-quick-actions{position:absolute;bottom:calc(100% + 16px);left:50%;transform:translateX(-50%);display:flex;gap:4px;background:rgba(15,23,42,0.92);padding:4px 6px;border-radius:12px;border:1px solid rgba(15,23,42,0.55);box-shadow:0 12px 24px -12px rgba(15,23,42,0.55);z-index:20;}
+      .ldz-quick-actions button{width:26px;height:26px;border-radius:6px;background:rgba(255,255,255,0.08);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s,transform .2s;}
+      .ldz-quick-actions button:hover{background:rgba(255,255,255,0.22);transform:translateY(-1px);}
+      .ldz-quick-actions button svg{width:14px;height:14px;}
       .ldz-placed.camera{background:linear-gradient(160deg,rgba(194,32,51,0.9),rgba(194,32,51,0.85));border-radius:18px;}
       .ldz-placed.nvr{background:linear-gradient(160deg,rgba(100,116,139,0.95),rgba(71,85,105,0.92));font-size:12px;font-weight:700;}
       .ldz-placed.fov{background:rgba(234,179,8,0.75);border-radius:18px;}
@@ -191,6 +196,9 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
       .ldz-item-badge{position:absolute;left:8px;top:8px;background:#c22033;color:#fff;width:18px;height:18px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:700;}
       .ldz-placed-badge{position:absolute;right:-8px;bottom:-8px;background:#fff;color:#c22033;width:18px;height:18px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;font-size:0.68rem;font-weight:700;border:2px solid rgba(34,30,31,0.12);transform-origin:center;}
       .ldz-place-label-input{font-size:0.68rem;padding:3px 6px;border-radius:6px;border:1px solid rgba(0,0,0,0.12);outline:none;}
+      .ldz-number-input{height:34px;padding:6px 10px;border-radius:10px;border:1px solid rgba(34,30,31,0.18);background:rgba(255,255,255,0.96);font-size:0.78rem;color:#221e1f;box-shadow:inset 0 1px 2px rgba(15,23,42,0.08);transition:border-color .2s,box-shadow .2s;}
+      .ldz-number-input:focus{border-color:rgba(194,32,51,0.55);box-shadow:0 0 0 3px rgba(194,32,51,0.15);outline:none;}
+      .ldz-field-hint{font-size:0.66rem;color:rgba(34,30,31,0.55);}
       .ldz-scale-input-wrap{display:none;align-items:center;gap:8px;}
       .ldz-scale-handle{position:absolute;width:14px;height:14px;background:#fff;border-radius:9999px;cursor:move;border:2px solid #10b981;box-shadow:0 2px 8px rgba(0,0,0,0.3);}
     `;
@@ -298,8 +306,18 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
                     <div class="ldz-card-title">Wall Selection</div>
                     <button id="ldzDeleteWallBtn" class="ldz-icon-btn danger"><img src="/icons/delete_.png" alt="Delete"><span>Delete Wall</span></button>
                 </div>
-                <div id="ldzSelectionControls" class="ldz-card" style="display:none;">
-                    <div class="ldz-card-actions">
+                <div id="ldzSelectionControls" class="ldz-card" style="display:none;flex-direction:column;gap:16px;">
+                    <div class="ldz-card-title">Selected item</div>
+                    <div id="ldzCameraRangeControl" class="ldz-field" style="display:none;">
+                        <div class="ldz-field-header">
+                            <label class="ldz-label" for="ldzCameraRange">FOV range <strong id="ldzCameraRangeValue">—</strong></label>
+                            <div class="ldz-stepper">
+                                <button type="button" class="ldz-step-btn" id="ldzCameraRangeDecrease" title="Decrease range">&minus;</button>
+                                <button type="button" class="ldz-step-btn" id="ldzCameraRangeIncrease" title="Increase range">+</button>
+                            </div>
+                        </div>
+                        <input type="number" id="ldzCameraRange" class="ldz-number-input" inputmode="decimal" min="1" max="1000" step="1" placeholder="Enter feet" />
+                        <span class="ldz-field-hint">Hold Shift while clicking to adjust by 50 ft.</span>
                     </div>
                     <button id="ldzDeleteBtn" class="ldz-icon-btn danger"><img src="/icons/delete_.png" alt="Delete"><span>Remove from layout</span></button>
                 </div>
@@ -397,6 +415,192 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
 
     const RANGE_STEP = 10;
     const ROTATION_STEP = 5;
+
+    function getSelectedPlacement(type) {
+        if (!selectedId) return null;
+        const placements = getConfig().layoutPlacements || [];
+        const placement = placements.find(p => p.uniqueId === selectedId) || null;
+        if (!placement) return null;
+        if (type && placement.type !== type) return null;
+        return placement;
+    }
+
+    function ensureFovDefaults(placement) {
+        if (!placement || placement.type !== 'camera') return null;
+        if (!placement.fov) {
+            placement.fov = {
+                angle: 90,
+                rangeFt: 60,
+                rotation: placement.rotation || 0,
+                color: 'rgba(234,179,8,0.5)'
+            };
+        }
+        const fov = placement.fov;
+        if (typeof fov.angle !== 'number' || Number.isNaN(fov.angle)) {
+            fov.angle = 90;
+        }
+        if (typeof fov.rotation !== 'number' || Number.isNaN(fov.rotation)) {
+            fov.rotation = placement.rotation || 0;
+        }
+        if (typeof fov.rangeFt !== 'number' || Number.isNaN(fov.rangeFt)) {
+            if (typeof fov.range === 'number' && !Number.isNaN(fov.range)) {
+                fov.rangeFt = fov.range / pixelsPerFoot;
+            } else {
+                fov.rangeFt = 60;
+            }
+        }
+        if (typeof fov.color !== 'string') {
+            fov.color = 'rgba(234,179,8,0.5)';
+        }
+        delete fov.range;
+        return fov;
+    }
+
+    function getFovRangeFeet(fov) {
+        if (!fov) return null;
+        if (typeof fov.rangeFt === 'number' && !Number.isNaN(fov.rangeFt)) {
+            return fov.rangeFt;
+        }
+        if (typeof fov.range === 'number' && !Number.isNaN(fov.range)) {
+            return fov.range / pixelsPerFoot;
+        }
+        return null;
+    }
+
+    function formatRangeLabel(rangeFt) {
+        if (typeof rangeFt !== 'number' || Number.isNaN(rangeFt)) return '—';
+        const precision = rangeFt >= 100 ? 0 : rangeFt >= 10 ? 1 : 2;
+        return `${rangeFt.toFixed(precision)} ft`;
+    }
+
+    function syncFovControlsForPlacement(placement) {
+        const fov = ensureFovDefaults(placement);
+        const hasVisibleFov = !!fov;
+        if (cameraRangeControl) {
+            cameraRangeControl.style.display = hasVisibleFov ? 'flex' : 'none';
+        }
+        const rangeFt = hasVisibleFov ? getFovRangeFeet(fov) : null;
+        if (cameraRangeInput) {
+            cameraRangeInput.disabled = !hasVisibleFov;
+            if (hasVisibleFov && rangeFt !== null) {
+                cameraRangeInput.value = Math.round(rangeFt);
+            } else if (!hasVisibleFov) {
+                cameraRangeInput.value = '';
+            }
+        }
+        if (cameraRangeValue) {
+            cameraRangeValue.textContent = hasVisibleFov && rangeFt !== null ? formatRangeLabel(rangeFt) : '—';
+        }
+        [cameraRangeDecreaseBtn, cameraRangeIncreaseBtn].forEach(btn => {
+            if (btn) btn.disabled = !hasVisibleFov;
+        });
+    }
+
+    syncFovControlsForPlacement(null);
+
+    function adjustSelectedFovCone(adjustment = {}, options = {}) {
+        const { finalize = false, skipUiSync = false } = options;
+        const placement = getSelectedPlacement('camera');
+        if (!placement) return false;
+        const fov = ensureFovDefaults(placement);
+        if (!fov) return false;
+
+        const originalRange = getFovRangeFeet(fov) ?? 60;
+        const originalAngle = (typeof fov.angle === 'number' && !Number.isNaN(fov.angle)) ? fov.angle : 90;
+        const originalRotation = (typeof fov.rotation === 'number' && !Number.isNaN(fov.rotation)) ? fov.rotation : (placement.rotation || 0);
+
+        let nextRange = originalRange;
+        let nextAngle = originalAngle;
+        let nextRotation = originalRotation;
+        let changed = false;
+
+        if ('rangeFt' in adjustment || 'rangeDeltaFt' in adjustment || 'rangePx' in adjustment || 'rangeDeltaPx' in adjustment) {
+            if (typeof adjustment.rangeFt === 'number' && !Number.isNaN(adjustment.rangeFt)) {
+                nextRange = adjustment.rangeFt;
+            } else if (typeof adjustment.rangeDeltaFt === 'number' && !Number.isNaN(adjustment.rangeDeltaFt)) {
+                nextRange = originalRange + adjustment.rangeDeltaFt;
+            } else if (typeof adjustment.rangePx === 'number' && !Number.isNaN(adjustment.rangePx)) {
+                nextRange = adjustment.rangePx / pixelsPerFoot;
+            } else if (typeof adjustment.rangeDeltaPx === 'number' && !Number.isNaN(adjustment.rangeDeltaPx)) {
+                nextRange = originalRange + adjustment.rangeDeltaPx / pixelsPerFoot;
+            }
+            if (typeof nextRange === 'number' && !Number.isNaN(nextRange)) {
+                nextRange = Math.max(1, Math.min(1000, nextRange));
+                if (Math.abs(nextRange - originalRange) > 1e-4) {
+                    fov.rangeFt = parseFloat(nextRange.toFixed(2));
+                    delete fov.range;
+                    changed = true;
+                }
+            }
+        }
+
+        if ('angle' in adjustment || 'angleDelta' in adjustment) {
+            if (typeof adjustment.angle === 'number' && !Number.isNaN(adjustment.angle)) {
+                nextAngle = adjustment.angle;
+            } else if (typeof adjustment.angleDelta === 'number' && !Number.isNaN(adjustment.angleDelta)) {
+                nextAngle = originalAngle + adjustment.angleDelta;
+            }
+            if (typeof nextAngle === 'number' && !Number.isNaN(nextAngle)) {
+                nextAngle = Math.max(5, Math.min(360, nextAngle));
+                if (Math.abs(nextAngle - originalAngle) > 1e-4) {
+                    fov.angle = Math.round(nextAngle);
+                    changed = true;
+                }
+            }
+        }
+
+        if ('rotation' in adjustment || 'rotationDelta' in adjustment) {
+            if (typeof adjustment.rotation === 'number' && !Number.isNaN(adjustment.rotation)) {
+                nextRotation = adjustment.rotation;
+            } else if (typeof adjustment.rotationDelta === 'number' && !Number.isNaN(adjustment.rotationDelta)) {
+                nextRotation = originalRotation + adjustment.rotationDelta;
+            }
+            if (typeof nextRotation === 'number' && !Number.isNaN(nextRotation)) {
+                nextRotation = ((nextRotation % 360) + 360) % 360;
+                if (Math.abs(nextRotation - originalRotation) > 1e-4) {
+                    const roundedRotation = Math.round(nextRotation * 100) / 100;
+                    fov.rotation = roundedRotation;
+                    placement.rotation = roundedRotation;
+                    changed = true;
+                }
+            }
+        }
+
+        if (!changed) return false;
+
+        redraw();
+        if (!skipUiSync) {
+            syncFovControlsForPlacement(placement);
+        }
+        saveConfig();
+        if (finalize) {
+            flushFovHistoryCommit();
+            saveHistory();
+        } else {
+            queueFovHistoryCommit();
+        }
+        return true;
+    }
+
+    function setFovControlValue(prop, rawValue, finalize = false) {
+        if (typeof rawValue !== 'number' || Number.isNaN(rawValue)) return;
+        const adjustment = {};
+        switch (prop) {
+            case 'range':
+            case 'rangeFt':
+                adjustment.rangeFt = rawValue;
+                break;
+            case 'angle':
+                adjustment.angle = rawValue;
+                break;
+            case 'rotation':
+                adjustment.rotation = rawValue;
+                break;
+            default:
+                return;
+        }
+        adjustSelectedFovCone(adjustment, { finalize });
+    }
 
     // ---- History Management ----
     function updateHistoryButtons() {
@@ -610,19 +814,33 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
             if (fovData && placedEl) {
                 const rangePx = (fovData.rangeFt || 60) * pixelsPerFoot;
                 const angleRad = (fovData.angle || 90) * Math.PI / 180;
-                const rotationRad = (fovData.rotation || 0) * Math.PI / 180;
+                const placementRotationRad = (p.rotation || 0) * Math.PI / 180;
+                const fovRotationRad = (typeof fovData.rotation === 'number' ? fovData.rotation : (p.rotation || 0)) * Math.PI / 180;
+                const relativeRotation = fovRotationRad - placementRotationRad;
 
-                const handleSize = 14; // from CSS
-                const setHandlePos = (handleClass, r, a) => {
+                const handleSize = 18; // from CSS
+                const setHandlePos = (handleClass, radius, angleOffset = 0) => {
                     const handle = placedEl.querySelector(`.ldz-fov-handle.${handleClass}`);
-                    if (handle) {
-                        handle.style.transform = `translate(${r * Math.sin(a) - handleSize/2}px, ${-r * Math.cos(a) - handleSize/2}px)`;
+                    if (!handle) return;
+                    const localAngle = relativeRotation + angleOffset;
+                    const offsetX = radius * Math.sin(localAngle) - handleSize / 2;
+                    const offsetY = -radius * Math.cos(localAngle) - handleSize / 2;
+                    handle.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+
+                    if (handleClass === 'range') {
+                        const readout = handle.querySelector('.ldz-fov-range-readout');
+                        if (readout) {
+                            const rangeFt = getFovRangeFeet(fovData);
+                            readout.textContent = formatRangeLabel(rangeFt ?? radius / pixelsPerFoot);
+                            const placementRotationDeg = p.rotation || 0;
+                            readout.style.transform = `translate(-50%, 6px) rotate(${-(placementRotationDeg)}deg)`;
+                        }
                     }
                 };
                 const halfAngleRad = angleRad / 2;
-                setHandlePos('range', rangePx, rotationRad);
-                setHandlePos('angle-left', rangePx, rotationRad - halfAngleRad);
-                setHandlePos('angle-right', rangePx, rotationRad + halfAngleRad);
+                setHandlePos('range', rangePx, 0);
+                setHandlePos('angle-left', rangePx, -halfAngleRad);
+                setHandlePos('angle-right', rangePx, halfAngleRad);
 
             }
         }
@@ -929,6 +1147,11 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
         if (fovData) {
             const rangeHandle = document.createElement('div');
             rangeHandle.className = 'ldz-fov-handle range';
+            const rangeReadout = document.createElement('div');
+            rangeReadout.className = 'ldz-fov-range-readout';
+            const initialRange = getFovRangeFeet(fovData);
+            rangeReadout.textContent = initialRange !== null ? formatRangeLabel(initialRange) : '—';
+            rangeHandle.appendChild(rangeReadout);
             const angleHandleLeft = document.createElement('div');
             angleHandleLeft.className = 'ldz-fov-handle angle-left';
             const angleHandleRight = document.createElement('div');
@@ -1016,14 +1239,19 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
             selectedWallId = null;
             deleteBtn.style.display = 'flex';
             const isCamera = p.type === 'camera';
-            const cameraRangeEnabled = isCamera && p.fov;
+            const cameraRangeEnabled = isCamera && !!ensureFovDefaults(p);
             selectionControls.style.display = 'flex';
             wallControls.style.display = 'none';
+            const rangeHandleTarget = event.target.closest('.ldz-fov-handle.range');
+            const angleLeftHandleTarget = event.target.closest('.ldz-fov-handle.angle-left');
+            const angleRightHandleTarget = event.target.closest('.ldz-fov-handle.angle-right');
             const isRotateCamHandle = event.target.classList.contains('ldz-camera-rotate-handle');
             const isFovBody = event.target.classList.contains('ldz-fov-body');
-            const isRangeHandle = event.target.classList.contains('range');
-            const isAngleLeftHandle = event.target.classList.contains('angle-left');
-            const isAngleRightHandle = event.target.classList.contains('angle-right');
+            const isRangeHandle = !!rangeHandleTarget;
+            const isAngleLeftHandle = !!angleLeftHandleTarget;
+            const isAngleRightHandle = !!angleRightHandleTarget;
+
+            const dragHandleEl = rangeHandleTarget || angleLeftHandleTarget || angleRightHandleTarget;
 
             let mode = 'move';
             if (isRotateCamHandle) {
@@ -1036,7 +1264,17 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
             if (isAngleLeftHandle) mode = 'angle-left';
             if (isAngleRightHandle) mode = 'angle-right';
 
+            if (mode === 'range' && dragHandleEl) {
+                dragHandleEl.classList.add('dragging');
+            }
+
             const itemToUpdate = p;
+
+            if (isCamera) {
+              syncFovControlsForPlacement(cameraRangeEnabled ? itemToUpdate : null);
+            } else {
+              syncFovControlsForPlacement(null);
+            }
 
             const dragStart = {
               mouseX: event.clientX,
@@ -1052,9 +1290,8 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
 
               if (mode === 'range' && itemToUpdate.fov) {
                   const distPx = Math.hypot(pointerX - itemToUpdate.x, pointerY - itemToUpdate.y);
-                  const newRangeFt = Math.round(distPx / pixelsPerFoot);
+                  const newRangeFt = distPx / pixelsPerFoot;
                   setFovControlValue('range', newRangeFt);
-                  redraw();
                   return;
               }
 
@@ -1075,7 +1312,6 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
                   newAngle = Math.round(Math.max(5, Math.min(360, newAngle)));
 
                   setFovControlValue('angle', newAngle);
-                  redraw();
                   return;
               }
 
@@ -1093,9 +1329,11 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
                 const angle = Math.atan2(pointerY - p.y, pointerX - p.x) * 180 / Math.PI;
                 const newRotation = Math.round(angle + 90);
                 itemToUpdate.rotation = newRotation;
-                if (itemToUpdate.fov) itemToUpdate.fov.rotation = newRotation;
-
-                redraw();
+                if (itemToUpdate.fov) {
+                  setFovControlValue('rotation', newRotation);
+                } else {
+                  redraw();
+                }
                 return;
               }
 
@@ -1104,7 +1342,11 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
             const handleUp = () => {
               document.removeEventListener('mousemove', handleMove);
               document.removeEventListener('mouseup', handleUp);
+              if (dragHandleEl) {
+                  dragHandleEl.classList.remove('dragging');
+              }
               saveConfig();
+              flushFovHistoryCommit();
               saveHistory();
             };
 
@@ -1230,6 +1472,7 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
           if (closestWall && minDistance < selectionThreshold) {
               selectedWallId = closestWall.id;
               selectedId = null;
+              syncFovControlsForPlacement(null);
               updateWallSelectionUI();
               return; // Don't start drawing a new wall
           }
@@ -1275,12 +1518,7 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
           deselectAll();
           updateWallSelectionUI();
           deleteBtn.style.display = 'none';
-          if (cameraRangeControl) cameraRangeControl.style.display = 'none';
-          if (cameraRangeValue) cameraRangeValue.textContent = '—';
-          if (cameraRangeInput) cameraRangeInput.disabled = true;
-          [cameraRangeDecreaseBtn, cameraRangeIncreaseBtn].forEach(btn => {
-              if (btn) btn.disabled = true;
-          });
+          syncFovControlsForPlacement(null);
           wrap.style.cursor = 'grabbing';
           const onPanMove = (moveEvent) => {
               view.x = moveEvent.clientX - panStartX;
@@ -1449,38 +1687,54 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
         }
     }
 
-    function updateSelectedFov(prop, value, finalize = false) {
-        if (!selectedId) return;
-        const cfg = getConfig();
-        const selectedItem = (cfg.layoutPlacements || []).find(p => p.uniqueId === selectedId);
-        if (!selectedItem) return;
-    
-        if (selectedItem.type === 'camera') {
-            if (!selectedItem.fov) {
-                 selectedItem.fov = { angle: 90, rangeFt: 60, rotation: 0 };
-            }
-            selectedItem.fov[prop] = value;
-            redraw();
-            saveConfig();
-            if (finalize) {
-                flushFovHistoryCommit();
-                saveHistory();
-            }
-            else {
-                queueFovHistoryCommit();
-            }
+    function updateSelectedFov(propOrAdjustment, value, finalize = false) {
+        if (typeof propOrAdjustment === 'object' && propOrAdjustment !== null) {
+            adjustSelectedFovCone(propOrAdjustment, { finalize });
+            return;
+        }
+        switch (propOrAdjustment) {
+            case 'range':
+            case 'rangeFt':
+                adjustSelectedFovCone({ rangeFt: value }, { finalize });
+                break;
+            case 'angle':
+                adjustSelectedFovCone({ angle: value }, { finalize });
+                break;
+            case 'rotation':
+                adjustSelectedFovCone({ rotation: value }, { finalize });
+                break;
+            default:
+                break;
         }
     }
 
     if (cameraRangeInput) {
       cameraRangeInput.addEventListener('input', (e) => {
-        const range = parseInt(e.target.value, 10);
-        setFovControlValue('range', range);
+        const range = parseFloat(e.target.value);
+        if (!Number.isNaN(range)) {
+          setFovControlValue('range', range);
+        }
       });
       cameraRangeInput.addEventListener('change', (e) => {
-        const range = parseInt(e.target.value, 10);
-        setFovControlValue('range', range, true);
+        const range = parseFloat(e.target.value);
+        if (!Number.isNaN(range)) {
+          setFovControlValue('range', range, true);
+        }
       });
+    }
+
+    if (cameraRangeDecreaseBtn) {
+        cameraRangeDecreaseBtn.addEventListener('click', (event) => {
+            const step = (event.shiftKey ? RANGE_STEP * 5 : RANGE_STEP) * -1;
+            adjustSelectedFovCone({ rangeDeltaFt: step }, { finalize: true });
+        });
+    }
+
+    if (cameraRangeIncreaseBtn) {
+        cameraRangeIncreaseBtn.addEventListener('click', (event) => {
+            const step = event.shiftKey ? RANGE_STEP * 5 : RANGE_STEP;
+            adjustSelectedFovCone({ rangeDeltaFt: step }, { finalize: true });
+        });
     }
 
     function deleteSelectedItem() {
@@ -1490,6 +1744,7 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
         selectedId = null;
         deleteBtn.style.display = 'none';
         selectionControls.style.display = 'none';
+        syncFovControlsForPlacement(null);
         saveConfig();
         saveHistory();
         renderItemsList();
