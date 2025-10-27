@@ -360,11 +360,12 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
       ? (fn) => window.requestAnimationFrame(fn)
       : (fn) => setTimeout(fn, 0);
     
-    const wrap = overlay.querySelector('.ldz-canvas-wrap');
-    const bg = overlay.querySelector('#ldzBg');
-    const fovCanvas = overlay.querySelector('#ldzFov');
-    const wallCanvas = overlay.querySelector('#ldzWalls');
-    const selectionControls = overlay.querySelector('#ldzSelectionControls');
+  const wrap = overlay.querySelector('.ldz-canvas-wrap');
+  const bg = overlay.querySelector('#ldzBg');
+  const fovCanvas = overlay.querySelector('#ldzFov');
+  const wallCanvas = overlay.querySelector('#ldzWalls');
+  const overlayLayer = overlay.querySelector('#ldzOverlay');
+  const selectionControls = overlay.querySelector('#ldzSelectionControls');
     const cameraRangeControl = overlay.querySelector('#ldzCameraRangeControl');
     const cameraRangeInput = overlay.querySelector('#ldzCameraRange');
     const cameraRangeValue = overlay.querySelector('#ldzCameraRangeValue');
