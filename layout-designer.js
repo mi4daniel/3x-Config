@@ -301,16 +301,6 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
                 <div id="ldzSelectionControls" class="ldz-card" style="display:none;">
                     <div class="ldz-card-actions">
                     </div>
-                    <div id="ldzCameraRangeControl" class="ldz-field" style="display:none;">
-                        <div class="ldz-field-header">
-                            <span class="ldz-label">Camera FOV Distance<strong id="ldzCameraRangeValue">—</strong></span>
-                            <div class="ldz-stepper">
-                                <button type="button" class="ldz-step-btn" id="ldzCameraRangeDecrease" aria-label="Decrease camera range" disabled>&minus;</button>
-                                <button type="button" class="ldz-step-btn" id="ldzCameraRangeIncrease" aria-label="Increase camera range" disabled>+</button>
-                            </div>
-                        </div>
-                        <input id="ldzCameraRange" class="ldz-range" type="range" min="1" max="2000" value="60">
-                    </div>
                     <button id="ldzDeleteBtn" class="ldz-icon-btn danger"><img src="/icons/delete_.png" alt="Delete"><span>Remove from layout</span></button>
                 </div>
                 <div class="ldz-card" id="ldzScaleCard">
@@ -357,13 +347,6 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
   const bg = overlay.querySelector('#ldzBg');
   const fovCanvas = overlay.querySelector('#ldzFov');
   const wallCanvas = overlay.querySelector('#ldzWalls');
-  const overlayLayer = overlay.querySelector('#ldzOverlay');
-  const selectionControls = overlay.querySelector('#ldzSelectionControls');
-    const cameraRangeControl = overlay.querySelector('#ldzCameraRangeControl');
-    const cameraRangeInput = overlay.querySelector('#ldzCameraRange');
-    const cameraRangeValue = overlay.querySelector('#ldzCameraRangeValue');
-    const cameraRangeDecreaseBtn = overlay.querySelector('#ldzCameraRangeDecrease');
-    const cameraRangeIncreaseBtn = overlay.querySelector('#ldzCameraRangeIncrease');
     const deleteBtn = overlay.querySelector('#ldzDeleteBtn');
     const wallControls = overlay.querySelector('#ldzWallControls');
     const deleteWallBtn = overlay.querySelector('#ldzDeleteWallBtn');
@@ -380,6 +363,10 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
     const setScaleBtnText = overlay.querySelector('#ldzSetScaleBtnText');
     const zoomIndicator = overlay.querySelector('#ldzZoomIndicator');
     const scaleValueEl = overlay.querySelector('#ldzScaleValue');
+    const overlayLayer = overlay.querySelector('#ldzOverlay'); // Moved up for scope
+    const selectionControls = overlay.querySelector('#ldzSelectionControls'); // Moved up for scope
+
+    // Removed: cameraRangeControl, cameraRangeInput, cameraRangeValue, cameraRangeDecreaseBtn, cameraRangeIncreaseBtn
     const setScaleBtn = overlay.querySelector('#ldzSetScaleBtn');
     const ctx = bg.getContext('2d');
     const fovCtx = fovCanvas.getContext('2d');
@@ -1024,41 +1011,10 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
             selectedId = p.uniqueId;
             selectedWallId = null;
             deleteBtn.style.display = 'flex';
-
             const isCamera = p.type === 'camera';
             const cameraRangeEnabled = isCamera && p.fov;
-
             selectionControls.style.display = 'flex';
             wallControls.style.display = 'none';
-
-            if (cameraRangeControl) {
-              cameraRangeControl.style.display = cameraRangeEnabled ? 'flex' : 'none';
-            }
-            if (cameraRangeInput) {
-              cameraRangeInput.disabled = !cameraRangeEnabled;
-            }
-            [cameraRangeDecreaseBtn, cameraRangeIncreaseBtn].forEach(btn => {
-              if (btn) {
-                btn.disabled = !cameraRangeEnabled;
-              }
-            });
-
-            if (cameraRangeEnabled) {
-              const fovData = p.fov || {};
-              const angle = typeof fovData.angle === 'number' ? fovData.angle : 90;
-              const rangeFeet = typeof fovData.rangeFt === 'number'
-                ? fovData.rangeFt
-                : (typeof fovData.range === 'number' ? fovData.range : 60);
-              const rotation = typeof fovData.rotation === 'number' ? fovData.rotation : 0;
-              const color = fovData.color || 'rgba(234,179,8,0.5)';
-              if (cameraRangeInput) cameraRangeInput.value = rangeFeet;
-              if (cameraRangeValue) cameraRangeValue.textContent = `${rangeFeet} ft`;
-
-            } else {
-              if (cameraRangeValue) cameraRangeValue.textContent = '—';
-              if (cameraRangeInput) cameraRangeInput.disabled = true;
-            }
-
             const isRotateCamHandle = event.target.classList.contains('ldz-camera-rotate-handle');
             const isFovBody = event.target.classList.contains('ldz-fov-body');
             const isRangeHandle = event.target.classList.contains('range');
@@ -1530,21 +1486,13 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
         selectedId = null;
         deleteBtn.style.display = 'none';
         selectionControls.style.display = 'none';
-        if (cameraRangeControl) cameraRangeControl.style.display = 'none';
-        if (cameraRangeValue) cameraRangeValue.textContent = '—';
-        if (cameraRangeInput) cameraRangeInput.disabled = true;
-        [cameraRangeDecreaseBtn, cameraRangeIncreaseBtn].forEach(btn => {
-            if (btn) btn.disabled = true;
-        });
         saveConfig();
         saveHistory();
         renderItemsList();
         redraw();
     }
     deleteBtn.onclick = deleteSelectedItem;
-
     deleteWallBtn.onclick = deleteSelectedWall;
-
     function handleKeyDown(e) {
       if (e.key === 'Escape') {
         if (currentMode === 'drawWall') {
@@ -1572,9 +1520,7 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
       const cfg = getConfig();
       const placement = (cfg.layoutPlacements || []).find(p => p.uniqueId === selectedId);
       if (!placement) return;
-
       const key = e.key.toLowerCase();
-
       let needsUpdate = false;
       if (e.key === 'Delete' || e.key === 'Backspace') {
           e.preventDefault();
@@ -1594,9 +1540,6 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
       if (needsUpdate) {
           placement.x = Math.max(0, Math.min(img.width, placement.x));
           placement.y = Math.max(0, Math.min(img.height, placement.y));
-          redraw();
-          saveConfig();
-          saveHistory();
       }
     }
     document.addEventListener('keydown', handleKeyDown);
