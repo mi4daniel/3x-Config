@@ -176,7 +176,6 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
       .ldz-fov-handle.range{cursor:grab;background:rgba(255,255,255,0.95);}
       .ldz-fov-handle.range:active,.ldz-fov-handle.range.dragging{cursor:grabbing;}
       .ldz-fov-handle.angle-left, .ldz-fov-handle.angle-right{cursor:ew-resize;}
-      .ldz-fov-range-readout{position:absolute;top:100%;left:50%;transform:translate(-50%,6px);background:rgba(15,23,42,0.92);color:#fff;border-radius:8px;padding:4px 8px;font-size:0.68rem;font-weight:600;white-space:nowrap;pointer-events:none;box-shadow:0 10px 18px -16px rgba(15,23,42,0.65);}
       .ldz-quick-actions{position:absolute;bottom:calc(100% + 16px);left:50%;transform:translateX(-50%);display:flex;gap:4px;background:rgba(15,23,42,0.92);padding:4px 6px;border-radius:12px;border:1px solid rgba(15,23,42,0.55);box-shadow:0 12px 24px -12px rgba(15,23,42,0.55);z-index:20;}
       .ldz-quick-actions button{width:26px;height:26px;border-radius:6px;background:rgba(255,255,255,0.08);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s,transform .2s;}
       .ldz-quick-actions button:hover{background:rgba(255,255,255,0.22);transform:translateY(-1px);}
