@@ -76,6 +76,21 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
       return Math.sqrt(distToSegmentSquared(p, v, w));
   }
 
+  function drawRoundedRect(ctx, x, y, width, height, radius) {
+      const r = Math.min(radius, width / 2, height / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + width - r, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + r);
+      ctx.lineTo(x + width, y + height - r);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+      ctx.lineTo(x + r, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
+  }
+
   function deselectAll() {
       selectedId = null;
       selectedWallId = null;
@@ -452,6 +467,7 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
     let fovHistoryTimer = null;
     let listResizeObserver = null;
     let scaleLine = null;
+    let draftWall = null;
 
     const cardToggles = overlay.querySelectorAll('[data-card-toggle]');
     cardToggles.forEach((toggle) => {
@@ -892,24 +908,11 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
         }
         ctx.drawImage(img, 0, 0);
         drawGrid(ctx);
-        if (showWalls) drawWalls(wallCtx);
+        paintWallLayer(wallCtx);
         if (showFovs) drawFovs();
         renderPlacedMarkers(showLabels);
         renderInteractiveHandles();
         updatePlacementStats();
-
-        if (currentMode === 'scale' && scaleLine) {
-            wallCtx.save();
-            wallCtx.strokeStyle = '#10b981';
-            wallCtx.lineWidth = 3 / view.scale;
-            wallCtx.setLineDash([5 / view.scale, 5 / view.scale]);
-            wallCtx.lineCap = 'round';
-            wallCtx.beginPath();
-            wallCtx.moveTo(scaleLine.x1, scaleLine.y1);
-            wallCtx.lineTo(scaleLine.x2, scaleLine.y2);
-            wallCtx.stroke();
-            wallCtx.restore();
-        }
 
         ctx.restore(); fovCtx.restore(); wallCtx.restore();
 
@@ -942,6 +945,102 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
             targetCtx.lineTo(wall.x2, wall.y2);
             targetCtx.stroke();
         });
+    }
+
+    function drawDraftWall(targetCtx) {
+        if (!draftWall) return;
+
+        const { x1, y1, x2, y2 } = draftWall;
+        const distance = Math.hypot(x2 - x1, y2 - y1);
+
+        targetCtx.save();
+        targetCtx.strokeStyle = 'rgba(255, 99, 71, 0.85)';
+        targetCtx.setLineDash([8 / view.scale, 6 / view.scale]);
+        targetCtx.lineWidth = 3 / view.scale;
+        targetCtx.lineCap = 'round';
+        targetCtx.beginPath();
+        targetCtx.moveTo(x1, y1);
+        targetCtx.lineTo(x2, y2);
+        targetCtx.stroke();
+
+        const handleRadius = 5 / view.scale;
+        const drawHandle = (hx, hy) => {
+            targetCtx.beginPath();
+            targetCtx.arc(hx, hy, handleRadius, 0, Math.PI * 2);
+            targetCtx.fill();
+        };
+        targetCtx.fillStyle = '#0ea5e9';
+        drawHandle(x1, y1);
+        if (distance > 0) {
+            drawHandle(x2, y2);
+        }
+        targetCtx.restore();
+
+        if (distance <= 0) return;
+
+        const midX = (x1 + x2) / 2;
+        const midY = (y1 + y2) / 2;
+        const lengthPx = distance;
+        let labelText = `${lengthPx.toFixed(0)} px`;
+        if (pixelsPerFoot > 0.0001) {
+            const lengthFt = lengthPx / pixelsPerFoot;
+            labelText = `${lengthFt >= 10 ? lengthFt.toFixed(1) : lengthFt.toFixed(2)} ft`;
+        }
+
+        targetCtx.save();
+        targetCtx.translate(midX, midY);
+        targetCtx.scale(1 / view.scale, 1 / view.scale);
+
+        const fontSize = 13;
+        const paddingX = 10;
+        const paddingY = 6;
+        targetCtx.font = `600 ${fontSize}px Inter, sans-serif`;
+        targetCtx.textBaseline = 'middle';
+        const textWidth = targetCtx.measureText(labelText).width;
+        const boxWidth = textWidth + paddingX * 2;
+        const boxHeight = fontSize + paddingY * 2;
+
+        targetCtx.fillStyle = 'rgba(15,23,42,0.82)';
+        drawRoundedRect(targetCtx, -boxWidth / 2, -boxHeight / 2, boxWidth, boxHeight, 6);
+        targetCtx.fill();
+
+        targetCtx.fillStyle = '#f8fafc';
+        targetCtx.fillText(labelText, -textWidth / 2, 0);
+        targetCtx.restore();
+    }
+
+    function drawScaleGuide(targetCtx) {
+        if (!(currentMode === 'scale' && scaleLine)) return;
+
+        targetCtx.save();
+        targetCtx.strokeStyle = '#10b981';
+        targetCtx.lineWidth = 3 / view.scale;
+        targetCtx.setLineDash([5 / view.scale, 5 / view.scale]);
+        targetCtx.lineCap = 'round';
+        targetCtx.beginPath();
+        targetCtx.moveTo(scaleLine.x1, scaleLine.y1);
+        targetCtx.lineTo(scaleLine.x2, scaleLine.y2);
+        targetCtx.stroke();
+        targetCtx.restore();
+    }
+
+    function paintWallLayer(targetCtx) {
+        if (showWalls) {
+            drawWalls(targetCtx);
+        }
+        if (draftWall) {
+            drawDraftWall(targetCtx);
+        }
+        drawScaleGuide(targetCtx);
+    }
+
+    function redrawWallLayer() {
+        wallCtx.clearRect(0, 0, wallCanvas.width, wallCanvas.height);
+        wallCtx.save();
+        wallCtx.translate(view.x, view.y);
+        wallCtx.scale(view.scale, view.scale);
+        paintWallLayer(wallCtx);
+        wallCtx.restore();
     }
     
     function deleteSelectedWall() {
@@ -1502,42 +1601,30 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
               selectedWallId = closestWall.id;
               selectedId = null;
               syncFovControlsForPlacement(null);
+              draftWall = null;
               updateWallSelectionUI();
               return; // Don't start drawing a new wall
           }
+          draftWall = { x1: startX, y1: startY, x2: startX, y2: startY };
+          schedule(redrawWallLayer);
           const onWallMove = (moveEvent) => {
               const currentX = (moveEvent.clientX - rect.left - view.x) / view.scale;
               const currentY = (moveEvent.clientY - rect.top - view.y) / view.scale;
-              
-              // OPTIMIZED: Only clear and redraw the wall canvas
-              wallCtx.clearRect(0, 0, wallCanvas.width, wallCanvas.height);
-              wallCtx.save();
-              wallCtx.translate(view.x, view.y);
-              wallCtx.scale(view.scale, view.scale);
-              
-              drawWalls(wallCtx); // Redraw permanent walls
-
-              // Draw the temporary line
-              wallCtx.strokeStyle = 'rgba(255, 59, 48, 0.7)';
-              wallCtx.lineWidth = 3 / view.scale;
-              wallCtx.lineCap = 'round';
-              wallCtx.beginPath();
-              wallCtx.moveTo(startX, startY);
-              wallCtx.lineTo(currentX, currentY);
-              wallCtx.stroke();
-              wallCtx.restore();
+              draftWall = { x1: startX, y1: startY, x2: currentX, y2: currentY };
+              schedule(redrawWallLayer);
           };
           const onWallUp = (upEvent) => {
               document.removeEventListener('mousemove', onWallMove);
               document.removeEventListener('mouseup', onWallUp);
               const endX = (upEvent.clientX - rect.left - view.x) / view.scale;
               const endY = (upEvent.clientY - rect.top - view.y) / view.scale;
-              
+
               if (Math.hypot(endX - startX, endY - startY) > 5) {
                   getConfig().layoutWalls.push({id: Date.now(), x1: startX, y1: startY, x2: endX, y2: endY});
                   saveConfig();
                   saveHistory();
               }
+              draftWall = null;
               redraw();
           };
           document.addEventListener('mousemove', onWallMove);
@@ -1635,7 +1722,11 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
         currentMode = (currentMode === 'place') ? 'drawWall' : 'place';
         drawWallBtn.classList.toggle('active', currentMode === 'drawWall');
         wrap.classList.toggle('wall-mode', currentMode === 'drawWall');
-        if (currentMode === 'place') wrap.style.cursor = 'grab';
+        if (currentMode === 'place') {
+            draftWall = null;
+            schedule(redrawWallLayer);
+            wrap.style.cursor = 'grab';
+        }
     });
 
     function updateWallSelectionUI() {
@@ -1792,8 +1883,10 @@ const STORAGE_KEY = (window.AppState && window.AppState.STORAGE_KEY) || '3xlogic
             currentMode = 'place';
             drawWallBtn.classList.remove('active');
             wrap.classList.remove('wall-mode');
+            draftWall = null;
             wrap.style.cursor = 'grab';
             overlay.querySelectorAll('.ldz-placed.camera').forEach(c => c.style.outline = 'none');
+            redraw();
         } else {
             closeAndCleanup();
         }
