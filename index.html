@@ -1964,7 +1964,7 @@
 
 
                     return `
-                        <div class="p-4 border border-gray-600 rounded-lg bg-gray-700">
+                        <div class="p-4 border border-gray-600 rounded-lg bg-gray-700 space-y-3">
                             <h5 class="font-bold text-gray-200 mb-2">${device.product.deviceType === 'nvr' ? 'NVR' : 'Server'} ${devIndex + 1}: ${device.product.name}</h5>
                             ${progressBars}
                         </div>
@@ -1977,7 +1977,7 @@
                         <div class="md:w-1/3">
                             <div class="rack">${deviceUnitsHtml || '<p class="text-gray-400 text-center self-center">No devices in this rack</p>'}</div>
                         </div>
-                        <div class="md:w-2/3 space-y-4">${dashboardHtml || '<p class="text-gray-400 text-center self-center">No devices to display status for</p>'}</div>
+                        <div class="md:w-2/3 space-y-4">${dashboardHtml || `<div class="p-4 border border-dashed border-gray-500 rounded-lg bg-gray-700/50 text-center cursor-pointer hover:bg-gray-700/80 transition" onclick="showAddDeviceToRackModal(${rack.id})"><p class="text-gray-400">No devices to display status for. <span class="font-semibold text-gray-300">Click to add a device.</span></p></div>`}</div>
                     </div>`;
                 visualizerContent.appendChild(rackHtml);
             });
@@ -2006,13 +2006,13 @@
             if (percentage > 100) barColor = 'bg-red-500';
 
             return `
-                <div>
+                <div class="cursor-pointer" onclick="handleVisualizerClick('${label}', ${max})">
                     <div class="flex justify-between items-center mb-1">
                         <span class="text-sm font-medium text-gray-300">${label}</span>
                         <span class="text-sm font-medium text-gray-400">${value} / ${max >= 999 ? '&#8734;' : max}</span>
                     </div>
                     <div class="progress-bar-bg">
-                        <div class="progress-bar ${barColor}" style="width: ${max >= 999 ? 0 : Math.min(percentage, 100)}%"></div>
+                        <div class="progress-bar ${barColor}" style="width: ${max >= 999 ? 0 : Math.min(percentage, 100)}%" data-label="${label}"></div>
                     </div>
                 </div>
             `;
@@ -2273,8 +2273,11 @@
                 </div>
                 ${nvrPoeWarning}
                 <div class="flex flex-wrap gap-2 mt-4">
-                    <button onclick="showAddComponentModal(${device.id}, 'nvr')" class="text-sm font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-full transition">+ Add Component</button>
-                </div>`;
+                    <button onclick="showAddComponentModal(${device.id}, 'nvr')" class="text-sm font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-full transition">
+                        + Add Component
+                    </button>
+                </div>
+                `;
 
             nvrHtml += renderAssignedComponentList(device.id, 'assignedUps', 'Assigned UPS', removeUps);
             nvrHtml += renderAssignedComponentList(device.id, 'poeSwitches', 'Assigned PoE Switches', removePoeSwitch);
@@ -2372,9 +2375,12 @@
             const expandedClass = device.isCamerasExpanded ? 'expanded' : '';
 
             nvrHtml += `<div class="mt-6">
-                <div id="camera-summary-header-${device.id}" onclick="toggleCameras(${device.id})" class="camera-accordion-header ${expandedClass} flex items-center justify-between rounded-xl bg-slate-100/90 px-4 py-3 cursor-pointer transition hover:bg-slate-100">
-                     <h5 class="text-lg font-semibold text-slate-800">Cameras (${channelUsage} / ${availablePorts >= 999 ? '&#8734;' : availablePorts})</h5>
-                     <svg class="accordion-arrow w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                <div id="camera-summary-header-${device.id}" class="camera-accordion-header ${expandedClass} flex items-center justify-between rounded-xl bg-slate-100/90 px-4 py-3 cursor-pointer transition hover:bg-slate-100">
+                     <div class="flex items-center gap-4" onclick="toggleCameras(${device.id})">
+                        <h5 class="text-lg font-semibold text-slate-800">Cameras (${channelUsage} / ${availablePorts >= 999 ? '&#8734;' : availablePorts})</h5>
+                        <svg class="accordion-arrow w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                     </div>
+                     <button onclick="showAddComponentModal(${device.id}, 'cameras')" class="text-sm font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-full transition">+ Add Camera</button>
                 </div>
                 <div class="camera-accordion-content mt-3">${camListHtml}</div>
             </div>`;
@@ -2413,6 +2419,10 @@
                     </div>
                     <button onclick="removeDevice('${rackId}', ${device.id})" class="text-sm font-semibold text-red-500 hover:text-red-600">Remove Device</button>
                 </div>`;
+            
+            serverHtml += `<div class="flex flex-wrap gap-2 mt-4">
+                    <button onclick="showAddComponentModal(${device.id}, 'server')" class="text-sm font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-full transition">+ Add Component</button>
+                </div>`;
 
             serverHtml += renderAssignedComponentList(device.id, 'assignedUps', 'Assigned UPS', removeUps);
             serverHtml += renderAssignedComponentList(device.id, 'poeSwitches', 'Assigned PoE Switches', removePoeSwitch);
@@ -2421,7 +2431,6 @@
             serverHtml += `<div class="mt-6">
                 <div class="flex items-center justify-between">
                     <h5 class="text-lg font-semibold text-slate-800">Door Controllers (${device.doors.length} / ${availablePorts >= 999 ? '&#8734;' : availablePorts})</h5>
-                    <button onclick="showAddComponentModal(${device.id}, 'server')" class="text-sm font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-full transition">+ Add Component</button>
                 </div>
             `;
 
@@ -2927,6 +2936,21 @@
             return { warnings };
         }
 
+        function handleVisualizerClick(label, max) {
+            if (label !== 'Camera Ports' || max >= 999) return;
+            const clickedBar = event.target.closest('[data-device-id]');
+            if (!clickedBar) return;
+            const deviceId = clickedBar.dataset.deviceId;
+            showAddComponentModal(deviceId, 'cameras');
+        }
+
+        function showAddDeviceToRackModal(rackId) {
+            const recorders = products["CCTV Products"]["Recorders (NVRs & HVRs)"];
+            const servers = products["Access Control Systems"]["Servers & Software"]["infinias Servers"];
+            const productData = { ...recorders, ...servers };
+            createProductSelectionModal('Add Device to Rack', productData, (productId) => addProduct(productId, null, rackId));
+        }
+
         function showAddComponentModal(deviceId, context) {
             let productData = {};
             let title = 'Add Component';
@@ -2941,6 +2965,11 @@
                         "Licenses": { "Software Licenses": products["CCTV Products"]["Video System Components"]["Software Licenses"] },
                         "UPS": { "UPS Units": products["Accessories"]["Power"]["UPS Units"] }
                     };
+                    break;
+                case 'cameras':
+                    title = 'Add Camera to NVR';
+                    productData = { "Cameras": products["CCTV Products"]["Cameras"] };
+                    callback = (productId) => addProduct(productId, deviceId);
                     break;
                 case 'server':
                     title = 'Add to Server';
@@ -3299,6 +3328,12 @@
             }
         });
         
+        visualizerContent.addEventListener('click', (e) => {
+            const progressBar = e.target.closest('.progress-bar');
+            if (!progressBar || progressBar.dataset.label !== 'Camera Ports') return;
+            const deviceDiv = e.target.closest('.summary-subcard');
+            if (deviceDiv) handleVisualizerClick('Camera Ports', deviceDiv.dataset.deviceId);
+        });
         visualizerContent.addEventListener('click', (e) => {
             const vizRack = e.target.closest('.visualizer-rack');
             if (vizRack && vizRack.dataset.summaryId) {
