@@ -1,0 +1,3565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3xLOGIC Configuration Tool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Compact workflow menu */
+        .workflow-menu {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 9999px;
+            background: rgba(34, 30, 31, 0.85);
+            border: 1px solid rgba(34, 30, 31, 0.35);
+            box-shadow: 0 16px 32px -24px rgba(0, 0, 0, 0.65);
+            width: fit-content;
+            flex-wrap: wrap;
+        }
+
+        .workflow-group {
+            position: relative;
+        }
+
+        .workflow-trigger {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.55rem 0.95rem;
+            border-radius: 9999px;
+            border: 1px solid transparent;
+            background: transparent;
+            color: #f6f7fb;
+            font-weight: 600;
+            font-size: 0.9rem;
+            letter-spacing: 0.01em;
+            transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+        }
+
+        .workflow-trigger:hover,
+        .workflow-group.open .workflow-trigger {
+            background: linear-gradient(135deg, rgba(194, 32, 51, 0.25), rgba(34, 30, 31, 0.35));
+            border-color: rgba(194, 32, 51, 0.35);
+            color: #f6f7fb;
+        }
+
+        .workflow-step {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.75rem;
+            height: 1.75rem;
+            border-radius: 9999px;
+            background: linear-gradient(145deg, rgba(194, 32, 51, 0.85), rgba(0, 0, 0, 0.75));
+            color: #f6f7fb;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        .workflow-popover {
+            position: absolute;
+            top: calc(100% + 0.5rem);
+            left: 0;
+            background: rgba(34, 30, 31, 0.96);
+            border: 1px solid rgba(34, 30, 31, 0.4);
+            border-radius: 1rem;
+            padding: 0.85rem;
+            box-shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.85);
+            min-width: 240px;
+            display: none;
+            z-index: 45;
+        }
+
+        .workflow-group.open .workflow-popover {
+            display: grid;
+            gap: 0.5rem;
+        }
+
+        .workflow-group:last-child .workflow-popover {
+            left: auto;
+            right: 0;
+        }
+
+        .workflow-action {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.2rem;
+            padding: 0.65rem 0.75rem;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(246, 247, 251, 0.12);
+            background: rgba(0, 0, 0, 0.25);
+            color: #f6f7fb;
+            text-align: left;
+            transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+            width: 100%;
+        }
+
+        .workflow-action:hover {
+            transform: translateY(-1px);
+            border-color: rgba(194, 32, 51, 0.5);
+            background: rgba(194, 32, 51, 0.28);
+        }
+
+        .workflow-action .action-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .workflow-action .action-subtitle {
+            font-size: 0.7rem;
+            color: rgba(246, 247, 251, 0.7);
+        }
+
+        .workflow-action.accent {
+            border-color: rgba(194, 32, 51, 0.55);
+            background: linear-gradient(140deg, rgba(194, 32, 51, 0.35), rgba(34, 30, 31, 0.25));
+        }
+
+        .workflow-action.success {
+            border-color: rgba(16, 185, 129, 0.4);
+            background: rgba(16, 185, 129, 0.18);
+        }
+
+        .workflow-action.success:hover {
+            border-color: rgba(16, 185, 129, 0.6);
+            background: rgba(16, 185, 129, 0.26);
+        }
+
+        .workflow-action.danger {
+            border-color: rgba(194, 32, 51, 0.5);
+            background: rgba(194, 32, 51, 0.22);
+            color: #fce1e5;
+        }
+
+        .workflow-action.danger .action-subtitle {
+            color: rgba(252, 225, 229, 0.85);
+        }
+
+        .workflow-action.danger:hover {
+            border-color: rgba(194, 32, 51, 0.7);
+            background: rgba(194, 32, 51, 0.3);
+        }
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.75rem;
+            height: 1.75rem;
+            border-radius: 9999px;
+            border: 1px solid transparent;
+            background: rgba(34, 30, 31, 0.18);
+            color: #221e1f;
+            transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+        }
+        .status-indicator svg {
+            width: 1rem;
+            height: 1rem;
+        }
+        .status-indicator:hover {
+            transform: translateY(-1px);
+        }
+        .status-indicator.status-ok {
+            background: rgba(16, 185, 129, 0.18);
+            border-color: rgba(16, 185, 129, 0.45);
+            color: #047857;
+        }
+        .status-indicator.status-warning {
+            background: rgba(245, 158, 11, 0.2);
+            border-color: rgba(245, 158, 11, 0.45);
+            color: #b45309;
+        }
+        .status-indicator.status-error {
+            background: rgba(248, 113, 113, 0.2);
+            border-color: rgba(248, 113, 113, 0.5);
+            color: #b91c1c;
+        }
+        :root {
+            --brand-primary: #c22033;
+            --brand-dark: #221e1f;
+            --brand-black: #000000;
+            --brand-light: #f6f7fb;
+            --surface-glass: rgba(246, 247, 251, 0.92);
+            --surface-glass-alt: rgba(246, 247, 251, 0.85);
+            --surface-card: rgba(255, 255, 255, 0.96);
+            --brand-border: rgba(34, 30, 31, 0.18);
+            --brand-border-strong: rgba(34, 30, 31, 0.3);
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at top, #f6f7fb 0%, #f0f1f6 45%, #d9dbe1 100%);
+            color: var(--brand-dark);
+        }
+        .sidebar {
+            transition: transform 0.3s ease-in-out;
+        }
+        .page-shell {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .app-header {
+            background: rgba(34, 30, 31, 0.92);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(34, 30, 31, 0.35);
+            position: sticky;
+            top: 0;
+            z-index: 40;
+        }
+        .summary-card {
+            background: var(--surface-card);
+            border: 1px solid var(--brand-border);
+            border-radius: 1.5rem;
+            padding: 1.75rem;
+            box-shadow: 0 20px 45px -20px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(6px);
+        }
+        .summary-card + .summary-card {
+            margin-top: 1.75rem;
+        }
+        .summary-subcard {
+            background: var(--surface-glass);
+            border: 1px solid var(--brand-border);
+            border-radius: 1.25rem;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            box-shadow: 0 18px 30px -22px rgba(0, 0, 0, 0.2);
+        }
+        .summary-subcard:first-of-type {
+            margin-top: 1rem;
+        }
+        .summary-divider {
+            border-top: 1px dashed rgba(34, 30, 31, 0.35);
+            margin: 1.5rem 0;
+        }
+        .metric-grid {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        }
+        .metric-card {
+            background: linear-gradient(150deg, rgba(194, 32, 51, 0.16), rgba(34, 30, 31, 0.08));
+            border: 1px solid rgba(194, 32, 51, 0.25);
+            border-radius: 1rem;
+            padding: 1rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .metric-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-weight: 600;
+            color: rgba(34, 30, 31, 0.65);
+        }
+        .metric-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--brand-primary);
+        }
+        .metric-icon {
+            width: 2.75rem;
+            height: 2.75rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(194, 32, 51, 0.18);
+            color: var(--brand-primary);
+            box-shadow: inset 0 0 0 1px rgba(194, 32, 51, 0.3);
+        }
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.35rem 0.75rem;
+            border-radius: 9999px;
+            background: rgba(194, 32, 51, 0.12);
+            color: var(--brand-primary);
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .visualizer-shell {
+            background: linear-gradient(165deg, rgba(34, 30, 31, 0.95), rgba(0, 0, 0, 0.85));
+            border: 1px solid rgba(34, 30, 31, 0.35);
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            color: #f6f7fb;
+            box-shadow: 0 25px 50px -20px rgba(0, 0, 0, 0.65);
+        }
+        .visualizer-toolbar {
+            background: rgba(34, 30, 31, 0.9);
+            border-radius: 1.25rem;
+            border: 1px solid rgba(34, 30, 31, 0.45);
+            padding: 0.75rem 1.25rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .visualizer-body {
+            max-height: calc(100vh - 220px);
+            overflow-y: auto;
+            padding-right: 0.5rem;
+        }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.2s ease-in-out;
+            pointer-events: none;
+        }
+        .modal-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            transform: scale(0.95);
+            transition: transform 0.2s ease-in-out;
+        }
+        .modal-overlay.show .modal-content {
+            transform: scale(1);
+        }
+        .accordion-header {
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.2s;
+        }
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-in-out;
+        }
+        .accordion-header.active + .accordion-content {
+            max-height: 45vh; /* Limits the height to 45% of the screen height */
+            overflow-y: auto; /* Adds a scrollbar if the content overflows */
+            padding-right: 8px; /* Adds a little space for the scrollbar */
+        }
+        .accordion-arrow {
+            transition: transform 0.3s;
+        }
+        .accordion-header.active .accordion-arrow {
+            transform: rotate(90deg);
+        }
+        .camera-accordion-header {
+            cursor: pointer;
+            user-select: none;
+        }
+        .camera-accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height: 0.5s ease-in-out;
+        }
+        .camera-accordion-header.expanded + .camera-accordion-content {
+            max-height: 4000px;
+        }
+        .camera-accordion-header .accordion-arrow {
+             transform: rotate(0deg);
+             transition: transform 0.3s;
+        }
+        .camera-accordion-header.expanded .accordion-arrow {
+            transform: rotate(90deg);
+        }
+        #visualizer {
+            position: relative;
+        }
+        .rack {
+            border: 2px solid rgba(34, 30, 31, 0.55);
+            border-radius: 8px;
+            padding: 10px;
+            background-color: #221e1f;
+            width: 100%;
+            min-height: 175px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            transition: box-shadow 0.2s;
+        }
+        .rack-unit {
+            border: 1px solid rgba(34, 30, 31, 0.45);
+            border-radius: 4px;
+            margin-bottom: 5px;
+            color: #f6f7fb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: monospace;
+            font-size: 12px;
+            transition: all 0.3s ease-in-out;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            position: relative;
+        }
+        .rack-unit::after {
+            content: attr(title);
+            position: absolute;
+            bottom: 105%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.85);
+            color: #f6f7fb;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s, visibility 0.2s;
+            pointer-events: none;
+        }
+        .rack-unit:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+        .nvr-1u { height: 44.45px; }
+        .nvr-2u { height: 88.9px; }
+        .server-1u { height: 44.45px; }
+        .server-2u { height: 88.9px; }
+        .switch-1u { height: 44.45px; }
+        .progress-bar-bg {
+            background-color: rgba(34, 30, 31, 0.3);
+            border-radius: 9999px;
+            height: 1rem;
+            width: 100%;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            border-radius: 9999px;
+            transition: width 0.3s ease-in-out, background-color 0.3s ease-in-out;
+        }
+        .flash-error {
+            animation: flash-red 0.5s ease-in-out;
+        }
+        @keyframes flash-red {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(194, 32, 51, 0.7); }
+            50% { box-shadow: 0 0 0 4px rgba(194, 32, 51, 0); }
+        }
+        .warning-icon {
+            color: #f59e0b; /* amber-500 */
+            display: none;
+        }
+        .mismatch .warning-icon {
+            display: inline-block;
+        }
+        .drop-target-highlight {
+            outline: 2px dashed var(--brand-primary);
+            outline-offset: 4px;
+            background-color: rgba(194, 32, 51, 0.12);
+            box-shadow: 0 0 15px rgba(194, 32, 51, 0.35);
+        }
+        .toast-notification {
+            position: fixed;
+            bottom: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--brand-dark);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 0.5rem;
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.3s ease, bottom 0.4s ease;
+        }
+        .toast-notification.show {
+            opacity: 1;
+            bottom: 30px;
+        }
+        .product-item {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .product-item:hover {
+            transform: scale(1.02);
+                        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        .visualizer-rack {
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .visualizer-rack:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(194, 32, 51, 0.25);
+        }
+        .camera-list-container {
+            max-height: 450px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        .bg-gray-700 {}
+
+        /* Camera Layout Designer Styles */
+        #layout-designer-modal .modal-content { max-width: 95vw; width: 95%; height: 90vh; display: flex; flex-direction: column; }
+        #layout-designer-body { display: flex; flex-grow: 1; overflow: hidden; }
+        #layout-controls { width: 280px; overflow-y: auto; border-right: 1px solid rgba(34, 30, 31, 0.15); padding: 1rem; background-color: #f6f7fb; display: flex; flex-direction: column; }
+        .layout-item { cursor: grab; padding: 0.5rem; margin-bottom: 0.5rem; background-color: white; border-radius: 0.25rem; border: 1px solid rgba(34, 30, 31, 0.18); display: flex; align-items: center; }
+        .layout-item:active { cursor: grabbing; }
+        #layout-canvas-container { flex-grow: 1; position: relative; background-color: #f0f1f6; overflow: auto; }
+        #layoutCanvas, #blindSpotCanvas { position: absolute; top: 0; left: 0; display: block; background-size: contain; background-repeat: no-repeat; background-position: center; }
+        #blindSpotCanvas { pointer-events: none; opacity: 0.5; }
+        
+        .placed-item-container { position: absolute; transform: translate(-50%, -50%); user-select: none; }
+        .placed-item-icon { width: 40px; height: 40px; color: white; display: flex; align-items: center; justify-content: center; cursor: move; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3); font-size: 1.2rem; }
+        .placed-item-icon.camera { background-color: rgba(194, 32, 51, 0.85); border-radius: 50%; }
+        .placed-item-icon.nvr { background-color: rgba(74, 85, 104, 0.8); border-radius: 10%; font-size: 1rem; }
+        .placed-item-icon.fov { background-color: rgba(255, 193, 7, 0.7); border-radius: 50%; width: 30px; height: 30px; }
+        
+        .placed-item-icon .tooltip { visibility: hidden; width: 200px; background-color: rgba(0, 0, 0, 0.85); color: #fff; text-align: center; border-radius: 6px; padding: 5px; position: absolute; z-index: 10; bottom: 125%; left: 50%; margin-left: -100px; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+        .placed-item-container:hover .tooltip { visibility: visible; opacity: 1; }
+        
+        .fov-cone { position: absolute; top: 50%; left: 50%; width: 0; height: 0; border-left: 50px solid transparent; border-right: 50px solid transparent; border-top: 100px solid rgba(255, 255, 0, 0.4); transform-origin: 50% 0; pointer-events: none; }
+        .fov-handle { position: absolute; width: 16px; height: 16px; background: #fff; border: 2px solid var(--brand-primary); border-radius: 50%; cursor: pointer; opacity: 0; transition: opacity 0.2s; z-index: 5; }
+        .rotate-handle { top: -110px; left: 50%; transform: translateX(-50%); cursor: alias; }
+        .range-handle { top: -12px; left: 50%; transform: translateX(-50%); cursor: ns-resize; }
+        .placed-item-container[data-type="fov"]:hover .fov-handle, .placed-item-container.selected .fov-handle { opacity: 1; }
+        .placed-item-container.selected .placed-item-icon { box-shadow: 0 0 0 3px var(--brand-primary); }
+
+        #fov-controls { border-top: 1px solid rgba(34, 30, 31, 0.15); padding-top: 1rem; margin-top: auto; }
+        #context-menu { position: fixed; z-index: 10000; width: 150px; background: #fff; border-radius: 5px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); display: none; }
+        #context-menu button { display: block; width: 100%; padding: 8px 12px; text-align: left; background: none; border: none; cursor: pointer; }
+        #context-menu button:hover { background: #f0f0f0; }
+
+        /* Mobile responsiveness for modals */
+        .modal-content {
+            max-width: 90vw; /* Use viewport width for better mobile fit */
+            width: 90%; /* Ensure it's not too wide on small screens */
+            max-height: 90vh; /* Limit height for long content */
+            overflow-y: auto; /* Enable scrolling if content overflows */
+            padding: 1rem; /* Reduce padding for smaller screens */
+        }
+        @media (min-width: 768px) { /* md breakpoint */
+            .modal-content {
+                max-width: 500px; /* Restore original max-width for larger screens */
+                padding: 2rem; /* Restore original padding */
+            }
+        }
+
+        /* Sidebar responsiveness */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            z-index: 50; /* Above main content, below modal overlay */
+            transform: translateX(-100%); /* Hidden by default */
+            transition: transform 0.3s ease-in-out;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.2); /* Add shadow for depth */
+        }
+        .sidebar.sidebar-open {
+            transform: translateX(0); /* Visible when open */
+        }
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 49; /* Below sidebar, above main content */
+            display: none; /* Hidden by default */
+        }
+        .sidebar-overlay.show {
+            display: block;
+        }
+
+        /* Visual Polish */
+        .accordion-header {
+            border-radius: 0.375rem; /* rounded-md */
+            transition: background-color 0.2s, box-shadow 0.2s;
+        }
+        .accordion-header.active {
+            background-color: #f3f4f6; /* gray-100 */
+            box-shadow: inset 0 2px 4px 0 rgba(0,0,0,0.05);
+        }
+        .product-item {
+            border: 1px solid transparent;
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+        }
+        .product-item:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+    </style>
+</head>
+<body class="page-shell text-slate-900">
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+    <div id="app-container" class="flex-1 flex flex-col">
+        <header class="app-header">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-6">
+                <div class="flex flex-wrap items-center gap-4">
+                    <img src="/3xlogiclogo.png" alt="3xLOGIC Logo" class="h-12 w-auto">
+                    <div>
+                        <h1 class="text-lg sm:text-xl font-semibold text-slate-100">3xLOGIC Configuration Studio</h1>
+                        <p class="text-xs sm:text-sm text-slate-400">Plan, assemble, and visualize your security ecosystem.</p>
+                    </div>
+                </div>
+                <nav class="workflow-menu" aria-label="Configuration workflow">
+                    <div class="workflow-group">
+                        <button class="workflow-trigger" type="button" data-target="configureMenu" aria-expanded="false" aria-controls="configureMenu">
+                            <span>Configure Your System</span>
+                        </button>
+                        <div id="configureMenu" class="workflow-popover" role="menu" aria-hidden="true">
+                            <button id="addCameraButton" class="workflow-action success" type="button" role="menuitem">
+                                <span class="action-title">Add Camera</span>
+                                <span class="action-subtitle">Place cameras into your design</span>
+                            </button>
+                            <button id="addRackButton" class="workflow-action success" type="button" role="menuitem">
+                                <span class="action-title">Add Rack</span>
+                                <span class="action-subtitle">Start a new equipment grouping</span>
+                            </button>
+                            <button id="addNvrButton" class="workflow-action success" type="button" role="menuitem">
+                                <span class="action-title">Add NVR</span>
+                                <span class="action-subtitle">Select recording capacity</span>
+                            </button>
+                            <button id="addPoeSwitchButton" class="workflow-action success" type="button" role="menuitem">
+                                <span class="action-title">Add POE Switch</span>
+                                <span class="action-subtitle">Distribute power and data effectively</span>
+                            </button>
+                            <button id="addServerButton" class="workflow-action success" type="button" role="menuitem">
+                                <span class="action-title">Add Infinias Server</span>
+                                <span class="action-subtitle">Manage access control intelligence</span>
+                            </button>
+                            <button id="customPartBtn" class="workflow-action" type="button" role="menuitem">
+                                <span class="action-title">Add Custom Part</span>
+                                <span class="action-subtitle">Capture project-specific components</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="workflow-group">
+                        <button class="workflow-trigger" type="button" data-target="designMenu" aria-expanded="false" aria-controls="designMenu">
+                            <span>Design Your Solution</span>
+                        </button>
+                        <div id="designMenu" class="workflow-popover" role="menu" aria-hidden="true">
+                            <button id="uploadLayoutButton" class="workflow-action" type="button" role="menuitem">
+                                <span class="action-title">Upload Floor Plan</span>
+                                <span class="action-subtitle">Bring in floor plans or schematics</span>
+                            </button>
+                            <input type="file" id="layoutFile" class="hidden" accept="image/*">
+                            <button id="layoutDesignerButton" class="workflow-action accent" type="button" role="menuitem">
+                                <span class="action-title">Camera Layout Designer</span>
+                                <span class="action-subtitle">Map coverage and identify blind spots</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="workflow-group">
+                        <button class="workflow-trigger" type="button" data-target="finalizeMenu" aria-expanded="false" aria-controls="finalizeMenu">
+                            <span>Finalize &amp; Share</span>
+                        </button>
+                        <div id="finalizeMenu" class="workflow-popover" role="menu" aria-hidden="true">
+                            <button id="storageCalcButton" class="workflow-action accent" type="button" role="menuitem">
+                                <span class="action-title">Storage Calculator</span>
+                                <span class="action-subtitle">Validate retention goals and throughput</span>
+                            </button>
+                            <button id="saveButton" class="workflow-action" type="button" role="menuitem">
+                                <span class="action-title">Save Project</span>
+                                <span class="action-subtitle">Generate a local project file</span>
+                            </button>
+                            <button id="loadButton" class="workflow-action" type="button" role="menuitem">
+                                <span class="action-title">Load Project</span>
+                                <span class="action-subtitle">Resume from an existing configuration</span>
+                            </button>
+                            <input type="file" id="loadFile" class="hidden" accept=".json">
+                            <button id="exportButton" class="workflow-action" type="button" role="menuitem">
+                                <span class="action-title">Export CSV</span>
+                                <span class="action-subtitle">Share a bill of materials snapshot</span>
+                            </button>
+                            <button id="printButton" class="workflow-action" type="button" role="menuitem">
+                                <span class="action-title">Print Overview</span>
+                                <span class="action-subtitle">Provide a meeting-ready summary</span>
+                            </button>
+                            <button id="resetButton" class="workflow-action danger" type="button" role="menuitem">
+                                <span class="action-title">Reset Project</span>
+                                <span class="action-subtitle">Clear selections and start fresh</span>
+                            </button>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div class="grid gap-8 xl:grid-cols-[minmax(0,1.7fr)_minmax(320px,1fr)] items-start">
+                    <section id="configSummary" class="space-y-8"></section>
+                    <aside class="xl:sticky xl:top-24">
+                        <div id="visualizer" class="visualizer-shell">
+                            <div id="visualizer-drag-handle" class="visualizer-toolbar cursor-move">
+                                <h2 class="text-lg font-semibold text-sky-100">Configuration Visualizer</h2>
+                                <span class="text-xs text-slate-300/80">Drag to reposition</span>
+                            </div>
+                            <div id="visualizer-content" class="visualizer-body space-y-4"></div>
+                        </div>
+                    </aside>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <div id="modalContainer"></div>
+    <div id="toastContainer"></div>
+
+    <div id="context-menu">
+        <button id="context-duplicate">Duplicate</button>
+        <button id="context-delete">Delete</button>
+    </div>
+    <script src="layout-designer.js"></script>
+    <script src="products.js"></script>
+    <script src="state-manager.js"></script>
+    <script>
+        // --- DATA ---
+        window.configuration = window.AppState.createInitialConfiguration(window.configuration);
+        document.dispatchEvent(new Event('ldz:configuration-ready'));
+        const configuration = window.configuration;
+
+        let autoAddLicenses = true;
+
+        const SMBK_CAMERA_MAP = {
+            D: 'VX-5M-OD-RIAW-X',
+            B: 'VX-5M-B-RIAW-X'
+        };
+
+        const SUSA_CAMERA_MAP = {
+            D: 'VX-5M-OD-RIAW-X',
+            B: 'VX-5M-B-RIAW-X'
+        };
+
+        const OS_SEGMENT_MAP = {
+            WIN: 'Windows',
+            WINDOWS: 'Windows',
+            LINUX: 'Linux',
+            LNX: 'Linux',
+            LIN: 'Linux',
+            L: 'Linux'
+        };
+
+        function parseSmbkBundleSegments(segments) {
+            if (!Array.isArray(segments) || segments.length === 0) return null;
+
+            const cameraToken = segments.find(seg => /(\d+)([DB])/i.test(seg));
+            if (!cameraToken) return null;
+
+            const matches = cameraToken.match(/(\d+)([DB])/gi) || [];
+            const cameras = matches.reduce((acc, token) => {
+                const parsed = /(\d+)([DB])/i.exec(token);
+                if (!parsed) return acc;
+                const qty = parseInt(parsed[1], 10);
+                const type = parsed[2].toUpperCase();
+                const cameraId = SMBK_CAMERA_MAP[type];
+                if (cameraId && qty > 0) {
+                    acc.push({ id: cameraId, qty });
+                }
+                return acc;
+            }, []);
+
+            if (cameras.length === 0) return null;
+
+            const osToken = segments.find(seg => OS_SEGMENT_MAP[seg.toUpperCase()]);
+
+            return {
+                cameras,
+                storageTb: 4,
+                storageDriveCount: 1,
+                os: osToken ? OS_SEGMENT_MAP[osToken.toUpperCase()] : null
+            };
+        }
+
+        function parseSusaBundleSegments(segments) {
+            if (!Array.isArray(segments) || segments.length === 0) return null;
+
+            const matches = segments.reduce((acc, segment) => {
+                const tokens = segment.match(/([DB])(\d+)/gi) || [];
+                return acc.concat(tokens);
+            }, []);
+
+            if (matches.length === 0) return null;
+
+            const cameras = matches.reduce((acc, token) => {
+                const parsed = /([DB])(\d+)/i.exec(token);
+                if (!parsed) return acc;
+                const type = parsed[1].toUpperCase();
+                const qty = parseInt(parsed[2], 10);
+                const cameraId = SUSA_CAMERA_MAP[type];
+                if (cameraId && qty > 0) {
+                    acc.push({ id: cameraId, qty });
+                }
+                return acc;
+            }, []);
+
+            if (cameras.length === 0) return null;
+
+            return { cameras };
+        }
+
+        function deriveNvrDetailsFromPartNumber(product) {
+            if (!product || typeof product.id !== 'string') return null;
+
+            const segments = product.id.split('-');
+            const prefix = segments[0].toUpperCase();
+            const isSusaBundle = prefix === 'SUSA';
+            if (!isSusaBundle && prefix !== 'NVR') return null;
+
+            const metadata = {};
+
+            if (Array.isArray(product.includedCameras) && product.includedCameras.length > 0) {
+                metadata.bundleCameras = product.includedCameras.map(({ productId, quantity }) => ({
+                    id: productId,
+                    qty: Number(quantity) || 1
+                }));
+            }
+
+            if (typeof product.includedStorage === 'number') {
+                metadata.bundleStorageTb = product.includedStorage;
+                metadata.bundleStorageDriveCount = Math.max(1, Math.round(metadata.bundleStorageTb / 4));
+            }
+
+            for (let i = 1; i < segments.length; i++) {
+                const segment = segments[i];
+                const upper = segment.toUpperCase();
+
+                if (/^\d+U$/.test(upper)) {
+                    metadata.size = upper;
+                } else if (/^\d+CH$/.test(upper)) {
+                    metadata.channels = parseInt(upper.replace('CH', ''), 10);
+                } else if (/^\d+IP$/.test(upper)) {
+                    metadata.prefilledLicenses = parseInt(upper.replace('IP', ''), 10);
+                } else if (/^\d+(?:\.\d+)?TB$/.test(upper)) {
+                    metadata.storageTb = parseFloat(upper.replace('TB', ''));
+                } else if (OS_SEGMENT_MAP[upper]) {
+                    metadata.operatingSystem = OS_SEGMENT_MAP[upper];
+                } else if (upper === 'SMBK') {
+                    if (!metadata.bundleCameras) {
+                        const bundleInfo = parseSmbkBundleSegments(segments.slice(i + 1));
+                        if (bundleInfo) {
+                            metadata.bundleCameras = bundleInfo.cameras;
+                            metadata.bundleStorageTb = bundleInfo.storageTb;
+                            metadata.bundleStorageDriveCount = bundleInfo.storageDriveCount;
+                            if (bundleInfo.os && !metadata.operatingSystem) {
+                                metadata.operatingSystem = bundleInfo.os;
+                            }
+                        }
+                    }
+                    break;
+                }
+            }
+
+            if (metadata.bundleStorageTb && !metadata.bundleStorageDriveCount) {
+                metadata.bundleStorageDriveCount = Math.max(1, Math.round(metadata.bundleStorageTb / 4));
+            }
+
+            return metadata;
+        }
+
+        function applyDerivedMetadataToProducts(productTree) {
+            const traverse = (collection) => {
+                if (Array.isArray(collection)) {
+                    collection.forEach(product => {
+                        if (!product || typeof product !== 'object') return;
+                        if (product.deviceType !== 'nvr') return;
+
+                        const metadata = deriveNvrDetailsFromPartNumber(product);
+                        if (!metadata) return;
+
+                        if (metadata.size) product.size = metadata.size;
+                        if (metadata.channels) product.channels = metadata.channels;
+                        if (metadata.prefilledLicenses) product.prefilledLicenses = metadata.prefilledLicenses;
+                        if (metadata.bundleStorageTb) product.bundleStorageTb = metadata.bundleStorageTb;
+                        if (metadata.bundleStorageDriveCount) product.bundleStorageDriveCount = metadata.bundleStorageDriveCount;
+                        if (metadata.bundleCameras && (!Array.isArray(product.includedCameras) || product.includedCameras.length === 0)) {
+                            product.includedCameras = metadata.bundleCameras.map(({ id, qty }) => ({ productId: id, quantity: qty }));
+                        }
+                    });
+                } else if (collection && typeof collection === 'object') {
+                    Object.values(collection).forEach(traverse);
+                }
+            };
+
+            traverse(productTree);
+        }
+
+        applyDerivedMetadataToProducts(products);
+
+        function hasBuiltInStorage(product) {
+            if (!product || typeof product !== 'object') return false;
+            if (product.bundleStorageTb && product.bundleStorageTb > 0) return true;
+            return typeof product.id === 'string' && product.id.includes('TB');
+        }
+
+        // --- DOM ELEMENT REFERENCES ---
+        const summaryEl = document.getElementById('configSummary');
+        const printButton = document.getElementById('printButton');
+        const resetButton = document.getElementById('resetButton');
+        const exportButton = document.getElementById('exportButton');
+        const saveButton = document.getElementById('saveButton');
+        const loadButton = document.getElementById('loadButton');
+        const loadFileEl = document.getElementById('loadFile');
+        const customPartBtn = document.getElementById('customPartBtn');
+        const addRackButton = document.getElementById('addRackButton');
+        const modalContainer = document.getElementById('modalContainer');
+        const toastContainer = document.getElementById('toastContainer');
+        const visualizerContent = document.getElementById('visualizer-content');
+        const storageCalcButton = document.getElementById('storageCalcButton');
+        const uploadLayoutButton = document.getElementById('uploadLayoutButton');
+        const layoutFileEl = document.getElementById('layoutFile');
+        const layoutDesignerButton = document.getElementById('layoutDesignerButton');
+        const addCameraButton = document.getElementById('addCameraButton');
+        const addNvrButton = document.getElementById('addNvrButton');
+        const addServerButton = document.getElementById('addServerButton');
+        const addPoeSwitchButton = document.getElementById('addPoeSwitchButton');
+        const workflowMenu = document.querySelector('.workflow-menu');
+        const workflowTriggers = workflowMenu ? workflowMenu.querySelectorAll('.workflow-trigger') : [];
+        const workflowActions = workflowMenu ? workflowMenu.querySelectorAll('.workflow-action') : [];
+
+        function findCompatibleMounts(camera) {
+            if (!camera || !camera.compatibleMounts) return [];
+
+            const mountCategory = products
+                && products["Infrastructure & Mounting"]
+                && products["Infrastructure & Mounting"]["Camera Mounts"];
+
+            if (!mountCategory || typeof mountCategory !== 'object') return [];
+
+            const allMounts = Object.values(mountCategory)
+                .filter(Array.isArray)
+                .flat();
+
+            return allMounts.filter(mount => camera.compatibleMounts.includes(mount.id));
+        }
+
+        function getBuiltInStorage(product) {
+            if (!product || !product.id) return 0;
+            const match = product.id.match(/(\d+)TB/);
+            if (match) return parseInt(match[1], 10);
+            return product.includedStorage || 0;
+        }
+
+        // --- HELPER & UI FUNCTIONS ---
+        function getNvrChannelUsage(device) {
+            return device.cameras.reduce((acc, cam) => acc + ((cam.licenseCount || 1) * cam.quantity), 0);
+        }
+
+        function getTotalSwitchPorts(device) {
+            return device.poeSwitches.reduce((acc, sw) => acc + sw.ports, 0);
+        }
+
+        function getAccessControlPoeCapacity(server) {
+            if (server.product.id === 'INF-CLOUD' || server.product.id === 'SERVER-CUSTOMER') {
+                return getTotalSwitchPorts(server);
+            }
+            return (server.product.poePorts || 0) + getTotalSwitchPorts(server);
+        }
+
+        function getAvailablePorts(device) {
+            if (device.product.deviceType === 'server') {
+                return getAccessControlPoeCapacity(device);
+            }
+            if (device.product.poeBudget) {
+                return device.product.channels;
+            }
+            return Math.min(device.product.channels, getTotalSwitchPorts(device));
+        }
+
+        function closeWorkflowMenus() {
+            workflowTriggers.forEach(trigger => {
+                trigger.setAttribute('aria-expanded', 'false');
+                const targetId = trigger.getAttribute('data-target');
+                const group = trigger.closest('.workflow-group');
+                if (group) {
+                    group.classList.remove('open');
+                }
+                if (targetId) {
+                    const panel = document.getElementById(targetId);
+                    if (panel) {
+                        panel.setAttribute('aria-hidden', 'true');
+                    }
+                }
+            });
+        }
+
+        function createModal(title, content, elementToFlash) {
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay';
+            overlay.innerHTML = `<div class="modal-content shadow-2xl" style="max-width: 800px;"><h2 class="text-2xl font-bold mb-4">${title}</h2><div class="text-left">${content}</div><button id="closeModal" class="mt-6 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">Close</button></div>`;
+            modalContainer.appendChild(overlay);
+            
+            setTimeout(() => overlay.classList.add('show'), 10);
+
+            const closeModal = () => { 
+                overlay.classList.remove('show');
+                overlay.addEventListener('transitionend', () => overlay.remove(), { once: true });
+            };
+            
+            overlay.querySelector('#closeModal').addEventListener('click', closeModal);
+
+            if (elementToFlash) {
+                elementToFlash.classList.add('flash-error');
+                setTimeout(() => elementToFlash.classList.remove('flash-error'), 500);
+            }
+        }
+        
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast-notification';
+            toast.textContent = message;
+            toastContainer.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+                toast.addEventListener('transitionend', () => toast.remove());
+            }, 3000);
+        }
+
+        function createTargetSelectionModal(title, message, targets, callback) {
+            if (targets.length === 0) {
+                return createModal('No Compatible Devices', `<p>${message}</p>`);
+            }
+            let buttonsHtml = targets.map(target => 
+                `<button class="bg-blue-600 text-white px-4 py-2 rounded-lg m-2 transition-transform hover:scale-105" data-id="${target.id}">${target.name}</button>`
+            ).join('');
+
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay';
+            overlay.innerHTML = `<div class="modal-content shadow-2xl">
+                <h2 class="text-2xl font-bold mb-4">${title}</h2>
+                <p class="mb-6">Which ${message} does this component belong to?</p>
+                <div>${buttonsHtml}</div>
+                <button id="closeModal" class="mt-4 bg-gray-300 px-4 py-2 rounded-lg">Cancel</button>
+            </div>`;
+            modalContainer.appendChild(overlay);
+            setTimeout(() => overlay.classList.add('show'), 10);
+            
+            overlay.addEventListener('click', function(e) {
+                const close = () => {
+                    overlay.classList.remove('show');
+                    overlay.addEventListener('transitionend', () => overlay.remove(), { once: true });
+                }
+                if(e.target.dataset.id) {
+                    callback(e.target.dataset.id);
+                    close();
+                } else if (e.target.id === 'closeModal') {
+                    close();
+                }
+            });
+        }
+        
+        function createProductSelectionModal(title, productData, callback) {
+            let contentHtml = '';
+
+            // Check if productData is a flat array or a categorized object
+            if (Array.isArray(productData)) {
+                contentHtml = productData.map(product => renderProductItem(product, callback)).join('');
+            } else {
+                for (const categoryName in productData) {
+                    const categoryItems = productData[categoryName];
+                    let categoryContent = '';
+
+                    if (Array.isArray(categoryItems)) {
+                        categoryContent = categoryItems.map(product => renderProductItem(product, callback)).join('');
+                    } else { // Nested categories
+                        for (const subCategoryName in categoryItems) {
+                            const subCategoryProducts = categoryItems[subCategoryName];
+                            if (Array.isArray(subCategoryProducts)) {
+                                const productsHtml = subCategoryProducts.map(product => renderProductItem(product, callback)).join('');
+                                categoryContent += `
+                                    <div class="mb-1">
+                                        <h5 class="accordion-header text-sm font-semibold text-gray-500 p-2 rounded-md hover:bg-gray-100 flex justify-between items-center">
+                                            <span>${subCategoryName}</span>
+                                            <svg class="accordion-arrow w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                        </h5>
+                                        <div class="accordion-content pl-2">${productsHtml}</div>
+                                    </div>
+                                `;
+                            }
+                        }
+                    }
+
+                    contentHtml += `
+                        <div class="mb-2">
+                            <h4 class="accordion-header text-md font-semibold text-gray-600 p-2 rounded-md hover:bg-gray-100 flex justify-between items-center">
+                                <span>${categoryName}</span>
+                                <svg class="accordion-arrow w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                            </h4>
+                            <div class="accordion-content pl-2">${categoryContent}</div>
+                        </div>
+                    `;
+                }
+            }
+
+            function renderProductItem(product, clickCallback) {
+                return `
+                    <div class="product-item p-3 mb-2 ml-2 bg-gray-50 rounded-lg flex items-center justify-between" data-product-name="${product.name.toLowerCase()}" data-product-desc="${product.description.toLowerCase()}">
+                        <div class="flex items-center">
+                            <img src="${product.image || '/cameras/missing.jpg'}" onerror="this.onerror=null;this.src='/cameras/missing.jpg';" class="w-16 h-16 object-contain mr-4 rounded">
+                            <div>
+                                <p class="font-medium text-gray-800">${product.name}</p>
+                                <p class="text-sm text-gray-500">${product.description}</p>
+                            </div>
+                        </div>
+                        <button data-product-id="${product.id}" class="add-btn bg-blue-600 text-white rounded-full w-8 h-8 text-lg font-bold hover:bg-blue-700 flex-shrink-0 transition-transform hover:scale-110">+</button>
+                    </div>`;
+            }
+
+            const modalHtml = `
+                <div class="modal-content shadow-2xl relative" style="max-width: 800px;">
+                    <button id="closeModalX" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
+                    <h2 class="text-2xl font-bold mb-4 pr-8">${title}</h2>
+                    <input type="text" id="productSearchInput" placeholder="Search..." class="w-full px-4 py-2 border rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <div class="overflow-y-auto" style="max-height: 60vh;">
+                        ${contentHtml}
+                    </div>
+                </div>
+            `;
+
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay';
+            overlay.innerHTML = modalHtml;
+            
+            modalContainer.appendChild(overlay);
+            setTimeout(() => overlay.classList.add('show'), 10);
+
+            const close = () => {
+                const handleRemove = () => {
+                    overlay.removeEventListener('transitionend', handleRemove);
+                    if (overlay.parentNode) {
+                        overlay.parentNode.removeChild(overlay);
+                    }
+                };
+
+                const classes = overlay.className.split(/\s+/).filter(cls => cls && cls !== 'show');
+                overlay.className = classes.length ? classes.join(' ') : 'modal-overlay';
+                overlay.style.opacity = '0';
+                overlay.style.pointerEvents = 'none';
+                overlay.addEventListener('transitionend', handleRemove, { once: true });
+                setTimeout(handleRemove, 250);
+            };
+            
+            overlay.addEventListener('click', (e) => {
+                if (e.target.id === 'closeModalX') close();
+                if (e.target.classList.contains('add-btn')) {
+                    const productId = e.target.dataset.productId;
+                    close();
+                    callback(productId);
+                    return;
+                }
+                const header = e.target.closest('.accordion-header');
+                if (header) {
+                    header.classList.toggle('active');
+                }
+            });
+        }
+
+        // --- CONFIGURATION FUNCTIONS ---
+        function addRack() {
+            configuration.racks.push({
+                id: Date.now(),
+                devices: [],
+                standaloneSwitches: []
+            });
+            renderAll();
+        }
+
+        function findProductById(productId) {
+            for (const category in products) {
+                for (const subCategory in products[category]) {
+                    const productList = products[category][subCategory];
+                    if (Array.isArray(productList)) {
+                        const product = productList.find(p => p.id === productId);
+                        if (product) {
+                            return { product, category, subCategory };
+                        }
+                    } else { 
+                        for (const nestedSubCategory in productList) {
+                            const nestedProductList = productList[nestedSubCategory];
+                            if (Array.isArray(nestedProductList)) {
+                                const product = nestedProductList.find(p => p.id === productId);
+                                if (product) {
+                                    return { product, category, subCategory: nestedSubCategory, parentCategory: subCategory };
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+        function syncNvrLicenses(nvrDevice) {
+            if (!autoAddLicenses || !nvrDevice || nvrDevice.product.licensesLocked) return;
+        
+            const requiredLicenses = nvrDevice.cameras
+                .filter(cam => !cam.isAnalog && !cam.isBundleCamera)
+                .reduce((acc, cam) => acc + ((cam.licenseCount || 1) * cam.quantity), 0);
+        
+            const prefilled = nvrDevice.product.prefilledLicenses || 0;
+            const licensesToAdd = Math.max(0, requiredLicenses - prefilled);
+        
+            const licenseId = 'VS-1IP';
+            let licenseProduct = nvrDevice.licenses.find(p => p.id === licenseId);
+        
+            if (licensesToAdd > 0) {
+                if (licenseProduct) {
+                    licenseProduct.quantity = licensesToAdd;
+                } else {
+                    const productInfo = findProductById(licenseId);
+                    if (productInfo) {
+                        nvrDevice.licenses.push({ ...productInfo.product, quantity: licensesToAdd });
+                    }
+                }
+            } else if (licenseProduct) {
+                nvrDevice.licenses = nvrDevice.licenses.filter(p => p.id !== licenseId);
+            }
+        }
+
+
+        function addProduct(productId, targetDeviceId = null, targetRackId = null) {
+            const productInfo = findProductById(productId);
+            if (!productInfo) return;
+            const { product, category, subCategory, parentCategory } = productInfo;
+             const componentAction = (targetId) => {
+                const allDevices = [...configuration.racks.flatMap(r => r.devices), ...configuration.cloudServers];
+                const targetDevice = allDevices.find(d => d.id == targetId);
+                if (!targetDevice) return;
+
+                if (product.poeLoad > 0) {
+                    if (targetDevice.product.deviceType !== 'server') return createModal('Invalid Target', '<p>Door controllers can only be added to infinias Servers.</p>');
+                    const poeCapacity = getAccessControlPoeCapacity(targetDevice);
+                    if (targetDevice.doors.length >= poeCapacity) {
+                        return createModal('PoE Port Limit Reached', '<p>The selected server and its switches do not have any available PoE ports for more doors.</p>');
+                    }
+                    targetDevice.doors.push({ ...product, instanceId: Date.now() });
+                    if(targetDevice.product.id === 'INF-CLOUD') {
+                        syncCloudSubscriptions();
+                    }
+                } else if (parentCategory === 'Cameras' || subCategory === 'Cameras') {
+                    if (targetDevice.product.deviceType !== 'nvr') return createModal('Invalid Target', '<p>Cameras can only be added to NVRs.</p>');
+                    if (targetDevice.product.requiresPoeSwitch && targetDevice.poeSwitches.length === 0) {
+                        return createModal('POE Switch Required', '<p>This NVR requires a POE Switch to be added before you can add cameras.</p>');
+                    }
+                    const availablePorts = getAvailablePorts(targetDevice);
+                    const currentChannelUsage = getNvrChannelUsage(targetDevice);
+                    const newCameraChannels = product.licenseCount || 1;
+                    if (currentChannelUsage + newCameraChannels > availablePorts) {
+                         return createModal('Port Limit Reached', `<p>This NVR and its assigned switches only support ${availablePorts} total camera ports.</p>`);
+                    }
+                    if (product.isAnalog && !targetDevice.product.id.startsWith('HVR')) return createModal('Compatibility Error', '<p>HD Analog cameras can only be added to Hybrid (HVR) recorders.</p>');
+                    
+                    targetDevice.cameras.push({ ...product, quantity: 1, instanceId: Date.now(), selectedMounts: [null], assignedInjectorId: null, location: '' });
+                    targetDevice.isCamerasExpanded = true;
+                    
+                    syncNvrLicenses(targetDevice);
+                    
+                    if (product.prefilledLicenses) {
+                        const productInfo = findProductById('VS-1IP');
+                        if(productInfo) {
+                             for (let i = 0; i < product.prefilledLicenses; i++) {
+                                const existing = targetDevice.licenses.find(l => l.id === 'VS-1IP');
+                                if (existing) existing.quantity++;
+                                else targetDevice.licenses.push({ ...productInfo.product, quantity: 1 });
+                            }
+                        }
+                    }
+                } else if (subCategory === 'UPS Units') {
+                     if (targetDevice.product.deviceType !== 'nvr' && targetDevice.product.deviceType !== 'server') {
+                        return createModal('Invalid Target', '<p>UPS units can only be assigned to NVRs or Servers.</p>');
+                    }
+                    targetDevice.assignedUps.push({ ...product, instanceId: Date.now() });
+                } else if (subCategory === 'Storage') {
+                    if (targetDevice.product.deviceType !== 'nvr') return createModal('Invalid Target', '<p>Storage can only be added to NVRs.</p>');
+                    if (targetDevice.product.maxStorage) {
+                        const currentStorageCount = targetDevice.storage.reduce((acc, s) => acc + s.quantity, 0);
+                        if (currentStorageCount >= targetDevice.product.maxStorage) {
+                            return createModal('Storage Limit Reached', `<p>This NVR only supports ${targetDevice.product.maxStorage} storage drives.</p>`);
+                        }
+                    }
+                    const existingProduct = targetDevice.storage.find(p => p.id === product.id);
+                    if (existingProduct) existingProduct.quantity++;
+                    else targetDevice.storage.push({ ...product, quantity: 1 });
+                } else if (subCategory === 'Software Licenses') {
+                    const existingProduct = targetDevice.licenses.find(p => p.id === product.id);
+                    if (existingProduct) existingProduct.quantity++;
+                    else targetDevice.licenses.push({ ...product, quantity: 1 });
+                } else if (product.deviceType === 'poe-switch') {
+                    if (targetDevice.product.deviceType !== 'server' && !targetDevice.product.requiresPoeSwitch) {
+                         return createModal('Switch Not Required', `<p>The selected device (${targetDevice.product.name}) does not require an external switch.</p>`);
+                    }
+                    targetDevice.poeSwitches.push({ ...product, instanceId: Date.now() });
+                }
+                renderAll();
+            };
+            
+            const rackAction = (rackId, isSwitch = false) => {
+                const rack = configuration.racks.find(r => r.id == rackId);
+                if (!rack) return;
+                
+                if (isSwitch) {
+                    rack.standaloneSwitches.push({ ...product, instanceId: Date.now() });
+                } else {
+                    const newDevice = {
+                        id: Date.now(), product, cameras: [], storage: [], licenses: [], poeSwitches: [], doors: [], assignedUps: []
+                    };
+                    if (product.deviceType === 'nvr') {
+                        newDevice.isCamerasExpanded = true;
+                        // Check for the generic 'includedCameras' property
+                        if (Array.isArray(product.includedCameras)) {
+                            product.includedCameras.forEach(camInfo => {
+                                const camProductInfo = findProductById(camInfo.productId);
+                                if (camProductInfo) {
+                                    for (let i = 0; i < camInfo.quantity; i++) {
+                                        newDevice.cameras.push({
+                                            ...camProductInfo.product,
+                                            quantity: 1,
+                                            instanceId: Date.now() + i,
+                                            isBundleCamera: true,
+                                            selectedMounts: [null],
+                                            location: ''
+                                        });
+                                    }
+                                }
+                            });
+                        }
+                        syncNvrLicenses(newDevice);
+                    }
+                                        rack.devices.push(newDevice);
+                }
+                renderAll();
+            };
+            
+            if (product.isCloud) {
+                configuration.cloudCameras.push({ ...product, quantity: 1, instanceId: Date.now(), location: '', selectedMounts: [null] });
+                syncVigilCloudSubscriptions();
+            } else if (product.isAllInOne) {
+                configuration.allInOneCameras.push({ ...product, quantity: 1, instanceId: Date.now(), location: '' });
+            } else if (product.deviceType === 'server' && !product.size) {
+                configuration.cloudServers.push({
+                    id: Date.now(), product, cameras: [], storage: [], licenses: [], poeSwitches: [], doors: [], assignedUps: []
+                });
+            } else if (product.deviceType === 'nvr' || product.deviceType === 'server') {
+                if (targetRackId) { 
+                    rackAction(targetRackId);
+                } else { 
+                    if (configuration.racks.length === 0) addRack();
+                    if (configuration.racks.length === 1) {
+                        rackAction(configuration.racks[0].id);
+                    } else {
+                        const targets = configuration.racks.map((r, i) => ({ id: r.id, name: `Rack ${i + 1}` }));
+                        createTargetSelectionModal('Select a Rack', 'Which rack should this device be added to?', targets, rackAction);
+                    }
+                }
+            } else if (product.deviceType === 'poe-switch') {
+                 if (targetRackId) { 
+                    rackAction(targetRackId, true);
+                } else {
+                    const rackTargets = configuration.racks.map((r, i) => ({ id: r.id, name: `Rack ${i + 1} (Standalone)` }));
+                    const deviceTargets = [...configuration.racks.flatMap(r => r.devices), ...configuration.cloudServers]
+                        .filter(d => d.product.requiresPoeSwitch || d.product.deviceType === 'server')
+                        .map(d => ({ id: d.id, name: `Device: ${d.product.name}` }));
+                    
+                    const allTargets = [...rackTargets, ...deviceTargets];
+
+                    if (allTargets.length === 0 && configuration.racks.length === 0) {
+                        if (configuration.racks.length === 0) addRack();
+                        rackAction(configuration.racks[0].id, true);
+                        return;
+                    }
+                    if (allTargets.length === 1) {
+                        const target = allTargets[0];
+                        configuration.racks.find(r => r.id == target.id) ? rackAction(target.id, true) : componentAction(target.id);
+                    } else {
+                        createTargetSelectionModal('Assign POE Switch', 'Where should this switch go?', allTargets, (targetId) => {
+                             configuration.racks.some(r => r.id == targetId) ? rackAction(targetId, true) : componentAction(targetId);
+                        });
+                    }
+                }
+            } else if (subCategory === 'Custom Parts' || category.includes("Mounting") || (category.includes("Access Control") && !product.poeLoad) || category.includes("Software") || category === "Accessories" || subCategory === 'Peripherals') {
+                 let targetArray;
+                 if (subCategory === 'Custom Parts') targetArray = configuration.customParts;
+                 else if (category.includes("Mounting")) targetArray = configuration.mounts;
+                 else if (category.includes("Access Control") && !product.poeLoad) targetArray = configuration.accessControl;
+                 else targetArray = configuration.accessories;
+
+                 const existingProduct = targetArray.find(p => p.id === product.id);
+                 if (existingProduct) existingProduct.quantity++;
+                 else targetArray.push({ ...product, quantity: 1 });
+            } else {
+                if (targetDeviceId) {
+                    componentAction(targetDeviceId);
+                } else {
+                    let allDevices = [];
+                    let modalMessage = '';
+                    const rackDevices = configuration.racks.flatMap((rack, rackIndex) => rack.devices.map((device, devIndex) => ({
+                        device,
+                        name: `Rack ${rackIndex + 1} - ${device.product.deviceType.charAt(0).toUpperCase() + device.product.deviceType.slice(1)} ${devIndex + 1} (${device.product.name})`
+                    })));
+                    const cloudDevices = configuration.cloudServers.map((server, serverIndex) => ({
+                        device: server,
+                        name: `Cloud Server ${serverIndex + 1} (${server.product.name})`
+                    }));
+
+
+                    if (subCategory === 'UPS Units') {
+                        allDevices = [...rackDevices, ...cloudDevices]
+                            .filter(({device}) => device.product.deviceType === 'nvr' || device.product.deviceType === 'server')
+                            .map(({device, name}) => ({ id: device.id, name }));
+                        modalMessage = 'NVR or Server';
+                    } else if (product.poeLoad > 0) {
+                        allDevices = [...rackDevices, ...cloudDevices]
+                            .filter(({device}) => device.product.deviceType === 'server')
+                            .map(({device, name}) => ({ id: device.id, name }));
+                        modalMessage = 'infinias Server';
+                    } else { // Is a camera or camera-related component
+                        allDevices = [...rackDevices]
+                            .filter(({device}) => device.product.deviceType === 'nvr')
+                            .map(({device, name}) => ({ id: device.id, name }));
+                        modalMessage = 'NVR';
+                    }
+
+                    if (allDevices.length === 0) {
+                        createModal(`No Compatible ${modalMessage}s`, `<p>Please add an ${modalMessage} to the configuration before adding components.</p>`);
+                    } else if (allDevices.length === 1) {
+                        componentAction(allDevices[0].id);
+                    } else {
+                        createTargetSelectionModal('Select a Device', modalMessage, allDevices, componentAction);
+                    }
+                }
+            }
+            renderAll();
+        }
+        
+        function toggleCameras(deviceId) {
+            const allDevices = [...configuration.racks.flatMap(r => r.devices), ...configuration.cloudServers];
+            const device = allDevices.find(d => d.id === deviceId);
+            if (device) {
+                device.isCamerasExpanded = !device.isCamerasExpanded;
+            }
+            renderAll();
+        }
+
+        function cloneCamera(rackId, deviceId, instanceId) {
+            const rack = configuration.racks.find(r => r.id == rackId);
+            const device = rack?.devices.find(d => d.id == deviceId);
+            const originalCamera = device?.cameras.find(c => c.instanceId === instanceId);
+            if (!originalCamera) return;
+            
+            const availablePorts = getAvailablePorts(device);
+            const currentChannelUsage = getNvrChannelUsage(device);
+            const newCameraChannels = originalCamera.licenseCount || 1;
+
+            if (currentChannelUsage + newCameraChannels > availablePorts) {
+                return createModal('Port Limit Reached', `<p>Cloning this camera would exceed the available ports (${availablePorts}) for this NVR.</p>`);
+            }
+            
+            device.cameras.push({ ...originalCamera, quantity: 1, instanceId: Date.now(), selectedMounts: [null], location: '' });
+            syncNvrLicenses(device);
+            renderAll();
+        }
+
+        function cloneCloudCamera(instanceId) {
+            const originalCamera = configuration.cloudCameras.find(c => c.instanceId === instanceId);
+            if (!originalCamera) return;
+
+            const newCamera = JSON.parse(JSON.stringify(originalCamera));
+            newCamera.instanceId = Date.now();
+            newCamera.quantity = 1;
+            newCamera.location = '';
+            newCamera.selectedMounts = [null];
+            
+            configuration.cloudCameras.push(newCamera);
+            syncVigilCloudSubscriptions();
+            renderAll();
+        }
+
+        function cloneDoorController(rackId, deviceId, instanceId) {
+            const allDevices = [...configuration.racks.flatMap(r => r.devices), ...configuration.cloudServers];
+            const device = allDevices.find(d => d.id == deviceId);
+            const originalDoor = device?.doors.find(d => d.instanceId === instanceId);
+            if (!originalDoor) return;
+
+            const poeCapacity = getAccessControlPoeCapacity(device);
+            if (device.doors.length >= poeCapacity) {
+                return createModal('PoE Port Limit Reached', '<p>Cloning this door controller would exceed the available PoE ports for this server.</p>');
+            }
+
+            device.doors.push({ ...originalDoor, instanceId: Date.now() });
+            if(device.product.id === 'INF-CLOUD') {
+                syncCloudSubscriptions();
+            }
+            renderAll();
+        }
+
+        function updateLicenseQuantity(deviceId, licenseId, newQuantity) {
+            const qty = parseInt(newQuantity, 10);
+            const allDevices = [...configuration.racks.flatMap(r => r.devices), ...configuration.cloudServers];
+            const device = allDevices.find(d => d.id == deviceId);
+            if (!device) return;
+
+            const license = device.licenses.find(l => l.id === licenseId);
+            if (!license) return;
+
+            if (device.product.maxLicenses) {
+                const otherLicensesCount = device.licenses.reduce((acc, item) => item.id !== licenseId ? acc + item.quantity : acc, 0);
+                const prefilled = device.product.prefilledLicenses || 0;
+                if (qty + otherLicensesCount + prefilled > device.product.maxLicenses) {
+                    createModal('License Limit Reached', `<p>This device only supports ${device.product.maxLicenses} total licenses.</p>`);
+                    renderAll();
+                    return;
+                }
+            }
+            
+            if (qty <= 0) {
+                device.licenses = device.licenses.filter(l => l.id !== licenseId);
+            } else {
+                license.quantity = qty;
+            }
+            renderAll();
+        }
+
+        function updateCameraQuantity(instanceId, newQuantity, isCloud = false) {
+            const qty = parseInt(newQuantity, 10);
+            if (isNaN(qty) || qty < 1) return;
+
+            let allCameras = isCloud 
+                ? configuration.cloudCameras
+                : [...configuration.racks.flatMap(r => r.devices.flatMap(d => d.cameras)), ...configuration.allInOneCameras];
+
+            const camera = allCameras.find(c => c.instanceId === instanceId);
+            if (camera) {
+                const oldQty = camera.quantity;
+                camera.quantity = qty;
+                
+                // Remove placements if quantity is reduced
+                if (qty < oldQty) {
+                    let removedCount = 0;
+                    configuration.layoutPlacements = configuration.layoutPlacements.filter(p => {
+                        if (p.uniqueId && p.uniqueId.startsWith(`${instanceId}-`)) {
+                            const index = parseInt(p.uniqueId.split('-')[1]);
+                            if (index >= qty && removedCount < (oldQty - qty)) {
+                                removedCount++;
+                                return false; // Remove this placement
+                            }
+                        }
+                        return true;
+                    });
+                }
+
+
+                if (isCloud) {
+                    syncVigilCloudSubscriptions();
+                } else {
+                    for(const rack of configuration.racks) {
+                        for (const device of rack.devices) {
+                            if (device.cameras.some(c => c.instanceId === instanceId)) {
+                                syncNvrLicenses(device);
+                                break;
+                            }
+                        }
+                    }
+                }
+                renderAll();
+            }
+        }
+        
+        function removeProduct(rackId, deviceId, category, id) {
+             const allDevices = [...configuration.racks.flatMap(r => r.devices), ...configuration.cloudServers];
+             const device = allDevices.find(d => d.id == deviceId);
+             if (!device) return;
+
+             if (category === 'cameras') {
+                const removedCam = device.cameras.find(cam => cam.instanceId === id);
+                if (removedCam) {
+                    configuration.layoutPlacements = configuration.layoutPlacements.filter(p => !p.uniqueId || !p.uniqueId.startsWith(`${id}-`));
+                }
+                device.cameras = device.cameras.filter(cam => cam.instanceId !== id);
+                syncNvrLicenses(device);
+             } else if (category === 'doors') {
+                device.doors = device.doors.filter(door => door.instanceId !== id);
+                if(device.product.id === 'INF-CLOUD') {
+                    syncCloudSubscriptions();
+                }
+             } else {
+                const targetArray = device[category];
+                const productIndex = targetArray.findIndex(p => p.id === id);
+                if (productIndex > -1) {
+                    targetArray[productIndex].quantity--;
+                    if (targetArray[productIndex].quantity === 0) targetArray.splice(productIndex, 1);
+                }
+             }
+             renderAll();
+        }
+        
+        function removePoeSwitch(deviceId, switchInstanceId) {
+            const allDevices = [...configuration.racks.flatMap(r => r.devices), ...configuration.cloudServers];
+            const device = allDevices.find(d => d.id === deviceId);
+            if (device) {
+                device.poeSwitches = device.poeSwitches.filter(sw => sw.instanceId !== switchInstanceId);
+            } else {
+                for(const rack of configuration.racks) {
+                    const index = rack.standaloneSwitches.findIndex(sw => sw.instanceId === switchInstanceId);
+                    if (index > -1) {
+                        rack.standaloneSwitches.splice(index, 1);
+                        break;
+                    }
+                }
+            }
+            renderAll();
+        }
+
+        function removeUps(deviceId, upsInstanceId) {
+            const allDevices = [...configuration.racks.flatMap(r => r.devices), ...configuration.cloudServers];
+            const device = allDevices.find(d => d.id === deviceId);
+            if (device) {
+                device.assignedUps = device.assignedUps.filter(ups => ups.instanceId !== upsInstanceId);
+            }
+            renderAll();
+        }
+
+        function reassignPoeSwitch(switchInstanceId) {
+            let poeSwitch;
+            let sourceDevice = null;
+            let sourceRack = null;
+
+            // Find the switch and its source
+            configuration.racks.forEach(rack => {
+                rack.devices.forEach(device => {
+                    const sw = device.poeSwitches.find(s => s.instanceId === switchInstanceId);
+                    if (sw) { poeSwitch = sw; sourceDevice = device; }
+                });
+                const sw = rack.standaloneSwitches.find(s => s.instanceId === switchInstanceId);
+                if (sw) { poeSwitch = sw; sourceRack = rack; }
+            });
+
+            if (!poeSwitch) return;
+
+            // Remove from original location
+            if (sourceDevice) {
+                sourceDevice.poeSwitches = sourceDevice.poeSwitches.filter(s => s.instanceId !== switchInstanceId);
+            } else if (sourceRack) {
+                sourceRack.standaloneSwitches = sourceRack.standaloneSwitches.filter(s => s.instanceId !== switchInstanceId);
+            }
+
+            // Now, add it to a new location (re-using the addProduct logic for POE switches)
+            addProduct(poeSwitch.id);
+            showToast(`Re-assigning switch: ${poeSwitch.name}`);
+        }
+
+        function updateSharedProductQuantity(categoryKey, productId, newQuantity) {
+            const qty = parseInt(newQuantity, 10);
+            const targetArray = configuration[categoryKey];
+            const product = targetArray.find(p => p.id == productId);
+
+            if (product) {
+                if (qty > 0) {
+                    product.quantity = qty;
+                } else {
+                    configuration[categoryKey] = targetArray.filter(p => p.id != productId);
+                }
+            }
+            renderAll();
+        }
+
+        function removeSharedProduct(categoryKey, productId) {
+            const targetArray = configuration[categoryKey];
+            const productIndex = targetArray.findIndex(p => p.id == productId);
+            if (productIndex > -1) {
+                targetArray[productIndex].quantity--;
+                if (targetArray[productIndex].quantity === 0) {
+                    targetArray.splice(productIndex, 1);
+                }
+            }
+            renderAll();
+        }
+
+        function removeDevice(rackId, deviceId) {
+            let needsSync = false;
+            let removedInstanceIds = [];
+            if (rackId === 'cloud') {
+                if (confirm('Are you sure you want to remove this cloud server and all its components?')) {
+                    const server = configuration.cloudServers.find(d => d.id === deviceId);
+                    if (server) {
+                         if (server.product.id === 'INF-CLOUD' && server.doors.length > 0) needsSync = true;
+                         removedInstanceIds.push(...server.cameras.map(c => c.instanceId));
+                    }
+                    configuration.cloudServers = configuration.cloudServers.filter(d => d.id !== deviceId);
+                }
+            } else {
+                const rack = configuration.racks.find(r => r.id == rackId);
+                if(rack && confirm('Are you sure you want to remove this device and all its components?')) {
+                    const device = rack.devices.find(d => d.id === deviceId);
+                    if (device) {
+                        removedInstanceIds.push(...device.cameras.map(c => c.instanceId));
+                        configuration.layoutPlacements = configuration.layoutPlacements.filter(p => p.deviceId !== device.id);
+                    }
+                    rack.devices = rack.devices.filter(d => d.id !== deviceId);
+                }
+            }
+            if (removedInstanceIds.length > 0) {
+                configuration.layoutPlacements = configuration.layoutPlacements.filter(p => !p.uniqueId || !removedInstanceIds.includes(parseInt(p.uniqueId.split('-')[0])));
+            }
+            if (needsSync) syncCloudSubscriptions();
+            renderAll();
+        }
+        
+        function removeRack(rackId) {
+            if (confirm('Are you sure you want to remove this entire rack and all its devices?')) {
+                const rack = configuration.racks.find(r => r.id === rackId);
+                if (rack) {
+                    const removedInstanceIds = rack.devices.flatMap(d => d.cameras.map(c => c.instanceId));
+                    const removedDeviceIds = rack.devices.map(d => d.id);
+                    if (removedInstanceIds.length > 0) {
+                       configuration.layoutPlacements = configuration.layoutPlacements.filter(p => !p.uniqueId || !removedInstanceIds.includes(parseInt(p.uniqueId.split('-')[0])));
+                    }
+                    configuration.layoutPlacements = configuration.layoutPlacements.filter(p => !p.deviceId || !removedDeviceIds.includes(p.deviceId));
+                }
+                configuration.racks = configuration.racks.filter(r => r.id !== rackId);
+                renderAll();
+            }
+        }
+        
+        function selectMount(rackId, deviceId, cameraInstanceId, mountId, mountIndex) {
+            const rack = configuration.racks.find(r => r.id == rackId);
+            const device = rack?.devices.find(d => d.id == deviceId);
+            const camera = device?.cameras.find(c => c.instanceId === cameraInstanceId);
+            if (camera) {
+                camera.selectedMounts[mountIndex] = mountId === 'none' ? null : mountId;
+            }
+            renderAll();
+        }
+
+        function addMountDropdown(rackId, deviceId, cameraInstanceId) {
+            const rack = configuration.racks.find(r => r.id == rackId);
+            const device = rack?.devices.find(d => d.id == deviceId);
+            const camera = device?.cameras.find(c => c.instanceId === cameraInstanceId);
+            if(camera && camera.selectedMounts.length < 3) {
+                camera.selectedMounts.push(null);
+                renderAll();
+            }
+        }
+
+        function removeMountDropdown(rackId, deviceId, cameraInstanceId, mountIndex) {
+            const rack = configuration.racks.find(r => r.id == rackId);
+            const device = rack?.devices.find(d => d.id == deviceId);
+            const camera = device?.cameras.find(c => c.instanceId === cameraInstanceId);
+            if(camera) {
+                camera.selectedMounts.splice(mountIndex, 1);
+                renderAll();
+            }
+        }
+
+        function selectCloudCameraMount(cameraInstanceId, mountId, mountIndex) {
+            const camera = configuration.cloudCameras.find(c => c.instanceId === cameraInstanceId);
+            if (camera) {
+                camera.selectedMounts[mountIndex] = mountId === 'none' ? null : mountId;
+                renderAll();
+            }
+        }
+
+        function addCloudCameraMountDropdown(cameraInstanceId) {
+            const camera = configuration.cloudCameras.find(c => c.instanceId === cameraInstanceId);
+            if (camera && camera.selectedMounts.length < 3) {
+                camera.selectedMounts.push(null);
+                renderAll();
+            }
+        }
+
+        function removeCloudCameraMountDropdown(cameraInstanceId, mountIndex) {
+            const camera = configuration.cloudCameras.find(c => c.instanceId === cameraInstanceId);
+            if (camera) {
+                camera.selectedMounts.splice(mountIndex, 1);
+                renderAll();
+            }
+        }
+
+
+        function assignInjector(rackId, deviceId, cameraInstanceId, injectorId) {
+            const rack = configuration.racks.find(r => r.id == rackId);
+            const device = rack?.devices.find(d => d.id == deviceId);
+            const camera = device?.cameras.find(c => c.instanceId === cameraInstanceId);
+            
+            if (camera) {
+                camera.assignedInjectorId = injectorId === 'none' ? null : injectorId;
+            }
+            renderAll();
+        }
+
+        function updateCameraLocation(rackId, deviceId, cameraInstanceId, location) {
+            const allDevices = [...configuration.racks.flatMap(r => r.devices), ...configuration.cloudServers];
+            const device = allDevices.find(d => d.id == deviceId);
+            if (device) {
+                const camera = device.cameras.find(c => c.instanceId === cameraInstanceId);
+                if (camera) {
+                    camera.location = location;
+                }
+            } else { // Check standalone cameras
+                 const cloudCam = configuration.cloudCameras.find(c => c.instanceId === cameraInstanceId);
+                 if (cloudCam) cloudCam.location = location;
+                 const allInOneCam = configuration.allInOneCameras.find(c => c.instanceId === cameraInstanceId);
+                 if (allInOneCam) allInOneCam.location = location;
+            }
+            saveToLocalStorage();
+        }
+
+        function updateCameraWireDistance(instanceId, distance) {
+            const allCameras = [
+                ...configuration.racks.flatMap(r => r.devices.flatMap(d => d.cameras)),
+                ...configuration.cloudCameras,
+                ...configuration.allInOneCameras
+            ];
+            const camera = allCameras.find(c => c.instanceId === instanceId);
+            if (camera) {
+                camera.wireDistance = parseInt(distance, 10) || 0;
+            }
+            renderAll();
+        }
+
+        function updateProjectName(name) {
+            configuration.projectName = name;
+            saveToLocalStorage();
+        }
+
+        function syncCloudSubscriptions() {
+            const cloudDoorCount = configuration.cloudServers
+                .filter(s => s.product.id === 'INF-CLOUD')
+                .reduce((acc, server) => acc + server.doors.length, 0);
+
+            const subscriptionId = 'S-IA-CL-H-3X4D';
+            let subscription = configuration.accessControl.find(p => p.id === subscriptionId);
+
+            if (cloudDoorCount > 0) {
+                if (!subscription) {
+                    const productInfo = findProductById(subscriptionId);
+                    if (productInfo && productInfo.product) {
+                        subscription = { ...productInfo.product, quantity: cloudDoorCount };
+                        configuration.accessControl.push(subscription);
+                    }
+                } else {
+                    subscription.quantity = cloudDoorCount;
+                }
+            } else {
+                if (subscription) {
+                    configuration.accessControl = configuration.accessControl.filter(p => p.id !== subscriptionId);
+                }
+            }
+        }
+
+        function syncVigilCloudSubscriptions() {
+            const cloudCameraCount = configuration.cloudCameras.reduce((acc, cam) => acc + cam.quantity, 0);
+            const subscriptionId = 'VCM-SUB-1Y';
+            
+            let subscription = configuration.accessories.find(p => p.id === subscriptionId);
+
+            if (cloudCameraCount > 0) {
+                if (!subscription) {
+                    const productInfo = findProductById(subscriptionId);
+                    if (productInfo && productInfo.product) {
+                        subscription = { ...productInfo.product, quantity: cloudCameraCount };
+                        configuration.accessories.push(subscription);
+                    } else {
+                        console.warn(`Product with ID ${subscriptionId} not found. Cannot add subscription.`);
+                    }
+                } else {
+                    subscription.quantity = cloudCameraCount;
+                }
+            } else {
+                if (subscription) {
+                    configuration.accessories = configuration.accessories.filter(p => p.id !== subscriptionId);
+                }
+            }
+        }
+
+
+        // --- RENDER FUNCTIONS ---
+        
+        function renderVisualization() {
+            visualizerContent.innerHTML = '';
+            if (configuration.racks.length === 0 && configuration.cloudCameras.length === 0 && configuration.allInOneCameras.length === 0) {
+                 visualizerContent.innerHTML = '<p class="text-gray-400 text-center">No systems configured. Add a rack or a cloud camera to start.</p>';
+                 return;
+            }
+
+            configuration.racks.forEach((rack, index) => {
+                const rackHtml = document.createElement('div');
+                rackHtml.className = 'border-b border-gray-600 pb-8 mb-8 drop-target visualizer-rack';
+                rackHtml.dataset.rackId = rack.id;
+                rackHtml.dataset.summaryId = `rack-summary-${rack.id}`;
+                rackHtml.dataset.dropType = 'rack';
+
+                let rackUnitsData = [];
+                rack.devices.forEach(device => {
+                    rackUnitsData.push(device.product);
+                    device.poeSwitches.forEach(sw => rackUnitsData.push(sw));
+                });
+                rack.standaloneSwitches.forEach(sw => rackUnitsData.push(sw));
+                
+                rackUnitsData.sort((a, b) => (b.size || '1U').localeCompare(a.size || '1U'));
+
+                let deviceUnitsHtml = rackUnitsData.map(product => {
+                    let className = '';
+                    switch(product.deviceType) {
+                        case 'nvr': className = product.size === '1U' ? 'nvr-1u' : 'nvr-2u'; break;
+                        case 'server': className = product.size === '1U' ? 'server-1u' : 'server-2u'; break;
+                        case 'poe-switch': className = 'switch-1u'; break;
+                        default: className = 'nvr-1u';
+                    }
+                    return `<div class="rack-unit ${className}" style="background-image: url('${product.image || ''}')" title="${product.name}"></div>`;
+                }).join('');
+
+
+                let dashboardHtml = rack.devices.map((device, devIndex) => {
+                    let progressBars = '';
+                    if (device.product.deviceType === 'nvr') {
+                        const availablePorts = getAvailablePorts(device);
+                        const cameraCount = getNvrChannelUsage(device);
+                        const includedStorageDrives = device.product.bundleStorageDriveCount || 0;
+                        const storageCount = device.storage.reduce((acc, s) => acc + s.quantity, 0) + includedStorageDrives;
+                        const poeLoad = device.cameras.reduce((acc, cam) => acc + (cam.assignedInjectorId ? 0 : (cam.poe * cam.quantity)), 0);
+                        
+                        let licenseHtml = '';
+                        if (device.product.maxLicenses) {
+                            const currentLicenseCount = device.licenses.reduce((acc, item) => item.id === 'VS-1IP' ? acc + item.quantity : acc, 0) + (device.product.prefilledLicenses || 0);
+                            licenseHtml = createProgressBar('Licenses', currentLicenseCount, device.product.maxLicenses);
+                        }
+
+                        let poeHtml = '';
+                        if (device.product.poeBudget) {
+                            poeHtml = createProgressBar('PoE Budget (Watts)', poeLoad.toFixed(1), device.product.poeBudget);
+                            if (poeLoad > device.product.poeBudget) {
+                                poeHtml += `<p class="text-red-500 text-sm mt-1 font-semibold">Warning: PoE budget exceeded!</p>`;
+                            }
+                        } else if (poeLoad > 0) {
+                            poeHtml = `<div><div class="flex justify-between items-center"><span class="text-sm font-medium text-gray-400">Total Camera Power Required</span><span class="text-sm font-bold text-gray-200">${poeLoad.toFixed(1)} Watts</span></div></div>`
+                        }
+                        progressBars = `
+                            ${createProgressBar('Camera Ports', cameraCount, availablePorts)}
+                            ${device.product.maxStorage ? createProgressBar('Storage Bays', storageCount, device.product.maxStorage) : ''}
+                            ${licenseHtml}
+                            ${poeHtml}
+                        `;
+                    } else if (device.product.deviceType === 'server') {
+                         const availablePorts = getAccessControlPoeCapacity(device);
+                         const doorCount = device.doors.length;
+                         progressBars = createProgressBar('Door Capacity', doorCount, availablePorts);
+                    }
+
+
+                    return `
+                        <div class="p-4 border border-gray-600 rounded-lg bg-gray-700">
+                            <h5 class="font-bold text-gray-200 mb-2">${device.product.deviceType === 'nvr' ? 'NVR' : 'Server'} ${devIndex + 1}: ${device.product.name}</h5>
+                            ${progressBars}
+                        </div>
+                    `;
+                }).join('');
+
+                rackHtml.innerHTML = `
+                    <h3 class="text-2xl font-bold text-gray-200 mb-4">Rack ${index + 1}</h3>
+                    <div class="flex flex-col md:flex-row gap-8">
+                        <div class="md:w-1/3">
+                            <div class="rack">${deviceUnitsHtml || '<p class="text-gray-400 text-center self-center">No devices in this rack</p>'}</div>
+                        </div>
+                        <div class="md:w-2/3 space-y-4">${dashboardHtml || '<p class="text-gray-400 text-center self-center">No devices to display status for</p>'}</div>
+                    </div>`;
+                visualizerContent.appendChild(rackHtml);
+            });
+            
+            const standaloneCameras = [...configuration.cloudCameras, ...configuration.allInOneCameras];
+            const standaloneSwitches = configuration.racks.flatMap(r => r.standaloneSwitches);
+            if (standaloneCameras.length > 0 || standaloneSwitches.length > 0) {
+                 const standaloneHtml = document.createElement('div');
+                 standaloneHtml.className = 'border-t border-gray-600 pt-8 mt-8';
+                 const totalPorts = standaloneSwitches.reduce((acc, sw) => acc + sw.ports, 0);
+                 const cameraCount = standaloneCameras.reduce((acc, cam) => acc + cam.quantity, 0);
+                 standaloneHtml.innerHTML = `
+                    <h3 class="text-2xl font-bold text-gray-200 mb-4">Standalone Systems (Cloud & All-in-One)</h3>
+                    <div class="p-4 border border-gray-600 rounded-lg bg-gray-700">
+                        ${createProgressBar('Camera Ports', cameraCount, totalPorts)}
+                    </div>
+                 `;
+                 visualizerContent.appendChild(standaloneHtml);
+            }
+        }
+
+        function createProgressBar(label, value, max) {
+            const percentage = max > 0 ? (value / max) * 100 : 0;
+            let barColor = 'bg-green-500';
+            if (percentage > 80) barColor = 'bg-yellow-500';
+            if (percentage > 100) barColor = 'bg-red-500';
+
+            return `
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-sm font-medium text-gray-300">${label}</span>
+                        <span class="text-sm font-medium text-gray-400">${value} / ${max >= 999 ? '&#8734;' : max}</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar ${barColor}" style="width: ${max >= 999 ? 0 : Math.min(percentage, 100)}%"></div>
+                    </div>
+                </div>
+            `;
+        }
+
+
+        function renderSummary() {
+            const totalRacks = configuration.racks.length;
+            const totalRecorders = configuration.racks.reduce((acc, rack) =>
+                acc + rack.devices.filter(device => device.product.deviceType === 'nvr').length
+            , 0);
+            const totalServers = configuration.racks.reduce((acc, rack) =>
+                acc + rack.devices.filter(device => device.product.deviceType === 'server').length
+            , 0) + configuration.cloudServers.length;
+            const totalRackCameras = configuration.racks.reduce((acc, rack) => {
+                return acc + rack.devices.reduce((deviceAcc, device) => {
+                    if (device.product.deviceType !== 'nvr') return deviceAcc;
+                    return deviceAcc + device.cameras.reduce((camAcc, cam) => camAcc + Number(cam.quantity || 0), 0);
+                }, 0);
+            }, 0);
+
+            const totalCameras =
+                totalRackCameras
+                + configuration.cloudCameras.reduce((acc, cam) => acc + Number(cam.quantity || 0), 0)
+                + configuration.allInOneCameras.reduce((acc, cam) => acc + Number(cam.quantity || 0), 0);
+
+            const totalPoeLoad = configuration.racks.reduce((acc, rack) =>
+                acc + rack.devices.reduce((deviceAcc, device) =>
+                    deviceAcc + device.cameras.reduce((camAcc, cam) => camAcc + (cam.assignedInjectorId ? 0 : ((cam.poe || 0) * (cam.quantity || 0))), 0)
+                , 0)
+            , 0);
+
+            const sharedItemCount = ['mounts', 'accessories', 'customParts', 'accessControl'].reduce((acc, key) => {
+                return acc + configuration[key].reduce((sum, item) => sum + (item.quantity || 1), 0);
+            }, 0);
+
+            const metrics = [
+                {
+                    label: 'Racks Configured',
+                    value: totalRacks,
+                    icon: '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 7h18M3 12h18M3 17h18" /></svg>'
+                },
+                {
+                    label: 'Recorders & Servers',
+                    value: totalRecorders + totalServers,
+                    icon: '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><rect x="3" y="5" width="18" height="6" rx="1.5" stroke-width="1.8" /><rect x="3" y="13" width="18" height="6" rx="1.5" stroke-width="1.8" /><path stroke-linecap="round" stroke-width="1.8" d="M7 8h.01M7 16h.01" /></svg>'
+                },
+                {
+                    label: 'Cameras Provisioned',
+                    value: totalCameras,
+                    icon: '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M2.458 12C3.732 7.943 7.523 5 12 5s8.268 2.943 9.542 7c-1.274 4.057-5.065 7-9.542 7s-8.268-2.943-9.542-7z" /></svg>'
+                },
+                {
+                    label: 'Estimated PoE Load',
+                    value: `${totalPoeLoad.toFixed(1)} W`,
+                    icon: '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>'
+                },
+                {
+                    label: 'Shared Components',
+                    value: sharedItemCount,
+                    icon: '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9.75 17L8 21l-4-1.75V7.75L8 6l1.75 4M14.25 7L16 3l4 1.75v11.5L16 19l-1.75-4" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 6h6M9 18h6" /></svg>'
+                }
+            ];
+
+            const metricsHtml = metrics.map(metric => `
+                <div class="metric-card">
+                    <div class="metric-icon">${metric.icon}</div>
+                    <div>
+                        <p class="metric-label">${metric.label}</p>
+                        <p class="metric-value">${metric.value}</p>
+                    </div>
+                </div>
+            `).join('');
+
+            const layoutHtml = configuration.cameraLayout ? `
+                <div class="summary-divider"></div>
+                <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div class="flex items-center gap-4">
+                        <img src="${configuration.cameraLayout}" class="w-32 h-auto rounded-2xl border border-slate-200 shadow-md" alt="Camera layout preview">
+                        <div>
+                            <p class="text-sm font-semibold text-slate-700">Camera Layout Uploaded</p>
+                            <p class="text-sm text-slate-500">Reference your floor plan directly inside the camera layout designer.</p>
+                        </div>
+                    </div>
+                    <button onclick="removeCameraLayout()" class="self-start sm:self-center bg-red-500 text-white px-4 py-2 rounded-lg text-sm shadow hover:bg-red-600 transition">Remove</button>
+                </div>
+            ` : '';
+
+            let summaryHtml = `
+                <section class="summary-card space-y-6">
+                    <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+                        <div>
+                            <span class="tag">Project Overview</span>
+                            <h2 class="text-3xl font-semibold text-slate-900 mt-3">Configuration Details</h2>
+                            <p class="text-sm text-slate-500 mt-1">Stay on top of your bill of materials and compatibility insights.</p>
+                        </div>
+                        <div class="w-full lg:w-72">
+                            <label for="projectName" class="block text-sm font-semibold text-slate-600 mb-1">Project Name</label>
+                            <input type="text" id="projectName" value="${configuration.projectName || ''}" oninput="updateProjectName(this.value)" class="mt-1 block w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-sm bg-white/80" placeholder="Enter project name...">
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <label class="inline-flex items-center gap-3 text-sm font-medium text-slate-600 bg-slate-100/80 px-4 py-2 rounded-full shadow-inner">
+                            <input type="checkbox" id="autoLicenseToggle" ${autoAddLicenses ? 'checked' : ''} onchange="autoAddLicenses = this.checked; renderAll();" class="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500">
+                            Auto-add Licenses
+                        </label>
+                        <div class="flex items-center gap-2 text-xs text-slate-400">
+                            <button id="systemStatusIndicator" type="button" class="status-indicator status-ok" aria-label="System status: OK">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M5 13l4 4L19 7" /></svg>
+                            </button>
+                            <span class="flex items-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                Changes save automatically
+                            </span>
+                        </div>
+                    </div>
+                    <div class="metric-grid">
+                        ${metricsHtml}
+                    </div>
+                    ${layoutHtml}
+                </section>
+            `;
+
+            const { warnings } = checkSystemStatus(true);
+            if (warnings.length > 0) {
+                const warningCards = warnings.map(warning => {
+                    const isError = warning.type === 'error';
+                    const wrapperClass = isError ? 'border-red-200 bg-red-50 text-red-700' : 'border-amber-200 bg-amber-50 text-amber-700';
+                    const icon = isError
+                        ? '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a1 1 0 00.87 1.5h18.62a1 1 0 00.87-1.5L13.71 3.86a1 1 0 00-1.74 0z" /></svg>'
+                        : '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>';
+                    return `
+                        <div class="flex items-start gap-3 rounded-xl border ${wrapperClass} px-4 py-3">
+                            ${icon}
+                            <div>
+                                <p class="font-semibold">${warning.title}</p>
+                                <p class="text-sm leading-relaxed">${warning.message}</p>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                summaryHtml += `
+                    <section class="summary-card space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-xl font-semibold text-slate-900">System Insights</h3>
+                            <span class="tag">Warnings</span>
+                        </div>
+                        ${warningCards}
+                    </section>
+                `;
+            }
+
+            if (configuration.cloudServers.length > 0) {
+                let cloudHtml = `
+                    <section class="summary-card space-y-6">
+                        <div class="flex items-center justify-between gap-3">
+                            <h3 class="text-2xl font-semibold text-slate-900">Cloud Servers</h3>
+                            <span class="tag">VIGIL CLOUD</span>
+                        </div>
+                `;
+                configuration.cloudServers.forEach((server, index) => {
+                    cloudHtml += renderServerSummary('cloud', server, index);
+                });
+                cloudHtml += `</section>`;
+                summaryHtml += cloudHtml;
+            }
+
+            if (configuration.racks.length > 0) {
+                configuration.racks.forEach((rack, index) => {
+                    let rackHtml = `
+                        <section id="rack-summary-${rack.id}" class="summary-card space-y-6 scroll-mt-24">
+                            <div class="flex flex-wrap items-center justify-between gap-3">
+                                <h3 class="text-2xl font-semibold text-slate-900">Rack ${index + 1}</h3>
+                                <div class="flex items-center gap-3">
+                                    <span class="text-sm text-slate-500">Devices: ${rack.devices.length + rack.standaloneSwitches.length}</span>
+                                    <button onclick="removeRack(${rack.id})" class="text-sm font-semibold text-red-500 hover:text-red-600">Remove Rack</button>
+                                </div>
+                            </div>
+                    `;
+                    if (rack.devices.length === 0 && rack.standaloneSwitches.length === 0) {
+                        rackHtml += `<p class="text-sm text-slate-500 bg-white/70 border border-slate-200 rounded-xl px-4 py-3">No devices in this rack yet.</p>`;
+                    }
+                    rack.devices.forEach((device, devIndex) => {
+                        if (device.product.deviceType === 'nvr') {
+                            rackHtml += renderNvrSummary(rack.id, device, devIndex);
+                        } else if (device.product.deviceType === 'server') {
+                            rackHtml += renderServerSummary(rack.id, device, devIndex);
+                        }
+                    });
+
+                    if (rack.standaloneSwitches.length > 0) {
+                        rackHtml += renderAssignedComponentList(null, 'standaloneSwitches', 'Standalone PoE Switches', removePoeSwitch, rack.id);
+                    }
+
+                    rackHtml += `</section>`;
+                    summaryHtml += rackHtml;
+                });
+            }
+
+            if (configuration.cloudCameras.length > 0) {
+                summaryHtml += renderStandaloneCameraList('cloudCameras', 'VIGIL Cloud Cameras');
+            }
+            if (configuration.allInOneCameras.length > 0) {
+                summaryHtml += renderStandaloneCameraList('allInOneCameras', 'All-in-One Cameras');
+            }
+
+            summaryHtml += renderSharedCategory('accessControl', 'Access Control (Shared)');
+            summaryHtml += renderSharedCategory('mounts', 'Mounts (Shared)');
+            summaryHtml += renderSharedCategory('accessories', 'Accessories & Licenses (Shared)');
+            summaryHtml += renderSharedCategory('customParts', 'Custom Parts (Shared)');
+
+            const allCameras = [
+                ...configuration.racks.flatMap(rack => rack.devices.flatMap(device => device.cameras)),
+                ...configuration.cloudCameras,
+                ...configuration.allInOneCameras
+            ];
+            const totalWire = allCameras.reduce((acc, cam) => acc + ((cam.wireDistance || 0) * (cam.quantity || 0)), 0);
+
+            summaryHtml += `
+                <section class="summary-card space-y-6">
+                    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <h3 class="text-xl font-semibold text-slate-900">Project Notes</h3>
+                            <p class="text-sm text-slate-500">Capture installation notes, handoff tasks, or reminders for your team.</p>
+                        </div>
+                        <div class="bg-sky-50 text-sky-700 border border-sky-100 rounded-2xl px-6 py-4 shadow-sm">
+                            <p class="text-xs font-semibold uppercase tracking-wide">Total Wire Length</p>
+                            <p class="text-2xl font-bold">${totalWire} ft</p>
+                        </div>
+                    </div>
+                    <textarea id="notes" class="w-full min-h-[120px] rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500" placeholder="Add any notes for this configuration..."></textarea>
+                </section>
+            `;
+
+            summaryEl.innerHTML = summaryHtml;
+        }
+
+        function renderNvrSummary(rackId, device, devIndex) {
+            const poeLoad = device.cameras.reduce((acc, cam) => acc + (cam.assignedInjectorId ? 0 : ((cam.poe || 0) * cam.quantity)), 0);
+            let nvrPoeWarning = '';
+            if (!device.product.poeBudget && poeLoad > 0) {
+                nvrPoeWarning = `<div class="mt-4 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-700 text-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a1 1 0 00.87 1.5h18.62a1 1 0 00.87-1.5L13.71 3.86a1 1 0 00-1.74 0z" /></svg>
+                    <p><span class="font-semibold">Total Camera Power Draw:</span> ${poeLoad.toFixed(1)}W. Ensure assigned PoE switches can support this load.</p>
+                </div>`;
+            }
+
+            let nvrHtml = `<div class="summary-subcard drop-target" id="nvr-summary-${device.id}" data-device-id="${device.id}" data-drop-type="device">
+                <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                    <div class="flex items-start gap-4">
+                        <img src="${device.product.image}" class="w-20 h-20 object-contain rounded-xl border border-slate-200 bg-white shadow-sm" alt="${device.product.name}">
+                        <div>
+                            <h4 class="text-xl font-semibold text-slate-900">NVR ${devIndex + 1}: ${device.product.name}</h4>
+                            <p class="text-sm text-slate-500 mt-1">${device.product.description}</p>
+                        </div>
+                    </div>
+                    <button onclick="removeDevice(${rackId}, ${device.id})" class="text-sm font-semibold text-red-500 hover:text-red-600">Remove Device</button>
+                </div>
+                ${nvrPoeWarning}
+                <div class="flex flex-wrap gap-2 mt-4">
+                    <button onclick="showAddComponentModal(${device.id}, 'nvr')" class="text-sm font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-full transition">+ Add Component</button>
+                </div>`;
+
+            nvrHtml += renderAssignedComponentList(device.id, 'assignedUps', 'Assigned UPS', removeUps);
+            nvrHtml += renderAssignedComponentList(device.id, 'poeSwitches', 'Assigned PoE Switches', removePoeSwitch);
+
+            const availableInjectorTypes = configuration.accessories.filter(a => a.id.includes('INJECTOR'));
+            let camListHtml = '';
+            if (device.cameras.length > 0) {
+                camListHtml += `<div class="camera-list-container space-y-3">`;
+
+                device.cameras.forEach((cam, camIndex) => {
+                    let locationFields = '';
+                    if (cam.quantity === 1 && !cam.isBundleCamera) {
+                        locationFields = `<div class="grid gap-3 mt-3 sm:grid-cols-2">
+                            <input type="text" placeholder="Location..." value="${cam.location || ''}" onchange="updateCameraLocation(${rackId}, ${device.id}, ${cam.instanceId}, this.value)" class="w-full rounded-lg border border-slate-200 bg-white/80 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500">
+                            <input type="number" placeholder="Wire (ft)..." value="${cam.wireDistance || ''}" onchange="updateCameraWireDistance(${cam.instanceId}, this.value)" class="w-full rounded-lg border border-slate-200 bg-white/80 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500">
+                        </div>`;
+                    }
+
+                    let injectorHtml = '';
+                    if (availableInjectorTypes.length > 0 && !cam.isBundleCamera) {
+                        const injectorOptions = availableInjectorTypes.map(inj => {
+                            if (cam.id === 'VX-5M-OB-CL-RIAW-X' && inj.id === 'VH-POE-INJECTOR') {
+                                return `<option value="${inj.id}" disabled>${inj.name} (Not Compatible)</option>`;
+                            }
+                            return `<option value="${inj.id}" ${cam.assignedInjectorId === inj.id ? 'selected' : ''}>${inj.name}</option>`;
+                        }).join('');
+
+                        injectorHtml = `<div class="mt-3">
+                            <label for="injector-select-${cam.instanceId}" class="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">Assigned Injector</label>
+                            <select id="injector-select-${cam.instanceId}" onchange="assignInjector(${rackId}, ${device.id}, ${cam.instanceId}, this.value)" class="block w-full rounded-lg border border-slate-200 bg-white/80 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500">
+                                <option value="none">No Injector</option>
+                                ${injectorOptions}
+                            </select>
+                        </div>`;
+                    }
+
+                    const compatibleMounts = findCompatibleMounts(cam);
+                    const mountDropdowns = (cam.selectedMounts || []).map((selectedMountId, i) => {
+                        const options = compatibleMounts.map(mount => `<option value="${mount.id}" ${selectedMountId === mount.id ? 'selected' : ''}>${mount.name}</option>`).join('');
+                        return `<div class="flex flex-wrap items-center gap-2">
+                            <select onchange="selectMount(${rackId}, ${device.id}, ${cam.instanceId}, this.value, ${i})" class="flex-1 rounded-lg border border-slate-200 bg-white/80 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500">
+                                <option value="none">Select Mount ${i + 1}...</option>
+                                ${options}
+                            </select>
+                            <button onclick="removeMountDropdown(${rackId}, ${device.id}, ${cam.instanceId}, ${i})" class="text-red-500 hover:text-red-600 p-1 rounded-full">&times;</button>
+                        </div>`;
+                    }).join('');
+
+                    let addMountButton = '';
+                    if ((cam.selectedMounts || []).length < 3 && !cam.isBundleCamera) {
+                        addMountButton = `<button onclick="addMountDropdown(${rackId}, ${device.id}, ${cam.instanceId})" class="mt-2 inline-flex items-center gap-2 text-xs font-semibold text-slate-600 bg-slate-100 px-3 py-1.5 rounded-full hover:bg-slate-200 transition">Add Mount</button>`;
+                    }
+
+                    const bundleIndicator = cam.isBundleCamera ? '<span class="text-xs font-semibold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full ml-2">Included</span>' : '';
+
+                    let controls = '';
+                    if (cam.isBundleCamera) {
+                        controls = `<span class="text-xs font-semibold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full">Included</span>`;
+                    } else {
+                        controls = `<div class="flex items-center gap-3 text-sm">
+                            <div class="flex items-center gap-2 text-xs font-semibold text-slate-500">
+                                <span class="uppercase tracking-wide">Qty</span>
+                                <input type="number" value="${cam.quantity}" min="1" class="w-16 text-center rounded-lg border border-slate-200 bg-white/80 py-1" onchange="updateCameraQuantity(${cam.instanceId}, this.value)">
+                            </div>
+                            <button onclick="cloneCamera(${rackId}, ${device.id}, ${cam.instanceId})" class="text-sm font-semibold text-indigo-600 hover:text-indigo-700 transition">Clone</button>
+                            <button onclick="removeProduct(${rackId}, ${device.id}, 'cameras', ${cam.instanceId})" class="text-sm font-semibold text-red-500 hover:text-red-600 transition">Remove</button>
+                        </div>`;
+                    }
+
+                    camListHtml += `<div class="rounded-2xl border border-slate-200 bg-white/85 p-4 shadow-sm">
+                        <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                            <div class="flex items-start gap-3">
+                                <img src="${cam.image || '/cameras/missing.jpg'}" class="w-16 h-16 object-contain rounded-lg border border-slate-200 bg-white shadow-sm" alt="${cam.name}">
+                                <div>
+                                    <p class="font-semibold text-slate-800">${cam.name} ${bundleIndicator}</p>
+                                    <p class="text-sm text-slate-500">${cam.description}</p>
+                                </div>
+                            </div>
+                            ${controls}
+                        </div>
+                        ${locationFields}
+                        ${mountDropdowns ? `<div class="mt-3 space-y-2">${mountDropdowns}</div>` : ''}
+                        ${addMountButton}
+                        ${injectorHtml}
+                    </div>`;
+                });
+
+                camListHtml += `</div>`;
+            } else {
+                camListHtml += `<p class="text-sm text-slate-500">No cameras selected.</p>`;
+            }
+
+            const availablePorts = getAvailablePorts(device);
+            const channelUsage = getNvrChannelUsage(device);
+            const expandedClass = device.isCamerasExpanded ? 'expanded' : '';
+
+            nvrHtml += `<div class="mt-6">
+                <div id="camera-summary-header-${device.id}" onclick="toggleCameras(${device.id})" class="camera-accordion-header ${expandedClass} flex items-center justify-between rounded-xl bg-slate-100/90 px-4 py-3 cursor-pointer transition hover:bg-slate-100">
+                     <h5 class="text-lg font-semibold text-slate-800">Cameras (${channelUsage} / ${availablePorts >= 999 ? '&#8734;' : availablePorts})</h5>
+                     <svg class="accordion-arrow w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </div>
+                <div class="camera-accordion-content mt-3">${camListHtml}</div>
+            </div>`;
+
+            nvrHtml += `<div class="mt-6">
+                ${renderMultiQuantityCategory(rackId, device.id, 'storage', 'Storage')}
+            </div>`;
+
+            if (!autoAddLicenses) {
+                nvrHtml += `<div class="mt-6">
+                    <div class="flex justify-between items-center mb-2">
+                        <h5 class="text-lg font-semibold text-slate-800">Camera Licenses</h5>
+                        <button onclick="addLicenseToNvr(${rackId}, ${device.id})" class="text-sm font-semibold text-indigo-600 hover:text-indigo-700 transition">+ Add License</button>
+                    </div>
+                    ${renderMultiQuantityCategory(rackId, device.id, 'licenses', null)}
+                </div>`;
+            } else {
+                nvrHtml += `<div class="mt-6">
+                    ${renderMultiQuantityCategory(rackId, device.id, 'licenses', 'Camera Licenses')}
+                </div>`;
+            }
+
+            nvrHtml += `</div>`;
+            return nvrHtml;
+        }
+
+        function renderServerSummary(rackId, device, devIndex) {
+            let serverHtml = `<div class="summary-subcard drop-target" id="server-summary-${device.id}" data-device-id="${device.id}" data-drop-type="device">
+                <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                    <div class="flex items-start gap-4">
+                        <img src="${device.product.image || '/cameras/missing.jpg'}" class="w-20 h-20 object-contain rounded-xl border border-slate-200 bg-white shadow-sm" alt="${device.product.name}">
+                        <div>
+                            <h4 class="text-xl font-semibold text-slate-900">${device.product.size ? 'Server' : ''} ${devIndex + 1}: ${device.product.name}</h4>
+                            <p class="text-sm text-slate-500 mt-1">${device.product.description}</p>
+                        </div>
+                    </div>
+                    <button onclick="removeDevice('${rackId}', ${device.id})" class="text-sm font-semibold text-red-500 hover:text-red-600">Remove Device</button>
+                </div>`;
+
+            serverHtml += renderAssignedComponentList(device.id, 'assignedUps', 'Assigned UPS', removeUps);
+            serverHtml += renderAssignedComponentList(device.id, 'poeSwitches', 'Assigned PoE Switches', removePoeSwitch);
+
+            const availablePorts = getAccessControlPoeCapacity(device);
+            serverHtml += `<div class="mt-6">
+                <div class="flex items-center justify-between">
+                    <h5 class="text-lg font-semibold text-slate-800">Door Controllers (${device.doors.length} / ${availablePorts >= 999 ? '&#8734;' : availablePorts})</h5>
+                    <button onclick="showAddComponentModal(${device.id}, 'server')" class="text-sm font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-full transition">+ Add Component</button>
+                </div>
+            `;
+
+            if (device.doors.length > 0) {
+                device.doors.forEach(door => {
+                    serverHtml += `<div class="flex items-center justify-between rounded-2xl border border-slate-200 bg-white/85 px-4 py-3 shadow-sm mt-3">
+                        <p class="font-medium text-slate-800">${door.name}</p>
+                        <div class="flex items-center gap-3 text-sm">
+                            <button onclick="cloneDoorController('${rackId}', ${device.id}, ${door.instanceId})" class="text-sm font-semibold text-indigo-600 hover:text-indigo-700 transition">Clone</button>
+                            <button onclick="removeProduct('${rackId}', ${device.id}, 'doors', ${door.instanceId})" class="text-sm font-semibold text-red-500 hover:text-red-600 transition">Remove</button>
+                        </div>
+                    </div>`;
+                });
+            } else {
+                serverHtml += '<p class="text-sm text-slate-500 mt-3">No door controllers added.</p>';
+            }
+
+            serverHtml += `</div></div>`;
+            return serverHtml;
+        }
+
+        function renderAssignedComponentList(deviceId, categoryKey, title, removeFn, rackId = null) {
+            let html = '';
+            let items = [];
+            if (deviceId) {
+                const allDevices = [...configuration.racks.flatMap(r => r.devices), ...configuration.cloudServers];
+                const device = allDevices.find(d => d.id === deviceId);
+                if (device) items = device[categoryKey] || [];
+            } else if (rackId) {
+                const rack = configuration.racks.find(r => r.id === rackId);
+                if (rack) items = rack[categoryKey] || [];
+            }
+
+            if (items.length > 0) {
+                html += `<div class="mt-6">
+                    <h5 class="text-lg font-semibold text-slate-800 mb-3">${title}</h5>
+                `;
+
+                items.forEach(item => {
+                    let reassignButton = '';
+                    if (categoryKey === 'poeSwitches' || categoryKey === 'standaloneSwitches') {
+                        reassignButton = `<button onclick="reassignPoeSwitch(${item.instanceId})" class="text-sm font-semibold text-indigo-600 hover:text-indigo-700 transition">Re-assign</button>`;
+                    }
+                    html += `<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-slate-200 bg-white/85 px-4 py-3 shadow-sm mt-3">
+                        <div class="flex items-center gap-3">
+                            <img src="${item.image || '/cameras/missing.jpg'}" class="w-16 h-16 object-contain rounded-lg border border-slate-200 bg-white shadow-sm" alt="${item.name}">
+                            <div>
+                                <p class="font-medium text-slate-800">${item.name}</p>
+                                <p class="text-sm text-slate-500">${item.description}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 text-sm">
+                            ${reassignButton}
+                            <button onclick="${removeFn.name}(${deviceId || 'null'}, ${item.instanceId})" class="text-sm font-semibold text-red-500 hover:text-red-600 transition">Remove</button>
+                        </div>
+                     </div>`;
+                });
+                html += `</div>`;
+            }
+            return html;
+        }
+
+        function renderStandaloneCameraList(categoryKey, title) {
+            let html = `<section class="summary-card space-y-6">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-2xl font-semibold text-slate-900">${title}</h3>
+                </div>`;
+            const cameras = configuration[categoryKey];
+            if (cameras.length > 0) {
+                cameras.forEach(cam => {
+                    let locationFields = '';
+                    if (cam.quantity === 1) {
+                        locationFields = `<div class="grid gap-3 mt-3 sm:grid-cols-2">
+                           <input type="text" placeholder="Location..." value="${cam.location || ''}" onchange="updateCameraLocation(null, null, ${cam.instanceId}, this.value)" class="w-full rounded-lg border border-slate-200 bg-white/80 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500">
+                           <input type="number" placeholder="Wire (ft)..." value="${cam.wireDistance || ''}" onchange="updateCameraWireDistance(${cam.instanceId}, this.value)" class="w-full rounded-lg border border-slate-200 bg-white/80 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500">
+                        </div>`;
+                    }
+
+                    let mountHtml = '';
+                    if (categoryKey === 'cloudCameras') {
+                        const compatibleMounts = findCompatibleMounts(cam);
+
+                        const mountDropdowns = (cam.selectedMounts || []).map((selectedMountId, i) => {
+                            const options = compatibleMounts.map(mount => `<option value="${mount.id}" ${selectedMountId === mount.id ? 'selected' : ''}>${mount.name}</option>`).join('');
+
+                            return `<div class="flex flex-wrap items-center gap-2">
+                                <select onchange="selectCloudCameraMount(${cam.instanceId}, this.value, ${i})" class="flex-1 rounded-lg border border-slate-200 bg-white/80 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500">
+                                    <option value="none">Select Mount ${i + 1}...</option>
+                                    ${options}
+                                </select>
+                                <button onclick="removeCloudCameraMountDropdown(${cam.instanceId}, ${i})" class="text-red-500 hover:text-red-600 p-1 rounded-full">&times;</button>
+                            </div>`;
+                        }).join('');
+
+                        let addMountButton = '';
+                        if (compatibleMounts.length > 0 && (cam.selectedMounts || []).length < 3) {
+                            addMountButton = `<button onclick="addCloudCameraMountDropdown(${cam.instanceId})" class="mt-2 inline-flex items-center gap-2 text-xs font-semibold text-slate-600 bg-slate-100 px-3 py-1.5 rounded-full hover:bg-slate-200 transition">Add Mount</button>`;
+                        }
+                        mountHtml = `<div class="mt-3 space-y-2">${mountDropdowns}${addMountButton}</div>`;
+                    }
+
+                    html += `<div class="rounded-2xl border border-slate-200 bg-white/85 p-4 shadow-sm">
+                        <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                            <div class="flex items-start gap-3">
+                                <img src="${cam.image || '/cameras/missing.jpg'}" class="w-16 h-16 object-contain rounded-lg border border-slate-200 bg-white shadow-sm" alt="${cam.name}">
+                                <div>
+                                    <p class="font-semibold text-slate-800">${cam.name}</p>
+                                    <p class="text-sm text-slate-500">${cam.description}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3 text-sm">
+                               <div class="flex items-center gap-2 text-xs font-semibold text-slate-500">
+                                   <span class="uppercase tracking-wide">Qty</span>
+                                   <input type="number" value="${cam.quantity}" min="1" class="w-16 text-center rounded-lg border border-slate-200 bg-white/80 py-1" onchange="updateCameraQuantity(${cam.instanceId}, this.value, true)">
+                               </div>
+                               ${cam.isCloud ? `<button onclick="cloneCloudCamera(${cam.instanceId})" class="text-sm font-semibold text-indigo-600 hover:text-indigo-700 transition">Clone</button>`: ''}
+                               <button onclick="configuration.${categoryKey} = configuration.${categoryKey}.filter(c => c.instanceId !== ${cam.instanceId}); configuration.layoutPlacements = configuration.layoutPlacements.filter(p => !p.uniqueId || !p.uniqueId.startsWith('${cam.instanceId}-')); syncVigilCloudSubscriptions(); renderAll();" class="text-sm font-semibold text-red-500 hover:text-red-600 transition">Remove</button>
+                            </div>
+                        </div>
+                        ${locationFields}
+                        ${mountHtml}
+                     </div>`;
+                });
+            } else {
+                html += `<p class="text-sm text-slate-500">No ${title.toLowerCase()} added.</p>`;
+            }
+            html += `</section>`;
+            return html;
+        }
+
+        function renderSharedCategory(categoryKey, title) {
+            let html = `<section class="summary-card space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <h3 class="text-2xl font-semibold text-slate-900">${title}</h3>
+                    <button onclick="showAddComponentModal(null, '${categoryKey}')" class="text-sm font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-full transition">
+                        + Add Component
+                    </button>
+                </div>
+            `;
+            const items = configuration[categoryKey];
+            if (items.length > 0) {
+                html += renderMultiQuantityCategory(null, null, categoryKey, null);
+            } else {
+                html += `<p class="text-sm text-slate-500">No items added.</p>`;
+            }
+            html += `</section>`;
+            return html;
+        }
+
+        function renderMultiQuantityCategory(rackId, deviceId, categoryKey, title) {
+            let items = [];
+            if (deviceId) {
+                 const allDevices = [...configuration.racks.flatMap(r => r.devices), ...configuration.cloudServers];
+                 const device = allDevices.find(d=>d.id==deviceId);
+                 if (device) items = device[categoryKey] || [];
+            } else {
+                items = configuration[categoryKey];
+            }
+
+            let allCompatibleMounts = new Set();
+            if (categoryKey === 'mounts') {
+                 configuration.racks.forEach(r => r.devices.forEach(d => d.cameras.forEach(c => {
+                    if(c.compatibleMounts) c.compatibleMounts.forEach(mountId => allCompatibleMounts.add(mountId));
+                 })));
+                 configuration.cloudCameras.forEach(c => {
+                    const mounts = findCompatibleMounts(c).map(m => m.id);
+                    mounts.forEach(mountId => allCompatibleMounts.add(mountId));
+                 });
+            }
+
+            let html = '';
+            if (title) {
+                html += `<div class="rounded-2xl border border-slate-200 bg-white/85 p-4 shadow-sm">
+                    <div class="flex items-center justify-between mb-3">
+                        <h5 class="text-lg font-semibold text-slate-800">${title}</h5>
+                    </div>`;
+            }
+
+            if (items.length > 0) {
+                items.forEach(p => {
+                    let qtyControl;
+                    if (categoryKey === 'licenses') {
+                        const disabled = autoAddLicenses ? 'disabled' : '';
+                        qtyControl = `<input type="number" value="${p.quantity}" min="0" class="w-20 text-center rounded-lg border border-slate-200 bg-white/80 py-1 ${disabled ? 'opacity-60' : ''}" onchange="updateLicenseQuantity(${deviceId}, '${p.id}', this.value)" ${disabled}>`;
+                    } else if (!deviceId) {
+                        const disabled = p.id === 'VCM-SUB-1Y' ? 'disabled' : '';
+                        qtyControl = `<input type="number" value="${p.quantity}" min="1" class="w-20 text-center rounded-lg border border-slate-200 bg-white/80 py-1 ${disabled ? 'opacity-60' : ''}" onchange="updateSharedProductQuantity('${categoryKey}', '${p.id}', this.value)" ${disabled}>`;
+                    } else {
+                        qtyControl = `<span class="text-sm font-semibold text-slate-600">x${p.quantity}</span>`;
+                    }
+
+                    let mismatchClass = '';
+                    let mismatchTitle = '';
+                    let mismatchIcon = '';
+                    if (categoryKey === 'mounts' && allCompatibleMounts.size > 0 && !allCompatibleMounts.has(p.id)) {
+                        mismatchClass = 'ring-1 ring-amber-200 bg-amber-50';
+                        mismatchTitle = 'This mount is not compatible with any camera in the configuration.';
+                        mismatchIcon = '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-500" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 13a1 1 0 110-2 1 1 0 010 2zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>';
+                    }
+
+                    html += `<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-slate-200 bg-white/90 px-4 py-3 shadow-sm mt-3 ${mismatchClass}" title="${mismatchTitle}">
+                                <div class="flex items-center gap-3">
+                                    <img src="${p.image || '/cameras/missing.jpg'}" class="w-14 h-14 object-contain rounded-lg border border-slate-200 bg-white shadow-sm" alt="${p.name}">
+                                    <div>
+                                        <p class="font-medium text-slate-800">${p.name}</p>
+                                        <p class="text-sm text-slate-500">${p.description}</p>
+                                    </div>
+                                    ${mismatchIcon}
+                                </div>
+                                <div class="flex items-center gap-3 text-sm">
+                                    ${qtyControl}
+                                    <button onclick="${deviceId ? `removeProduct(${rackId}, ${deviceId}, '${categoryKey}', '${p.id}')` : `removeSharedProduct('${categoryKey}', '${p.id}')`}" class="text-sm font-semibold text-red-500 hover:text-red-600 transition">Remove</button>
+                                </div>
+                            </div>`;
+                });
+            } else if (title) { html += `<p class="text-sm text-slate-500">No ${categoryKey.replace(/([A-Z])/g, ' $1').toLowerCase()} selected.</p>`; }
+
+            if (title) {
+                html += `</div>`;
+            }
+            return html;
+        }
+
+        function resetConfiguration() {
+            if(confirm('Are you sure you want to reset the entire configuration?')) {
+                window.AppState.resetConfiguration(configuration);
+                localStorage.removeItem(window.AppState.STORAGE_KEY);
+                renderAll();
+            }
+        }
+
+        function renderAll() {
+            renderVisualization();
+            renderSummary();
+            checkSystemStatus();
+            saveToLocalStorage();
+        }
+
+        // --- SAVE, LOAD, & LOCAL STORAGE ---
+        function saveToLocalStorage() {
+            window.AppState.persistConfiguration(configuration);
+        }
+
+        function loadFromLocalStorage() {
+            return window.AppState.restoreConfiguration(configuration, {
+                syncNvrLicenses,
+                onSuccess: () => showToast('Project restored from last session.'),
+                onError: (error) => console.error('Failed to load from localStorage', error)
+            });
+        }
+
+        function saveProjectToFile() {
+            const configString = JSON.stringify(configuration, null, 2);
+            const blob = new Blob([configString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `${(configuration.projectName || '3xlogic_config').replace(/ /g, '_')}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            showToast("Project Saved!");
+        }
+
+        function loadProjectFromFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const configString = e.target.result;
+                    const loadedConfig = JSON.parse(configString);
+                    window.AppState.applyDefaults(configuration);
+                    Object.assign(configuration, { layoutPlacements: [] }, loadedConfig);
+                    window.AppState.normalizeConfiguration(configuration, { syncNvrLicenses });
+                    renderAll();
+                    showToast("Project Loaded Successfully!");
+                } catch (err) {
+                    console.error("Failed to parse project file:", err);
+                    createModal("Load Error", "<p>The selected file is not a valid project file.</p>");
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function showAddCustomPartModal() {
+            const modalHtml = `
+                <div class="modal-content shadow-2xl">
+                    <h2 class="text-2xl font-bold mb-4">Add Custom Part</h2>
+                    <div class="space-y-4 text-left">
+                        <input type="text" id="customPartName" placeholder="Part Number / Name" class="w-full px-4 py-2 border rounded-lg">
+                        <input type="text" id="customPartDesc" placeholder="Description" class="w-full px-4 py-2 border rounded-lg">
+                        <input type="number" id="customPartQty" placeholder="Quantity" value="1" min="1" class="w-full px-4 py-2 border rounded-lg">
+                    </div>
+                    <div class="mt-6">
+                        <button id="addCustomPartBtn" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">Add Part</button>
+                        <button id="closeModal" class="ml-2 bg-gray-300 px-6 py-2 rounded-lg hover:bg-gray-400">Cancel</button>
+                    </div>
+                </div>
+            `;
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay';
+            overlay.innerHTML = modalHtml;
+            modalContainer.appendChild(overlay);
+            setTimeout(() => overlay.classList.add('show'), 10);
+
+            overlay.addEventListener('click', (e) => {
+                if (e.target.id === 'closeModal') {
+                    overlay.remove();
+                } else if (e.target.id === 'addCustomPartBtn') {
+                    addCustomPartFromModal();
+                    overlay.remove();
+                }
+            });
+
+            nameInput.value = '';
+            descInput.value = '';
+            qtyInput.value = '1';
+            renderAll();
+        }
+
+        function addCustomPartFromModal() {
+            const nameInput = document.getElementById('customPartName');
+            const descInput = document.getElementById('customPartDesc');
+            const qtyInput = document.getElementById('customPartQty');
+
+            const name = nameInput.value.trim();
+            const description = descInput.value.trim();
+            const quantity = parseInt(qtyInput.value, 10);
+
+            if (!name || !description || isNaN(quantity) || quantity < 1) {
+                return showToast('Invalid input. Please fill out all fields.');
+            }
+
+            configuration.customParts.push({ id: `custom-${Date.now()}`, name, description, quantity });
+            renderAll();
+            showToast('Custom part added.');
+        }
+
+        // --- DRAG AND DROP LOGIC ---
+        function handleDragStart(e) {
+            if (e.target.dataset.productId) {
+                e.dataTransfer.setData('text/plain', e.target.dataset.productId);
+                e.dataTransfer.effectAllowed = 'copy';
+                const ghost = e.target.cloneNode(true);
+                ghost.style.position = "absolute";
+                ghost.style.top = "-1000px";
+                document.body.appendChild(ghost);
+                e.dataTransfer.setDragImage(ghost, 0, 0);
+                setTimeout(() => ghost.remove(), 0);
+            }
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            const dropTarget = e.target.closest('.drop-target');
+            if (dropTarget) {
+                document.querySelectorAll('.drop-target-highlight').forEach(el => el.classList.remove('drop-target-highlight'));
+                dropTarget.classList.add('drop-target-highlight');
+            }
+        }
+
+        function handleDragLeave(e) {
+            const dropTarget = e.target.closest('.drop-target');
+            if (dropTarget) {
+                dropTarget.classList.remove('drop-target-highlight');
+            }
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const dropTarget = e.target.closest('.drop-target');
+            if (!dropTarget) return;
+
+            dropTarget.classList.remove('drop-target-highlight');
+            const productId = e.dataTransfer.getData('text/plain');
+            const productInfo = findProductById(productId);
+
+            if (productInfo) {
+                const { product, category, subCategory, parentCategory } = productInfo;
+                const dropType = dropTarget.dataset.dropType;
+                
+                if (dropType === 'rack') {
+                    const rackId = dropTarget.dataset.rackId;
+                    if(product.deviceType === 'nvr' || product.deviceType === 'server' || product.deviceType === 'poe-switch'){
+                        addProduct(product.id, null, rackId);
+                    } else {
+                        showToast('This item cannot be added directly to a rack.');
+                    }
+                } else if (dropType === 'device') {
+                    const deviceId = dropTarget.dataset.deviceId;
+                    addProduct(category, subCategory, product.id, deviceId, null, parentCategory);
+                }
+            }
+        }
+        
+        function setupProductData() {
+            const imageMap = {
+                'VX-5M28-MD-IAW': '/cameras/vx-5m28-md-iw.jpg',
+                'VX-5M4-MD-IAW': '/cameras/VX-5M4-MD-IAW.jpg',
+                'VX-5M4-MB-IW': '/cameras/VX-5M4-MB-IW.WEBP',
+                'VX-5M-OD-RIAW': '/cameras/vx-5m-od-riaw.webp',
+                'VX-5M-B-RIAW': '/cameras/vx-5m-b-riaw.jpg',
+                'VX-5M20-B-RIAW': '/cameras/vx-5m20-b-riaw.jpg',
+                'VX-5M20-B-RIAL': '/cameras/VX-5M20-B-RIAL.jpg',
+                'VX-6M-360-IAW': '/cameras/vx-6m-360-iaw.jpg'
+            };
+
+            for (const category in products) {
+                if (category === 'CCTV Products') {
+                    for (const subCategory in products[category]["Cameras"]) {
+                        products[category]["Cameras"][subCategory].forEach(camera => {
+                            if (camera.id.endsWith('-02') || camera.id.endsWith('-02-X')) return;
+                            for (const baseModel in imageMap) {
+                                if (camera.id.startsWith(baseModel)) {
+                                    camera.image = imageMap[baseModel];
+                                    break; 
+                                }
+                            }
+                        });
+                    }
+                }
+            }
+        }
+
+        // --- NEW/MODIFIED FUNCTIONS FOR UI IMPROVEMENTS ---
+        function checkSystemStatus(silent = false) {
+            const warnings = [];
+            const allDevices = [...configuration.racks.flatMap(r => r.devices), ...configuration.cloudServers];
+            const allCameras = [...allDevices.flatMap(d => d.cameras), ...configuration.cloudCameras, ...configuration.allInOneCameras];
+
+            allDevices.forEach(device => {
+                if (device.product.deviceType === 'nvr') {
+                    const poeLoad = device.cameras.reduce((acc, cam) => acc + (cam.assignedInjectorId ? 0 : (cam.poe * cam.quantity)), 0);
+                    if (device.product.poeBudget && poeLoad > device.product.poeBudget) {
+                        warnings.push({ type: 'error', title: 'PoE Budget Exceeded', message: `NVR "${device.product.name}" has a PoE load of ${poeLoad.toFixed(1)}W, exceeding its budget of ${device.product.poeBudget}W.` });
+                    }
+
+                    const storageCount = device.storage.reduce((acc, s) => acc + s.quantity, 0);
+                    if (device.product.maxStorage && storageCount > device.product.maxStorage) {
+                        warnings.push({ type: 'error', title: 'Storage Bays Exceeded', message: `NVR "${device.product.name}" has ${storageCount} drives, exceeding its limit of ${device.product.maxStorage}.` });
+                    }
+                    if (!hasBuiltInStorage(device.product) && device.storage.length === 0) {
+                        warnings.push({ type: 'warning', title: 'Storage Recommended', message: `NVR "${device.product.name}" does not include storage. Consider adding a hard drive.` });
+                    }
+                }
+            });
+
+            allCameras.forEach(cam => {
+                if (cam.quantity === 1 && cam.wireDistance > 300 && !cam.assignedInjectorId) {
+                    warnings.push({ type: 'warning', title: 'PoE Injector Recommended', message: `Camera "${cam.name}" has a wire distance over 300ft and may require a PoE injector.` });
+                }
+            });
+
+            if (silent) return { warnings };
+
+            const indicator = document.getElementById('systemStatusIndicator');
+            if (!indicator) {
+                return { warnings };
+            }
+
+            const errors = warnings.filter(w => w.type === 'error').length;
+            const warns = warnings.filter(w => w.type === 'warning').length;
+
+            indicator.classList.remove('status-ok', 'status-warning', 'status-error');
+
+            let statusClass = 'status-ok';
+            let icon = '<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M5 13l4 4L19 7" /></svg>';
+            let label = 'System status: OK';
+
+            if (errors > 0) {
+                statusClass = 'status-error';
+                icon = '<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M6 18L18 6M6 6l12 12" /></svg>';
+                label = 'System status: Errors detected';
+            } else if (warns > 0) {
+                statusClass = 'status-warning';
+                icon = '<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 9v3m0 3h.01M10.29 3.86L1.82 18a1 1 0 00.87 1.5h18.62a1 1 0 00.87-1.5L13.71 3.86a1 1 0 00-1.74 0z" /></svg>';
+                label = 'System status: Warnings detected';
+            }
+
+            indicator.classList.add(statusClass);
+            indicator.innerHTML = icon;
+            indicator.setAttribute('aria-label', `${label}. Click to review details.`);
+            indicator.setAttribute('title', `${label}. Click to review details.`);
+
+            indicator.onclick = () => {
+                if (warnings.length === 0) {
+                    return createModal('System Status: OK', '<p>No issues found in the current configuration.</p>');
+                }
+                const content = warnings.map(w => {
+                    const bgColor = w.type === 'error' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800';
+                    return `<div class="${bgColor} p-3 rounded-md mb-3 text-left">
+                        <p class="font-bold">${w.title}</p>
+                        <p class="text-sm">${w.message}</p>
+                    </div>`;
+                }).join('');
+                createModal('System Status Report', content);
+            };
+
+            return { warnings };
+        }
+
+        function showAddComponentModal(deviceId, context) {
+            let productData = {};
+            let title = 'Add Component';
+            let callback = (productId) => addProduct(productId, deviceId);
+
+            switch(context) {
+                case 'nvr':
+                    title = 'Add to NVR';
+                    productData = {
+                        "Cameras": products["CCTV Products"]["Cameras"],
+                        "Storage": { "Storage": products["CCTV Products"]["Video System Components"]["Storage"] },
+                        "Licenses": { "Software Licenses": products["CCTV Products"]["Video System Components"]["Software Licenses"] },
+                        "UPS": { "UPS Units": products["Accessories"]["Power"]["UPS Units"] }
+                    };
+                    break;
+                case 'server':
+                    title = 'Add to Server';
+                    productData = {
+                        "Door Controllers": { "Door Hardware": products["Access Control Systems"]["Door Hardware & Controllers"]["infinias Kits and Hardware"] },
+                        "UPS": { "UPS Units": products["Accessories"]["Power"]["UPS Units"] }
+                    };
+                    break;
+                case 'accessControl':
+                    title = 'Add Shared Access Control Component';
+                    productData = products["Access Control Systems"];
+                    callback = (productId) => addProduct(productId);
+                    break;
+                case 'mounts':
+                    title = 'Add Shared Mount';
+                    productData = products["Infrastructure & Mounting"]["Camera Mounts"];
+                    callback = (productId) => addProduct(productId);
+                    break;
+                case 'accessories':
+                    title = 'Add Shared Accessory';
+                    productData = { ...products["Accessories"], ...products["Software & Subscriptions"] };
+                    callback = (productId) => addProduct(productId);
+                    break;
+                case 'customParts':
+                    return showAddCustomPartModal(); // This has its own modal
+                default:
+                    return;
+            }
+
+            createProductSelectionModal(title, productData, callback);
+        }
+
+        function addLicenseToNvr(rackId, deviceId) {
+            addProduct('VS-1IP', deviceId);
+            showToast("Camera License Added.");
+        }
+
+        // --- STORAGE CALCULATOR ---
+        function openStorageCalculator() {
+            const allCameras = [
+                ...configuration.racks.flatMap(r => r.devices.flatMap(d => d.cameras)),
+                ...configuration.cloudCameras,
+                ...configuration.allInOneCameras
+            ];
+
+            if (allCameras.length === 0) {
+                return createModal('Storage Calculator', '<p>Please add cameras to the configuration first.</p>');
+            }
+
+            let tableRows = allCameras.map((cam, index) => `
+                <tr class="calc-row border-b">
+                    <td class="p-2">${cam.name} (x${cam.quantity})</td>
+                    <td class="p-2">${cam.resolution || 'N/A'}</td>
+                    <td class="p-2">
+                        <input type="range" min="1" max="30" value="12" class="w-full fps-slider" data-index="${index}" oninput="this.nextElementSibling.textContent = this.value; calculateStorage();">
+                        <span class="ml-2 fps-value">12</span>
+                    </td>
+                </tr>
+            `).join('');
+
+            const totalConfiguredStorage = configuration.racks.flatMap(r => r.devices)
+                .filter(d => d.product.deviceType === 'nvr')
+                .reduce((acc, nvr) => {
+                    const builtIn = getBuiltInStorage(nvr.product);
+                    const added = nvr.storage.reduce((sAcc, hdd) => {
+                        const size = parseInt(hdd.id.replace('VH-', '').replace('TB', ''));
+                        return sAcc + (size * hdd.quantity);
+                    }, 0);
+                    return acc + builtIn + added;
+                }, 0);
+
+
+            const content = `
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 p-4 border rounded-lg">
+                    <div>
+                        <label for="calc-days" class="block text-sm font-medium">Days of Storage</label>
+                        <input type="number" id="calc-days" value="30" class="w-full border rounded p-1 mt-1" oninput="calculateStorage()">
+                    </div>
+                    <div>
+                        <label for="calc-hours" class="block text-sm font-medium">Hours Per Day</label>
+                        <input type="number" id="calc-hours" value="24" min="1" max="24" class="w-full border rounded p-1 mt-1" oninput="calculateStorage()">
+                    </div>
+                    <div>
+                        <label for="calc-codec" class="block text-sm font-medium">Codec</label>
+                        <select id="calc-codec" class="w-full border rounded p-1 mt-1" onchange="calculateStorage()">
+                            <option value="h264" selected>H.264</option>
+                            <option value="h265">H.265</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="calc-quality" class="block text-sm font-medium">Image Quality</label>
+                        <select id="calc-quality" class="w-full border rounded p-1 mt-1" onchange="calculateStorage()">
+                            <option value="medium" selected>Medium</option>
+                            <option value="low">Low</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+                </div>
+                 <div class="mb-6 p-4 border rounded-lg">
+                    <label for="global-fps" class="block text-sm font-medium">Global FPS Setting</label>
+                    <div class="flex items-center">
+                        <input type="range" id="global-fps" min="1" max="30" value="12" class="w-full" oninput="this.nextElementSibling.textContent = this.value; setGlobalFps(this.value);">
+                        <span class="ml-2" id="global-fps-value">12</span>
+                    </div>
+                </div>
+                <div class="overflow-y-auto" style="max-height: 300px;">
+                    <table class="w-full text-sm" id="storageCalcTable">
+                        <thead class="sticky top-0 bg-white">
+                            <tr class="border-b">
+                                <th class="p-2 text-left">Camera</th>
+                                <th class="p-2 text-left">Resolution</th>
+                                <th class="p-2 text-left">FPS</th>
+                            </tr>
+                        </thead>
+                        <tbody>${tableRows}</tbody>
+                    </table>
+                </div>
+                <div class="mt-6 text-right font-bold text-lg">
+                    <p>Total Required Storage: <span id="totalStorageResult">0.00 TB</span></p>
+                    <p class="text-base font-medium">Total Configured Storage: <span id="totalConfiguredStorage">${totalConfiguredStorage.toFixed(2)} TB</span></p>
+                </div>
+            `;
+            createModal('Storage Calculator', content);
+            calculateStorage();
+        }
+
+        function setGlobalFps(fps) {
+            document.querySelectorAll('.fps-slider').forEach(slider => {
+                slider.value = fps;
+                slider.nextElementSibling.textContent = fps;
+            });
+            calculateStorage();
+        }
+
+        function estimateBitrate(resolution, fps, codec, quality) {
+            let baseBitrate; // Base Mbps for H.265 at 30fps, Medium quality
+            switch (resolution) {
+                case '2MP': baseBitrate = 2; break;
+                case '4MP': baseBitrate = 4; break;
+                case '5MP': baseBitrate = 5; break;
+                case '6MP': baseBitrate = 6; break;
+                case '8MP': baseBitrate = 8; break;
+                case '10MP': baseBitrate = 10; break;
+                case '12MP': baseBitrate = 12; break;
+                case '20MP': baseBitrate = 20; break;
+                default: baseBitrate = 4;
+            }
+            let bitrate = baseBitrate * (fps / 30);
+            if (codec === 'h264') {
+                bitrate *= 1.6;
+            }
+            if(quality === 'low') bitrate *= 0.7;
+            if(quality === 'high') bitrate *= 1.3;
+
+            return bitrate;
+        }
+
+        function calculateStorage() {
+            let totalTb = 0;
+            const days = parseInt(document.getElementById('calc-days').value, 10) || 0;
+            const hoursPerDay = parseInt(document.getElementById('calc-hours').value, 10) || 24;
+            const codec = document.getElementById('calc-codec').value;
+            const quality = document.getElementById('calc-quality').value;
+            
+            const allCameras = [
+                ...configuration.racks.flatMap(r => r.devices.flatMap(d => d.cameras)),
+                ...configuration.cloudCameras,
+                ...configuration.allInOneCameras
+            ];
+
+            const rows = document.querySelectorAll('#storageCalcTable .calc-row');
+            rows.forEach((row, index) => {
+                const cam = allCameras[index];
+                if (!cam) return;
+
+                const resolution = row.cells[1].textContent;
+                const fps = parseInt(row.querySelector('input[type="range"]').value, 10);
+                
+                if (isNaN(days) || days <= 0) return;
+
+                const bitrateMbps = estimateBitrate(resolution, fps, codec, quality);
+                const totalGb = (bitrateMbps * 3600 * hoursPerDay * days) / (8 * 1024);
+                const totalTB = totalGb / 1024;
+                
+                totalTb += (totalTB * cam.quantity);
+            });
+
+            document.getElementById('totalStorageResult').textContent = `${totalTb.toFixed(2)} TB`;
+        }
+
+        
+        
+        // --- EVENT LISTENERS & INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            setupProductData();
+            if (!loadFromLocalStorage()) {
+                renderAll();
+            } else {
+                renderAll();
+            }
+        });
+        resetButton.addEventListener('click', resetConfiguration);
+        exportButton.addEventListener('click', exportToCSV);
+        saveButton.addEventListener('click', saveProjectToFile);
+        loadButton.addEventListener('click', () => loadFileEl.click());
+        loadFileEl.addEventListener('change', loadProjectFromFile);
+        customPartBtn.addEventListener('click', showAddCustomPartModal);
+        addRackButton.addEventListener('click', addRack);
+        storageCalcButton.addEventListener('click', openStorageCalculator);
+        uploadLayoutButton.addEventListener('click', () => layoutFileEl.click());
+        layoutFileEl.addEventListener('change', (e) => window.handleLayoutUpload(e));
+        layoutDesignerButton.addEventListener('click', window.openLayoutDesigner);
+
+        if (addCameraButton) {
+            addCameraButton.addEventListener('click', () => {
+                const cameraSelectionData = {};
+                const cctvCameras = products && products["CCTV Products"] && products["CCTV Products"]["Cameras"];
+                if (cctvCameras) {
+                    cameraSelectionData["NVR-Compatible Cameras"] = cctvCameras;
+                }
+
+                const vigilCloudCameras = products &&
+                    products["Cloud & Standalone Solutions"] &&
+                    products["Cloud & Standalone Solutions"]["VIGIL Cloud"] &&
+                    products["Cloud & Standalone Solutions"]["VIGIL Cloud"]["VIGIL Cloud Cameras"];
+                if (Array.isArray(vigilCloudCameras)) {
+                    cameraSelectionData["VIGIL Cloud Cameras"] = { "VIGIL Cloud Cameras": vigilCloudCameras };
+                }
+
+                const allInOneCameras = products &&
+                    products["Cloud & Standalone Solutions"] &&
+                    products["Cloud & Standalone Solutions"]["All-in-One Cameras"] &&
+                    products["Cloud & Standalone Solutions"]["All-in-One Cameras"]["All-in-One Cameras"];
+                if (Array.isArray(allInOneCameras)) {
+                    cameraSelectionData["All-in-One Cameras"] = { "All-in-One Cameras": allInOneCameras };
+                }
+
+                if (Object.keys(cameraSelectionData).length === 0) {
+                    return createModal('No Cameras Available', '<p>No camera products are currently available.</p>');
+                }
+
+                createProductSelectionModal('Select a Camera', cameraSelectionData, (productId) => {
+                    addProduct(productId);
+                });
+            });
+        }
+
+        if (workflowMenu && workflowTriggers.length) {
+            workflowTriggers.forEach(trigger => {
+                const targetId = trigger.getAttribute('data-target');
+                const panel = targetId ? document.getElementById(targetId) : null;
+                if (panel) {
+                    panel.setAttribute('aria-hidden', 'true');
+                    panel.addEventListener('click', event => event.stopPropagation());
+                }
+
+                trigger.addEventListener('click', event => {
+                    event.stopPropagation();
+                    const isOpen = trigger.getAttribute('aria-expanded') === 'true';
+                    if (isOpen) {
+                        closeWorkflowMenus();
+                        return;
+                    }
+
+                    closeWorkflowMenus();
+                    trigger.setAttribute('aria-expanded', 'true');
+                    const group = trigger.closest('.workflow-group');
+                    if (group) {
+                        group.classList.add('open');
+                    }
+                    if (panel) {
+                        panel.setAttribute('aria-hidden', 'false');
+                    }
+                });
+            });
+
+            document.addEventListener('click', event => {
+                if (workflowMenu && !workflowMenu.contains(event.target)) {
+                    closeWorkflowMenus();
+                }
+            });
+
+            document.addEventListener('keydown', event => {
+                if (event.key === 'Escape') {
+                    const expandedTrigger = Array.from(workflowTriggers).find(btn => btn.getAttribute('aria-expanded') === 'true');
+                    closeWorkflowMenus();
+                    if (expandedTrigger) {
+                        expandedTrigger.focus();
+                    }
+                }
+            });
+
+            workflowActions.forEach(action => {
+                action.addEventListener('click', () => {
+                    closeWorkflowMenus();
+                    const parentGroup = action.closest('.workflow-group');
+                    if (parentGroup) {
+                        parentGroup.querySelector('.workflow-trigger')?.focus();
+                    }
+                });
+            });
+        }
+
+        addNvrButton.addEventListener('click', () => {
+            const recorders = products["CCTV Products"]["Recorders (NVRs & HVRs)"];
+            createProductSelectionModal('Select an NVR/HVR', recorders, (productId) => {
+                addProduct(productId);
+            });
+        });
+
+        addServerButton.addEventListener('click', () => {
+            const servers = products["Access Control Systems"]["Servers & Software"]["infinias Servers"];
+            createProductSelectionModal('Select an Infinias Server', servers, (productId) => {
+                addProduct(productId);
+            });
+        });
+
+        addPoeSwitchButton.addEventListener('click', () => {
+            const switches = products["Networking"]["POE Switches"];
+            createProductSelectionModal('Select a POE Switch', switches, (productId) => {
+                addProduct(productId);
+            });
+        });
+        
+        modalContainer.addEventListener('input', (e) => {
+            if (e.target.id === 'productSearchInput') {
+                const filter = e.target.value.toLowerCase();
+                const items = e.target.nextElementSibling.querySelectorAll('.product-item');
+                items.forEach(item => {
+                    const name = item.dataset.productName;
+                    const desc = item.dataset.productDesc;
+                    item.style.display = (name.includes(filter) || desc.includes(filter)) ? 'flex' : 'none';
+                });
+                // Also check parent accordion headers
+                e.target.nextElementSibling.querySelectorAll('.accordion-header').forEach(header => {
+                    const content = header.nextElementSibling;
+                    const hasVisibleItem = content.querySelector('.product-item[style*="display: flex"]');
+                });
+            }
+        });
+
+        summaryEl.addEventListener('click', function(e) {
+            const header = e.target.closest('.accordion-header');
+            if (header) {
+                header.classList.toggle('active');
+            }
+        });
+        
+        summaryEl.addEventListener('change', function(e) {
+             if (e.target.id === 'autoLicenseToggle') {
+                autoAddLicenses = e.target.checked;
+                configuration.racks.forEach(r => r.devices.forEach(d => {
+                    if(d.product.deviceType === 'nvr') syncNvrLicenses(d);
+                }));
+                renderAll();
+            }
+        });
+        
+        visualizerContent.addEventListener('click', (e) => {
+            const vizRack = e.target.closest('.visualizer-rack');
+            if (vizRack && vizRack.dataset.summaryId) {
+                const summaryElement = document.getElementById(vizRack.dataset.summaryId);
+                if (summaryElement) {
+                    summaryElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    summaryElement.classList.add('flash-error');
+                    setTimeout(() => summaryElement.classList.remove('flash-error'), 1000);
+                }
+            }
+        });
+
+
+        function exportToCSV() {
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += `Project Name:,${configuration.projectName || 'Untitled Project'}\r\n\r\n`;
+            csvContent += "System,Category,Part Number,Description,Quantity,Location\r\n";
+
+            const escapeCSV = (str) => `"${String(str || '').replace(/"/g, '""')}"`;
+            
+            const processDevice = (systemName, device) => {
+                const deviceTypeTitle = device.product.deviceType.charAt(0).toUpperCase() + device.product.deviceType.slice(1);
+                csvContent += `${systemName},${deviceTypeTitle},${device.product.name},${escapeCSV(device.product.description)},1,\r\n`;
+                
+                device.assignedUps.forEach(ups => csvContent += `${systemName},UPS,${ups.name},${escapeCSV(ups.description)},1,\r\n`);
+                device.poeSwitches.forEach(sw => csvContent += `${systemName},POE Switch,${sw.name},${escapeCSV(sw.description)},1,\r\n`);
+                device.doors.forEach(door => csvContent += `${systemName},Door Controller,${door.name},${escapeCSV(door.description)},1,\r\n`);
+                device.cameras.forEach(cam => {
+                    if (cam.isBundleCamera) return; // Skip bundle cameras in CSV
+                    csvContent += `${systemName},Camera,${cam.name},${escapeCSV(cam.description)},${cam.quantity},${escapeCSV(cam.location)}\r\n`;
+                    (cam.selectedMounts || []).forEach(mountId => {
+                        if(mountId) {
+                           const mount = findCompatibleMounts(cam).find(m => m.id === mountId);
+                           if (mount) {
+                                csvContent += `${systemName},Mount,${mount.name},${escapeCSV(mount.description)},${cam.quantity},\r\n`;
+                           }
+                        }
+                    });
+                });
+                ['storage', 'licenses'].forEach(categoryKey => {
+                    const items = device[categoryKey];
+                    let title = categoryKey.charAt(0).toUpperCase() + categoryKey.slice(1);
+                    items.forEach(item => csvContent += `${systemName},${title},${item.name},${escapeCSV(item.description)},${item.quantity},\r\n`);
+                });
+            };
+
+            configuration.cloudServers.forEach((server, index) => {
+                processDevice(`Cloud Server ${index + 1}`, server);
+            });
+
+            configuration.racks.forEach((rack, index) => {
+                const rackName = `Rack ${index + 1}`;
+                rack.devices.forEach((device, devIndex) => {
+                    const systemName = `${rackName} / ${device.product.name}`;
+                    processDevice(systemName, device);
+                });
+            });
+
+             ['cloudCameras', 'allInOneCameras'].forEach(camCategory => {
+                const cameras = configuration[camCategory];
+                const title = camCategory === 'cloudCameras' ? 'VIGIL Cloud Camera' : 'All-in-One Camera';
+                cameras.forEach(cam => {
+                     csvContent += `Standalone,${title},${cam.name},${escapeCSV(cam.description)},${cam.quantity},${escapeCSV(cam.location)}\r\n`;
+                     (cam.selectedMounts || []).forEach(mountId => {
+                        if(mountId) {
+                            const mount = findCompatibleMounts(cam).find(m => m.id === mountId);
+                            if (mount) {
+                                 csvContent += `Standalone,Mount,${mount.name},${escapeCSV(mount.description)},${cam.quantity},\r\n`;
+                            }
+                        }
+                    });
+                });
+            });
+            
+            ['accessControl', 'mounts', 'accessories', 'customParts'].forEach(categoryKey => {
+                const items = configuration[categoryKey];
+                let title = categoryKey.replace(/([A-Z])/g, ' $1');
+                title = title.charAt(0).toUpperCase() + title.slice(1);
+                items.forEach(item => {
+                    csvContent += `Shared,${title},${item.name},${escapeCSV(item.description)},${item.quantity},\r\n`;
+                });
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `${(configuration.projectName || '3xlogic_config').replace(/ /g, '_')}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        printButton.addEventListener('click', async () => {
+            const projectName = configuration.projectName || 'Untitled Project';
+            const printDate = new Date().toLocaleDateString();
+            const logoPlaceholder = `<img src="/3xlogiclogo.png" alt="3xLOGIC Logo" style="width: 150px; height: auto;">`;
+
+            const tableRows = [];
+            const addItem = (system, category, product, qty, location = '', note = '') => {
+                const description = product.description ? `${product.description} ${note}`.trim() : note;
+                tableRows.push(`<tr>
+                    <td><img src="${product.image || '/cameras/missing.jpg'}" class="print-img"></td>
+                    <td>${system}</td>
+                    <td>${category}</td>
+                    <td>${product.name}</td>
+                    <td>${description}</td>
+                    <td>${location}</td>
+                    <td class="qty">${qty}</td>
+                </tr>`);
+            };
+
+            const processDeviceForPrint = (systemName, device) => {
+                const deviceTypeTitle = device.product.deviceType.charAt(0).toUpperCase() + device.product.deviceType.slice(1);
+                addItem(systemName, deviceTypeTitle, device.product, 1);
+                
+                device.assignedUps.forEach(ups => addItem(systemName, 'UPS', ups, 1));
+                device.poeSwitches.forEach(sw => addItem(systemName, 'POE Switch', sw, 1));
+                device.doors.forEach(door => addItem(systemName, 'Door Controller', door, 1));
+                device.storage.forEach(p => addItem(systemName, 'Storage', p, p.quantity));
+                device.licenses.forEach(p => addItem(systemName, 'Camera License', p, p.quantity));
+                device.cameras.forEach(cam => {
+                    const note = cam.isBundleCamera ? '(Included with NVR bundle)' : '';
+                    addItem(systemName, 'Camera', cam, cam.quantity, cam.location, note);
+                    (cam.selectedMounts || []).filter(m => m).forEach(mountId => {
+                        const mount = findCompatibleMounts(cam).find(m => m.id === mountId);
+                        if (mount) {
+                            addItem(systemName, 'Mount', mount, cam.quantity);
+                        }
+                    });
+                });
+            };
+
+            configuration.cloudServers.forEach((server, index) => {
+                processDeviceForPrint(`Cloud Server ${index + 1}`, server);
+            });
+
+            configuration.racks.forEach((rack, index) => {
+                const rackName = `Rack ${index + 1}`;
+                rack.devices.forEach((device, devIndex) => {
+                    processDeviceForPrint(`${rackName} / ${device.product.name}`, device);
+                });
+            });
+
+             ['cloudCameras', 'allInOneCameras'].forEach(camCategory => {
+                const cameras = configuration[camCategory];
+                const title = camCategory === 'cloudCameras' ? 'VIGIL Cloud Camera' : 'All-in-One Camera';
+                cameras.forEach(cam => {
+                     addItem('Standalone', title, cam, cam.quantity, cam.location);
+                     (cam.selectedMounts || []).filter(m => m).forEach(mountId => {
+                        const mount = findCompatibleMounts(cam).find(m => m.id === mountId);
+                        if (mount) {
+                             addItem('Standalone', 'Mount', mount, cam.quantity);
+                        }
+                    });
+                });
+            });
+            
+            ['accessControl', 'mounts', 'accessories', 'customParts'].forEach(categoryKey => {
+                const items = configuration[categoryKey];
+                if (items.length > 0) {
+                    let title = categoryKey.replace(/([A-Z])/g, ' $1');
+                    title = title.charAt(0).toUpperCase() + title.slice(1);
+                    items.forEach(item => addItem('Shared', title, item, item.quantity));
+                }
+            });
+
+            const notes = document.getElementById('notes').value;
+            const visualizerClone = document.getElementById('visualizer').cloneNode(true);
+            visualizerClone.style.position = 'static';
+            visualizerClone.querySelector('#visualizer-drag-handle').remove();
+
+            const layoutData = await getLayoutCanvasAsImage();
+            let layoutHtml = '';
+            if (layoutData) {
+                layoutHtml = `<div class="camera-layout-print">
+                    <h2>Camera Layout</h2>
+                    <div class="layout-container">
+                        <div class="layout-image"><img src="${layoutData.image}"></div>
+                        ${layoutData.legend}
+                    </div>
+                </div>`;
+            }
+
+            const printWindow = window.open('', '', 'height=800,width=1200');
+            printWindow.document.write(`<html><head><title>Configuration Summary - ${projectName}</title>
+            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+            <style>
+                body { font-family: "Inter", sans-serif; margin: 0; padding: 25px; font-size: 10pt; }
+                @page { size: letter; margin: 0.75in; }
+                .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #221e1f; padding-bottom: 15px; margin-bottom: 25px; }
+                .project-info h1 { font-size: 20pt; margin: 0; color: #221e1f; }
+                .project-info p { font-size: 11pt; margin: 5px 0 0; color: #4b4546; }
+                table { width: 100%; border-collapse: collapse; margin-top: 25px; page-break-inside: avoid; }
+                th, td { border: 1px solid rgba(34, 30, 31, 0.2); padding: 8px 10px; text-align: left; vertical-align: top; }
+                thead { background-color: #f6f7fb; }
+                th { font-size: 11pt; font-weight: 600; color: #221e1f; }
+                tr:nth-child(even) { background-color: #f6f7fb; }
+                td { color: #221e1f; }
+                td.qty { text-align: center; }
+                .notes { margin-top: 30px; border-top: 1px solid rgba(34, 30, 31, 0.2); padding-top: 15px; page-break-before: auto; page-break-inside: avoid; }
+                .notes h3 { font-size: 12pt; margin:0 0 10px 0; }
+                .notes p { white-space: pre-wrap; }
+                .print-img { max-width: 60px; max-height: 60px; object-fit: contain; }
+                .visualizer-print { background-color: #f6f7fb; padding: 1rem; border-radius: 0.5rem; border: 1px solid rgba(34, 30, 31, 0.2); page-break-inside: avoid; margin-bottom: 25px; }
+                .visualizer-print h2 { text-align: center; font-size: 1.5rem; font-weight: 600; margin-bottom: 1rem; color: #221e1f; }
+                .rack { border: 2px solid rgba(34, 30, 31, 0.55); border-radius: 8px; padding: 10px; background-color: #f6f7fb; width: 100%; min-height: 100px; display: flex; flex-direction: column; justify-content: flex-start; }
+                .rack-unit { border: 1px solid rgba(34, 30, 31, 0.35); border-radius: 4px; margin-bottom: 5px; color: #221e1f; display: flex; align-items: center; justify-content: center; font-family: monospace; font-size: 10px; background-size: contain; background-repeat: no-repeat; background-position: center; }
+                .nvr-1u { height: 22px; } .nvr-2u { height: 44px; } .server-1u { height: 22px; } .server-2u { height: 44px; } .switch-1u { height: 22px; }
+                .camera-layout-print { page-break-before: always; padding-top: 1in; }
+                .layout-container { display: flex; gap: 20px; align-items: flex-start; }
+                .layout-image { flex-grow: 1; max-width: 70%; }
+                .layout-image img { width: 100%; height: auto; border: 1px solid rgba(34, 30, 31, 0.2); }
+                .layout-legend { border: 1px solid rgba(34, 30, 31, 0.2); padding: 10px; width: 30%; font-size: 9pt; }
+                .layout-legend ol { list-style-position: inside; padding-left: 0; margin: 0; }
+                .layout-legend li { margin-bottom: 5px; }
+            </style>
+            </head><body>
+                <header class="header">
+                    <div>${logoPlaceholder}</div>
+                    <div class="project-info" style="text-align: right;">
+                        <h1>Configuration Quote</h1>
+                        <p><strong>Project:</strong> ${projectName}</p>
+                        <p><strong>Date:</strong> ${printDate}</p>
+                    </div>
+                </header>
+                <div class="visualizer-print">
+                    <h2>Visual Summary</h2>
+                    ${visualizerClone.innerHTML.replace(/<h5[^>]*>.*?<\/h5>/g, '').replace(/<div class="progress-bar-bg">.*?<\/div><\/div>/g, '')}
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 8%;">Image</th>
+                            <th style="width: 20%;">System</th>
+                            <th style="width: 15%;">Category</th>
+                            <th style="width: 20%;">Part #</th>
+                            <th>Description</th>
+                            <th style="width: 15%;">Location</th>
+                            <th style="width: 5%;">Qty</th>
+                        </tr>
+                    </thead>
+                    <tbody>${tableRows.join('')}</tbody>
+                </table>
+            `);
+
+            if (notes) {
+                printWindow.document.write('<div class="notes"><h3>Notes:</h3><p>' + notes.replace(/\n/g, '<br>') + '</p></div>');
+            }
+            
+            if(layoutHtml) {
+                printWindow.document.write(layoutHtml);
+            }
+
+            printWindow.document.write('</body></html>');
+            printWindow.document.close();
+            
+            setTimeout(() => {
+                printWindow.print();
+            }, 500);
+        });
+
+    </script>
+  </body>
+</html>
