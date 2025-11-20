@@ -599,9 +599,102 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.08);
         }
 
+        /* Beta access gate */
+        #app-container {
+            display: none;
+        }
+
+        #app-container.authenticated {
+            display: flex;
+        }
+
+        .auth-overlay {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(145deg, rgba(34, 30, 31, 0.9), rgba(194, 32, 51, 0.85));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            z-index: 3000;
+            color: #f6f7fb;
+        }
+
+        .auth-card {
+            background: rgba(246, 247, 251, 0.1);
+            border: 1px solid rgba(246, 247, 251, 0.18);
+            border-radius: 1.25rem;
+            padding: 2rem;
+            max-width: 440px;
+            width: 100%;
+            box-shadow: 0 18px 38px -18px rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(12px);
+        }
+
+        .auth-lock-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(246, 247, 251, 0.12);
+            border: 1px solid rgba(246, 247, 251, 0.2);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            color: #fcd34d;
+        }
+
+        .auth-input {
+            width: 100%;
+            padding: 0.75rem 0.9rem;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(246, 247, 251, 0.25);
+            background: rgba(246, 247, 251, 0.12);
+            color: #f6f7fb;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .auth-input:focus {
+            border-color: rgba(252, 211, 77, 0.8);
+            box-shadow: 0 0 0 3px rgba(252, 211, 77, 0.25);
+        }
+
+        .auth-error {
+            display: none;
+            margin-top: 0.75rem;
+            color: #fca5a5;
+            font-weight: 600;
+        }
+
+        .auth-error.show {
+            display: block;
+        }
+
     </style>
 </head>
 <body class="page-shell text-slate-900">
+    <div id="auth-overlay" class="auth-overlay">
+        <div class="auth-card">
+            <div class="auth-lock-icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" class="w-6 h-6">
+                    <path d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5Zm3 8H9V7a3 3 0 1 1 6 0v3Zm-3 5a1.5 1.5 0 0 0-1.5 1.5v1a1.5 1.5 0 1 0 3 0v-1A1.5 1.5 0 0 0 12 15Z" />
+                </svg>
+            </div>
+            <h2 class="text-2xl font-semibold text-white">Beta Access Required</h2>
+            <p class="text-slate-200 mt-2 text-sm">This preview is protected. Please enter the beta password to continue.</p>
+            <form id="auth-form" class="mt-6 space-y-4">
+                <div>
+                    <label for="auth-password" class="block text-sm font-semibold text-slate-100 mb-2">Password</label>
+                    <input id="auth-password" name="password" type="password" autocomplete="current-password" class="auth-input" placeholder="Enter beta password" required />
+                </div>
+                <button type="submit" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 text-slate-900 font-semibold shadow-lg shadow-amber-500/30 hover:shadow-amber-500/50 transition">
+                    Unlock Experience
+                </button>
+                <p id="auth-error" class="auth-error">Incorrect password. Please try again.</p>
+            </form>
+        </div>
+    </div>
     <div id="sidebar-overlay" class="sidebar-overlay"></div>
     <div id="app-container" class="flex-1 flex flex-col">
         <header class="app-header">
@@ -726,6 +819,47 @@
     <script src="products.js"></script>
     <script src="state-manager.js"></script>
     <script>
+        const AUTH_STORAGE_KEY = '3xlogic-beta-access';
+        const appContainer = document.getElementById('app-container');
+        const authOverlay = document.getElementById('auth-overlay');
+        const authForm = document.getElementById('auth-form');
+        const authPasswordInput = document.getElementById('auth-password');
+        const authError = document.getElementById('auth-error');
+
+        function grantBetaAccess() {
+            appContainer.classList.add('authenticated');
+            authOverlay.classList.add('hidden');
+            authPasswordInput.value = '';
+            authError.classList.remove('show');
+            localStorage.setItem(AUTH_STORAGE_KEY, 'true');
+        }
+
+        function initializeBetaGate() {
+            if (!appContainer || !authOverlay || !authForm || !authPasswordInput || !authError) return;
+
+            if (localStorage.getItem(AUTH_STORAGE_KEY) === 'true') {
+                grantBetaAccess();
+                return;
+            }
+
+            authOverlay.classList.remove('hidden');
+            appContainer.classList.remove('authenticated');
+            authPasswordInput.focus();
+
+            authForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                if (authPasswordInput.value === '3xtest!') {
+                    authError.classList.remove('show');
+                    grantBetaAccess();
+                } else {
+                    authError.classList.add('show');
+                    authPasswordInput.focus();
+                }
+            });
+        }
+
+        initializeBetaGate();
+
         // --- DATA ---
         window.configuration = window.AppState.createInitialConfiguration(window.configuration);
         document.dispatchEvent(new Event('ldz:configuration-ready'));
